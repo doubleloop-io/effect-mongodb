@@ -34,7 +34,8 @@
     "test": "vitest",
     "coverage": "vitest --coverage",
     "lint": "eslint \"**/{src,test,examples,scripts,dtslint}/**/*.{ts,mjs}\"",
-    "lint-fix": "pnpm lint --fix"
+    "lint-fix": "pnpm lint --fix",
+    "check-source-state": "git add src && git diff-index --cached HEAD --exit-code src"
   },
   "peerDependencies": {
     "@effect/schema": "^0.68.17",
