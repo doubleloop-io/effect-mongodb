@@ -6,6 +6,7 @@ import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import * as Stream from "effect/Stream"
 import type { Collection, Document, Filter, FindOptions } from "mongodb"
+import * as FindCursor from "./FindCursor.js"
 import * as MongoError from "./MongoError.js"
 
 export const find: {
@@ -29,6 +30,15 @@ export const find: {
     Stream.fromAsyncIterable(collection.find<T>(filter ?? {}, options), (x) => x),
     Stream.catchAll(MongoError.mongoErrorDie<T>("find error"))
   ))
+
+export const findV2 = <T extends Document = Document>(
+  collection: Collection<T>
+): FindCursor.FindCursor =>
+  new FindCursor.FindCursor(
+    {
+      cursor: collection.find()
+    }
+  )
 
 export const toArray = F.flow(
   Stream.runCollect,
