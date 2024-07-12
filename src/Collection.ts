@@ -1,3 +1,6 @@
+/**
+ * @since 0.0.1
+ */
 import * as Chunk from "effect/Chunk"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"

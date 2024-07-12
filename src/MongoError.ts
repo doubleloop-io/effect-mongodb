@@ -1,3 +1,6 @@
+/**
+ * @since 0.0.1
+ */
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"

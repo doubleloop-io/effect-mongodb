@@ -1,3 +1,6 @@
+/**
+ * @since 0.0.1
+ */
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import type { Collection, Db, Document } from "mongodb"
