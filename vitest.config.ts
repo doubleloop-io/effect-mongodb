@@ -11,6 +11,7 @@ export default defineConfig({
     alias: {
       "@doubleloop-io/effect-mongodb": path.join(__dirname, "src"),
       "@doubleloop-io/effect-mongodb/test": path.join(__dirname, "test")
-    }
+    },
+    globalSetup: ["./test/globalSetup/mongodb.ts"]
   }
 })
