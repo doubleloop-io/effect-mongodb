@@ -21,8 +21,7 @@ describeMongo("TypedFindCursor", (ctx) => {
         Collection.insertMany(collection, anyTestEntities.map((x) => encodeTestEntity(x)))
       )
 
-      // TODO: make FindCursor.typed dual
-      return yield* _(Collection.findV2(collection), (x) => FindCursor.typed(x, TestEntity), TypedFindCursor.toArray)
+      return yield* _(Collection.findV2(collection), FindCursor.typed(TestEntity), TypedFindCursor.toArray)
     })
 
     const result = await Effect.runPromise(program)
