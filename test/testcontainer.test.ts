@@ -3,7 +3,7 @@ import { describeMongo } from "./support/descrive-mongo.js"
 
 describeMongo("test containers", (ctx) => {
   test("insert and find", async () => {
-    const db = ctx.database()
+    const db = ctx._database()
     const users = db.collection("users")
 
     await users.insertMany([

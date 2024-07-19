@@ -9,7 +9,7 @@ import { describeMongo } from "./support/descrive-mongo.js"
 describeMongo("Collection", (ctx) => {
   test("insert and find", async () => {
     const program = Effect.gen(function*(_) {
-      const db = yield* _(Effect.sync(() => ctx.database()))
+      const db = yield* _(ctx.database)
       const collection = yield* _(Db.collection(db, "users"))
 
       yield* _(Collection.insertOne(collection, { name: "John" }))

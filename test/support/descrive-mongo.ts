@@ -1,10 +1,13 @@
+import * as Effect from "effect/Effect"
 import type { Db } from "mongodb"
 import { MongoClient } from "mongodb"
 import { beforeAll, beforeEach, inject } from "vitest"
 
 type MongoContext = {
-  client: () => MongoClient
-  database: () => Db
+  client: Effect.Effect<MongoClient>
+  database: Effect.Effect<Db>
+  _client: () => MongoClient
+  _database: () => Db
 }
 
 export const describeMongo = (suiteName: string, tests: (ctx: MongoContext) => void) => {
@@ -26,5 +29,10 @@ export const describeMongo = (suiteName: string, tests: (ctx: MongoContext) => v
     await Promise.all(collections.map((x) => database.dropCollection(x.collectionName)))
   })
 
-  tests({ client: () => client, database: () => database })
+  tests({
+    _client: () => client,
+    _database: () => database,
+    client: Effect.sync(() => client),
+    database: Effect.sync(() => database)
+  })
 }
