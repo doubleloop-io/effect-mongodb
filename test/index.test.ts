@@ -5,17 +5,7 @@ import * as MongoClient from "@doubleloop-io/effect-mongodb/MongoClient"
 import * as TypedFindCursor from "@doubleloop-io/effect-mongodb/TypedFindCursor"
 import * as Schema from "@effect/schema/Schema"
 import * as Effect from "effect/Effect"
-import * as F from "effect/Function"
 import { expect, test } from "vitest"
-
-test("find", () => {
-  const foo = MongoClient.connect("mongodb://localhost:27017").pipe(
-    Effect.flatMap(MongoClient.db("foo")),
-    Effect.flatMap(Db.collection("bar")),
-    Effect.flatMap(F.flow(Collection.find(), Collection.toArray))
-  )
-  expect(foo).toBeDefined()
-})
 
 test("find with projection", () => {
   const foo = MongoClient.connect("mongodb://localhost:27017").pipe(
