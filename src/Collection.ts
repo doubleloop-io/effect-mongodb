@@ -5,7 +5,15 @@ import * as Chunk from "effect/Chunk"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import * as Stream from "effect/Stream"
-import type { Collection, Document, Filter, FindOptions } from "mongodb"
+import type {
+  Collection,
+  Document,
+  Filter,
+  FindOptions,
+  InsertOneOptions,
+  InsertOneResult,
+  OptionalUnlessRequiredId
+} from "mongodb"
 import * as FindCursor from "./FindCursor.js"
 import * as MongoError from "./MongoError.js"
 
@@ -39,6 +47,28 @@ export const findV2 = <T extends Document = Document>(
       cursor: collection.find()
     }
   )
+
+export const insertOne: {
+  <T extends Document = Document>(
+    doc: OptionalUnlessRequiredId<T>,
+    options?: InsertOneOptions
+  ): (
+    collection: Collection<T>
+  ) => Effect.Effect<InsertOneResult<T>, MongoError.MongoError>
+  <T extends Document = Document>(
+    collection: Collection<T>,
+    doc: OptionalUnlessRequiredId<T>,
+    options?: InsertOneOptions
+  ): Effect.Effect<InsertOneResult<T>, MongoError.MongoError>
+} = F.dual(3, <T extends Document = Document>(
+  collection: Collection<T>,
+  doc: OptionalUnlessRequiredId<T>,
+  options?: InsertOneOptions
+): Effect.Effect<InsertOneResult<T>, MongoError.MongoError> =>
+  F.pipe(
+    Effect.promise(() => collection.insertOne(doc, options)),
+    Effect.catchAllDefect(MongoError.mongoErrorDie<InsertOneResult<T>>("insertOne error"))
+  ))
 
 export const toArray = F.flow(
   Stream.runCollect,
