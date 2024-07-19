@@ -16,7 +16,7 @@ export const describeMongo = (suiteName: string, tests: (ctx: MongoContext) => v
   let databaseName: string
 
   beforeAll(async () => {
-    client = await MongoClient.connect(inject("mongoConnectionString"), { directConnection: true })
+    client = new MongoClient(inject("mongoConnectionString"), { directConnection: true })
     await client.connect()
 
     // https://www.mongodb.com/docs/v5.2/reference/limits/#mongodb-limit-Database-Name-Case-Sensitivity
@@ -26,7 +26,7 @@ export const describeMongo = (suiteName: string, tests: (ctx: MongoContext) => v
 
   beforeEach(async () => {
     const collections = await database.collections()
-    await Promise.all(collections.map((x) => database.dropCollection(x.collectionName)))
+    await Promise.all(collections.map((x) => x.deleteMany({})))
   })
 
   afterAll(async () => {
