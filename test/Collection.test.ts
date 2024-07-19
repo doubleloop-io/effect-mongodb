@@ -12,8 +12,7 @@ describeMongo("Collection", (ctx) => {
       const db = yield* _(Effect.sync(() => ctx.database()))
       const collection = yield* _(Db.collection(db, "users"))
 
-      // FIXME: for some reason, if you don't pass the options it won't work
-      yield* _(Collection.insertOne(collection, { name: "John" }, undefined))
+      yield* _(Collection.insertOne(collection, { name: "John" }))
 
       return yield* _(Collection.findV2(collection), FindCursor.toArray)
     })

@@ -6,7 +6,6 @@ import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import * as Stream from "effect/Stream"
 import type {
-  Collection,
   Document,
   Filter,
   FindOptions,
@@ -14,6 +13,7 @@ import type {
   InsertOneResult,
   OptionalUnlessRequiredId
 } from "mongodb"
+import { Collection } from "mongodb"
 import * as FindCursor from "./FindCursor.js"
 import * as MongoError from "./MongoError.js"
 
@@ -60,7 +60,7 @@ export const insertOne: {
     doc: OptionalUnlessRequiredId<T>,
     options?: InsertOneOptions
   ): Effect.Effect<InsertOneResult<T>, MongoError.MongoError>
-} = F.dual(3, <T extends Document = Document>(
+} = F.dual((args) => isCollection(args[0]), <T extends Document = Document>(
   collection: Collection<T>,
   doc: OptionalUnlessRequiredId<T>,
   options?: InsertOneOptions
@@ -74,3 +74,5 @@ export const toArray = F.flow(
   Stream.runCollect,
   Effect.map(Chunk.toReadonlyArray)
 )
+
+const isCollection = (x: unknown) => x instanceof Collection
