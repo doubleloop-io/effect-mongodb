@@ -4,7 +4,7 @@ import * as FindCursor from "@doubleloop-io/effect-mongodb/FindCursor"
 import * as Effect from "effect/Effect"
 import { ObjectId } from "mongodb"
 import { expect, test } from "vitest"
-import { describeMongo } from "./support/descrive-mongo.js"
+import { describeMongo } from "./support/describe-mongo.js"
 
 describeMongo("Collection", (ctx) => {
   test("insert and find", async () => {

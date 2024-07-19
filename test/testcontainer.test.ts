@@ -1,5 +1,5 @@
 import { expect, test } from "vitest"
-import { describeMongo } from "./support/descrive-mongo.js"
+import { describeMongo } from "./support/describe-mongo.js"
 
 describeMongo("test containers", (ctx) => {
   test("insert and find", async () => {
