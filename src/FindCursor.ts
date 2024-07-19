@@ -1,3 +1,6 @@
+/**
+ * @since 0.0.1
+ */
 import type * as Schema from "@effect/schema/Schema"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
