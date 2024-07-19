@@ -6,9 +6,11 @@ import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import * as Stream from "effect/Stream"
 import type {
+  BulkWriteOptions,
   Document,
   Filter,
   FindOptions,
+  InsertManyResult,
   InsertOneOptions,
   InsertOneResult,
   OptionalUnlessRequiredId
@@ -68,6 +70,28 @@ export const insertOne: {
   F.pipe(
     Effect.promise(() => collection.insertOne(doc, options)),
     Effect.catchAllDefect(MongoError.mongoErrorDie<InsertOneResult<T>>("insertOne error"))
+  ))
+
+export const insertMany: {
+  <T extends Document = Document>(
+    docs: Array<OptionalUnlessRequiredId<T>>,
+    options?: BulkWriteOptions
+  ): (
+    collection: Collection<T>
+  ) => Effect.Effect<InsertOneResult<T>, MongoError.MongoError>
+  <T extends Document = Document>(
+    collection: Collection<T>,
+    docs: Array<OptionalUnlessRequiredId<T>>,
+    options?: BulkWriteOptions
+  ): Effect.Effect<InsertOneResult<T>, MongoError.MongoError>
+} = F.dual((args) => isCollection(args[0]), <T extends Document = Document>(
+  collection: Collection<T>,
+  docs: Array<OptionalUnlessRequiredId<T>>,
+  options?: BulkWriteOptions
+): Effect.Effect<InsertManyResult<T>, MongoError.MongoError> =>
+  F.pipe(
+    Effect.promise(() => collection.insertMany(docs, options)),
+    Effect.catchAllDefect(MongoError.mongoErrorDie<InsertManyResult<T>>("insertMany error"))
   ))
 
 export const toArray = F.flow(
