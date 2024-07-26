@@ -47,6 +47,16 @@ export const sort: {
     new FindCursor({ cursor: cursor.cursor.sort(sort, direction) })
 )
 
+export const limit: {
+  (
+    value: number
+  ): (cursor: FindCursor) => FindCursor
+  (cursor: FindCursor, value: number): FindCursor
+} = F.dual(
+  2,
+  (cursor: FindCursor, value: number): FindCursor => new FindCursor({ cursor: cursor.cursor.limit(value) })
+)
+
 export const toArray = (cursor: FindCursor): Effect.Effect<ReadonlyArray<unknown>> =>
   Effect.promise(() => cursor.cursor.toArray())
 

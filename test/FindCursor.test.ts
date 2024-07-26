@@ -94,4 +94,35 @@ describeMongo("FindCursor", (ctx) => {
       expect.objectContaining({ id: 5 })
     ])
   })
+
+  test("limit", async () => {
+    const program = Effect.gen(function*(_) {
+      const db = yield* _(ctx.database)
+      const collection = yield* _(Db.collection(db, "limit"))
+
+      yield* _(
+        Collection.insertMany(collection, [
+          { id: 1 },
+          { id: 2 },
+          { id: 3 },
+          { id: 4 },
+          { id: 5 }
+        ])
+      )
+
+      return yield* _(
+        Collection.findV2(collection),
+        FindCursor.limit(3),
+        FindCursor.toArray
+      )
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result).toEqual([
+      expect.objectContaining({ id: 1 }),
+      expect.objectContaining({ id: 2 }),
+      expect.objectContaining({ id: 3 })
+    ])
+  })
 })
