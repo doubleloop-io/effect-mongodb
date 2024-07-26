@@ -5,7 +5,7 @@ import type * as Schema from "@effect/schema/Schema"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
-import type { Document, FindCursor as FindCursor_ } from "mongodb"
+import type { Document, FindCursor as FindCursor_, Sort, SortDirection } from "mongodb"
 import * as TypedFindCursor from "./TypedFindCursor.js"
 
 export class FindCursor extends Data.TaggedClass("FindCursor")<{
@@ -35,6 +35,18 @@ export const project: {
     new FindCursor({ cursor: cursor.cursor.project(value) })
 )
 
+export const sort: {
+  (
+    sort: Sort | string,
+    direction?: SortDirection
+  ): (cursor: FindCursor) => FindCursor
+  (cursor: FindCursor, sort: Sort | string, direction?: SortDirection): FindCursor
+} = F.dual(
+  (args) => isFindCursor(args[0]),
+  (cursor: FindCursor, sort: Sort | string, direction?: SortDirection): FindCursor =>
+    new FindCursor({ cursor: cursor.cursor.sort(sort, direction) })
+)
+
 export const toArray = (cursor: FindCursor): Effect.Effect<ReadonlyArray<unknown>> =>
   Effect.promise(() => cursor.cursor.toArray())
 
@@ -51,3 +63,5 @@ export const typed: {
   schema: Schema.Schema<A, I, R>
 ): TypedFindCursor.TypedFindCursor<A, I, R> =>
   new TypedFindCursor.TypedFindCursor<A, I, R>({ cursor: cursor.cursor, schema }))
+
+const isFindCursor = (x: unknown) => x instanceof FindCursor

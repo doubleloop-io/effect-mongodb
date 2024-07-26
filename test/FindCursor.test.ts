@@ -61,4 +61,37 @@ describeMongo("FindCursor", (ctx) => {
       { id: 3, type: "User", createdTime: now }
     ])
   })
+
+  test("sort", async () => {
+    const program = Effect.gen(function*(_) {
+      const db = yield* _(ctx.database)
+      const collection = yield* _(Db.collection(db, "sort"))
+
+      yield* _(
+        Collection.insertMany(collection, [
+          { id: 4 },
+          { id: 2 },
+          { id: 5 },
+          { id: 3 },
+          { id: 1 }
+        ])
+      )
+
+      return yield* _(
+        Collection.findV2(collection),
+        FindCursor.sort({ id: 1 }),
+        FindCursor.toArray
+      )
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result).toEqual([
+      expect.objectContaining({ id: 1 }),
+      expect.objectContaining({ id: 2 }),
+      expect.objectContaining({ id: 3 }),
+      expect.objectContaining({ id: 4 }),
+      expect.objectContaining({ id: 5 })
+    ])
+  })
 })
