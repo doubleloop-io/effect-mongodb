@@ -4,6 +4,7 @@
 import * as Chunk from "effect/Chunk"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
+import * as O from "effect/Option"
 import * as Stream from "effect/Stream"
 import type {
   BulkWriteOptions,
@@ -49,6 +50,32 @@ export const findV2 = <T extends Document = Document>(
       cursor: collection.find()
     }
   )
+
+export const findOne: {
+  <T extends Document = Document>(
+    filter: Filter<T>,
+    options?: FindOptions
+  ): (
+    collection: Collection<T>
+  ) => Effect.Effect<O.Option<T>, MongoError.MongoError>
+  <T extends Document = Document>(
+    collection: Collection<T>,
+    filter: Filter<T>,
+    options?: FindOptions
+  ): Effect.Effect<O.Option<T>, MongoError.MongoError>
+} = F.dual(
+  (args) => isCollection(args[0]),
+  <T extends Document = Document>(
+    collection: Collection<T>,
+    filter: Filter<T>,
+    options?: FindOptions
+  ): Effect.Effect<O.Option<T>, MongoError.MongoError> =>
+    F.pipe(
+      Effect.promise(() => collection.findOne(filter, options)),
+      Effect.map((value) => O.fromNullable(value)),
+      Effect.catchAllDefect(MongoError.mongoErrorDie<O.Option<T>>("findOne error"))
+    )
+)
 
 export const insertOne: {
   <T extends Document = Document>(
