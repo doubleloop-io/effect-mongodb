@@ -20,28 +20,6 @@ import { Collection } from "mongodb"
 import * as FindCursor from "./FindCursor.js"
 import * as MongoError from "./MongoError.js"
 
-export const find: {
-  <T extends Document = Document>(
-    filter?: Filter<T>,
-    options?: FindOptions
-  ): (
-    collection: Collection<T>
-  ) => Stream.Stream<T, MongoError.MongoError>
-  <T extends Document = Document>(
-    collection: Collection<T>,
-    filter?: Filter<T>,
-    options?: FindOptions
-  ): Stream.Stream<T, MongoError.MongoError>
-} = F.dual(3, <T extends Document = Document>(
-  collection: Collection<T>,
-  filter?: Filter<T>,
-  options?: FindOptions
-): Stream.Stream<T, MongoError.MongoError> =>
-  F.pipe(
-    Stream.fromAsyncIterable(collection.find<T>(filter ?? {}, options), (x) => x),
-    Stream.catchAll(MongoError.mongoErrorDie<T>("find error"))
-  ))
-
 export const findV2 = <T extends Document = Document>(
   collection: Collection<T>
 ): FindCursor.FindCursor =>
