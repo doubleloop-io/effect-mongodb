@@ -11,17 +11,17 @@ import { describeMongo } from "./support/describe-mongo.js"
 
 describeMongo("TypedFindCursor", (ctx) => {
   test("decode documents with schema", async () => {
-    const anyTestEntities = FastCheck.sample(TestEntityArbitrary, 3)
+    const anyTestEntities = FastCheck.sample(UserArbitrary, 3)
 
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(Db.collection<TestEntityEncoded>(db, "decode-documents-with-schema"))
+      const collection = yield* _(Db.collection<UserEncoded>(db, "decode-documents-with-schema"))
 
       yield* _(
-        Collection.insertMany(collection, anyTestEntities.map((x) => encodeTestEntity(x)))
+        Collection.insertMany(collection, anyTestEntities.map((x) => encodeUser(x)))
       )
 
-      return yield* _(Collection.findV2(collection), FindCursor.typed(TestEntity), TypedFindCursor.toArray)
+      return yield* _(Collection.findV2(collection), FindCursor.typed(User), TypedFindCursor.toArray)
     })
 
     const result = await Effect.runPromise(program)
@@ -30,10 +30,10 @@ describeMongo("TypedFindCursor", (ctx) => {
   })
 })
 
-const TestEntity = Schema.Struct({
+const User = Schema.Struct({
   id: Schema.Number,
   name: Schema.String
 })
-type TestEntityEncoded = typeof TestEntity.Encoded
-const TestEntityArbitrary = Arbitrary.make(TestEntity)
-const encodeTestEntity = Schema.encodeSync(TestEntity)
+type UserEncoded = typeof User.Encoded
+const UserArbitrary = Arbitrary.make(User)
+const encodeUser = Schema.encodeSync(User)
