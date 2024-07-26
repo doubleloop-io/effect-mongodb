@@ -125,4 +125,39 @@ describeMongo("FindCursor", (ctx) => {
       expect.objectContaining({ id: 3 })
     ])
   })
+
+  test("many operations", async () => {
+    const beforeJuly = "2024-07-01T00:00:00.000Z"
+
+    const program = Effect.gen(function*(_) {
+      const db = yield* _(ctx.database)
+      const collection = yield* _(Db.collection(db, "many-operations"))
+
+      yield* _(
+        Collection.insertMany(collection, [
+          { id: 2, type: "Admin", createdOn: "2024-06-26T21:15:00.000Z" },
+          { id: 3, type: "User", createdOn: "2024-07-26T09:30:00.000Z" },
+          { id: 1, type: "User", createdOn: "2024-04-19T17:45:00.000Z" },
+          { id: 5, type: "User", createdOn: "2024-05-26T09:30:00.000Z" },
+          { id: 4, type: "User", createdOn: "2024-07-05T15:00:00.000Z" }
+        ])
+      )
+
+      return yield* _(
+        Collection.findV2(collection),
+        FindCursor.filter({ createdOn: { $lt: beforeJuly } }),
+        FindCursor.sort("createdOn", "ascending"),
+        FindCursor.project({ _id: 0, createdOn: 0 }),
+        FindCursor.limit(2),
+        FindCursor.toArray
+      )
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result).toEqual([
+      expect.objectContaining({ id: 1 }),
+      expect.objectContaining({ id: 5 })
+    ])
+  })
 })
