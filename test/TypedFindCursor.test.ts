@@ -21,7 +21,7 @@ describeMongo("TypedFindCursor", (ctx) => {
         Collection.insertMany(collection, anyTestEntities.map((x) => encodeUser(x)))
       )
 
-      return yield* _(Collection.findV2(collection), FindCursor.typed(User), TypedFindCursor.toArray)
+      return yield* _(Collection.find(collection), FindCursor.typed(User), TypedFindCursor.toArray)
     })
 
     const result = await Effect.runPromise(program)
@@ -41,7 +41,7 @@ describeMongo("TypedFindCursor", (ctx) => {
       )
 
       return yield* _(
-        Collection.findV2(collection),
+        Collection.find(collection),
         FindCursor.typed(User),
         TypedFindCursor.project(UserStats, { id: 1, nameLength: { $strLenCP: "$name" } }),
         TypedFindCursor.toArray

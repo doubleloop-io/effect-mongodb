@@ -20,7 +20,7 @@ describeMongo("FindCursor", (ctx) => {
         ])
       )
 
-      return yield* _(Collection.findV2(collection), FindCursor.filter({ type: "Admin" }), FindCursor.toArray)
+      return yield* _(Collection.find(collection), FindCursor.filter({ type: "Admin" }), FindCursor.toArray)
     })
 
     const result = await Effect.runPromise(program)
@@ -47,7 +47,7 @@ describeMongo("FindCursor", (ctx) => {
       )
 
       return yield* _(
-        Collection.findV2(collection),
+        Collection.find(collection),
         FindCursor.project({ _id: 0, id: 1, type: 1, createdTime: now }),
         FindCursor.toArray
       )
@@ -78,7 +78,7 @@ describeMongo("FindCursor", (ctx) => {
       )
 
       return yield* _(
-        Collection.findV2(collection),
+        Collection.find(collection),
         FindCursor.sort({ id: 1 }),
         FindCursor.toArray
       )
@@ -111,7 +111,7 @@ describeMongo("FindCursor", (ctx) => {
       )
 
       return yield* _(
-        Collection.findV2(collection),
+        Collection.find(collection),
         FindCursor.limit(3),
         FindCursor.toArray
       )
@@ -144,7 +144,7 @@ describeMongo("FindCursor", (ctx) => {
       )
 
       return yield* _(
-        Collection.findV2(collection),
+        Collection.find(collection),
         FindCursor.filter({ createdOn: { $lt: beforeJuly } }),
         FindCursor.sort("createdOn", "ascending"),
         FindCursor.project({ _id: 0, createdOn: 0 }),

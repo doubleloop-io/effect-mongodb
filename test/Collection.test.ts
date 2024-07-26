@@ -15,7 +15,7 @@ describeMongo("Collection", (ctx) => {
 
       yield* _(Collection.insertOne(collection, { name: "John" }))
 
-      return yield* _(Collection.findV2(collection), FindCursor.toArray)
+      return yield* _(Collection.find(collection), FindCursor.toArray)
     })
 
     const result = await Effect.runPromise(program)
@@ -32,7 +32,7 @@ describeMongo("Collection", (ctx) => {
         Collection.insertMany(collection, [{ name: "NAME_1" }, { name: "NAME_2" }, { name: "NAME_3" }])
       )
 
-      return yield* _(Collection.findV2(collection), FindCursor.toArray)
+      return yield* _(Collection.find(collection), FindCursor.toArray)
     })
 
     const result = await Effect.runPromise(program)

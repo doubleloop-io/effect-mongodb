@@ -20,7 +20,7 @@ import { Collection } from "mongodb"
 import * as FindCursor from "./FindCursor.js"
 import * as MongoError from "./MongoError.js"
 
-export const findV2 = <T extends Document = Document>(
+export const find = <T extends Document = Document>(
   collection: Collection<T>
 ): FindCursor.FindCursor =>
   new FindCursor.FindCursor(
