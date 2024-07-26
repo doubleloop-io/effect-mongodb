@@ -28,6 +28,31 @@ describeMongo("TypedFindCursor", (ctx) => {
 
     expect(result).toEqual(anyTestEntities)
   })
+
+  test("project", async () => {
+    const anyUsers = FastCheck.sample(UserArbitrary, 3)
+
+    const program = Effect.gen(function*(_) {
+      const db = yield* _(ctx.database)
+      const collection = yield* _(Db.collection<UserEncoded>(db, "project"))
+
+      yield* _(
+        Collection.insertMany(collection, anyUsers.map((x) => encodeUser(x)))
+      )
+
+      return yield* _(
+        Collection.findV2(collection),
+        FindCursor.typed(User),
+        TypedFindCursor.project(UserStats, { id: 1, nameLength: { $strLenCP: "$name" } }),
+        TypedFindCursor.toArray
+      )
+    })
+
+    const result = await Effect.runPromise(program)
+
+    const users = anyUsers.map((x) => UserStats.make({ id: x.id, nameLength: x.name.length }))
+    expect(result).toEqual(users)
+  })
 })
 
 const User = Schema.Struct({
@@ -37,3 +62,8 @@ const User = Schema.Struct({
 type UserEncoded = typeof User.Encoded
 const UserArbitrary = Arbitrary.make(User)
 const encodeUser = Schema.encodeSync(User)
+
+const UserStats = Schema.Struct({
+  id: User.fields.id,
+  nameLength: Schema.Number
+})
