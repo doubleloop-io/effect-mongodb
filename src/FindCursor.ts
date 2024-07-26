@@ -24,6 +24,17 @@ export const filter: {
     new FindCursor({ cursor: cursor.cursor.filter(filter) })
 )
 
+export const project: {
+  <T extends Document = Document>(
+    value: T
+  ): (cursor: FindCursor) => FindCursor
+  <T extends Document = Document>(cursor: FindCursor, value: T): FindCursor
+} = F.dual(
+  2,
+  <T extends Document = Document>(cursor: FindCursor, value: T): FindCursor =>
+    new FindCursor({ cursor: cursor.cursor.project(value) })
+)
+
 export const toArray = (cursor: FindCursor): Effect.Effect<ReadonlyArray<unknown>> =>
   Effect.promise(() => cursor.cursor.toArray())
 
