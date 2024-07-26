@@ -7,6 +7,6 @@ dist/
 build/
 docs/
 scratchpad/
-.envrc
+.env*
 .idea/
 .vscode/
