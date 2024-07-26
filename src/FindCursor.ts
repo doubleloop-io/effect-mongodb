@@ -6,6 +6,7 @@ import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import type { Document, FindCursor as FindCursor_, Sort, SortDirection } from "mongodb"
+import * as MongoError from "./MongoError.js"
 import * as TypedFindCursor from "./TypedFindCursor.js"
 
 export class FindCursor extends Data.TaggedClass("FindCursor")<{
@@ -57,8 +58,11 @@ export const limit: {
   (cursor: FindCursor, value: number): FindCursor => new FindCursor({ cursor: cursor.cursor.limit(value) })
 )
 
-export const toArray = (cursor: FindCursor): Effect.Effect<ReadonlyArray<unknown>> =>
-  Effect.promise(() => cursor.cursor.toArray())
+export const toArray = (cursor: FindCursor): Effect.Effect<ReadonlyArray<unknown>, MongoError.MongoError> =>
+  F.pipe(
+    Effect.promise(() => cursor.cursor.toArray()),
+    Effect.catchAll(MongoError.mongoErrorDie<ReadonlyArray<unknown>>("toArray error"))
+  )
 
 export const typed: {
   <A, I = A, R = never>(
