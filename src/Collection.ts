@@ -15,13 +15,13 @@ import type {
   OptionalUnlessRequiredId
 } from "mongodb"
 import { Collection } from "mongodb"
-import * as FindCursor from "./FindCursor.js"
 import * as MongoError from "./MongoError.js"
+import * as UnknownFindCursor from "./UnknownFindCursor.js"
 
 export const find = <T extends Document = Document>(
   collection: Collection<T>
-): FindCursor.FindCursor =>
-  new FindCursor.FindCursor(
+): UnknownFindCursor.UnknownFindCursor =>
+  new UnknownFindCursor.UnknownFindCursor(
     {
       cursor: collection.find()
     }

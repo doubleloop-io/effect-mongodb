@@ -1,11 +1,11 @@
 import * as Collection from "@doubleloop-io/effect-mongodb/Collection"
 import * as Db from "@doubleloop-io/effect-mongodb/Db"
-import * as FindCursor from "@doubleloop-io/effect-mongodb/FindCursor"
+import * as UnknownFindCursor from "@doubleloop-io/effect-mongodb/UnknownFindCursor"
 import * as Effect from "effect/Effect"
 import { expect, test } from "vitest"
 import { describeMongo } from "./support/describe-mongo.js"
 
-describeMongo("FindCursor", (ctx) => {
+describeMongo("UnknownFindCursor", (ctx) => {
   test("filter", async () => {
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
@@ -20,7 +20,11 @@ describeMongo("FindCursor", (ctx) => {
         ])
       )
 
-      return yield* _(Collection.find(collection), FindCursor.filter({ type: "Admin" }), FindCursor.toArray)
+      return yield* _(
+        Collection.find(collection),
+        UnknownFindCursor.filter({ type: "Admin" }),
+        UnknownFindCursor.toArray
+      )
     })
 
     const result = await Effect.runPromise(program)
@@ -48,8 +52,8 @@ describeMongo("FindCursor", (ctx) => {
 
       return yield* _(
         Collection.find(collection),
-        FindCursor.project({ _id: 0, id: 1, type: 1, createdTime: now }),
-        FindCursor.toArray
+        UnknownFindCursor.project({ _id: 0, id: 1, type: 1, createdTime: now }),
+        UnknownFindCursor.toArray
       )
     })
 
@@ -79,8 +83,8 @@ describeMongo("FindCursor", (ctx) => {
 
       return yield* _(
         Collection.find(collection),
-        FindCursor.sort({ id: 1 }),
-        FindCursor.toArray
+        UnknownFindCursor.sort({ id: 1 }),
+        UnknownFindCursor.toArray
       )
     })
 
@@ -112,8 +116,8 @@ describeMongo("FindCursor", (ctx) => {
 
       return yield* _(
         Collection.find(collection),
-        FindCursor.limit(3),
-        FindCursor.toArray
+        UnknownFindCursor.limit(3),
+        UnknownFindCursor.toArray
       )
     })
 
@@ -145,11 +149,11 @@ describeMongo("FindCursor", (ctx) => {
 
       return yield* _(
         Collection.find(collection),
-        FindCursor.filter({ createdOn: { $lt: beforeJuly } }),
-        FindCursor.sort("createdOn", "ascending"),
-        FindCursor.project({ _id: 0, createdOn: 0 }),
-        FindCursor.limit(2),
-        FindCursor.toArray
+        UnknownFindCursor.filter({ createdOn: { $lt: beforeJuly } }),
+        UnknownFindCursor.sort("createdOn", "ascending"),
+        UnknownFindCursor.project({ _id: 0, createdOn: 0 }),
+        UnknownFindCursor.limit(2),
+        UnknownFindCursor.toArray
       )
     })
 

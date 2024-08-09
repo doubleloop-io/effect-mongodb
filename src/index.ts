@@ -11,11 +11,6 @@ export * as Db from "./Db.js"
 /**
  * @since 0.0.1
  */
-export * as FindCursor from "./FindCursor.js"
-
-/**
- * @since 0.0.1
- */
 export * as MongoClient from "./MongoClient.js"
 
 /**
@@ -27,3 +22,8 @@ export * as MongoError from "./MongoError.js"
  * @since 0.0.1
  */
 export * as TypedFindCursor from "./TypedFindCursor.js"
+
+/**
+ * @since 0.0.1
+ */
+export * as UnknownFindCursor from "./UnknownFindCursor.js"

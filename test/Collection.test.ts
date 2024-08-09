@@ -1,6 +1,6 @@
 import * as Collection from "@doubleloop-io/effect-mongodb/Collection"
 import * as Db from "@doubleloop-io/effect-mongodb/Db"
-import * as FindCursor from "@doubleloop-io/effect-mongodb/FindCursor"
+import * as UnknownFindCursor from "@doubleloop-io/effect-mongodb/UnknownFindCursor"
 import * as Effect from "effect/Effect"
 import * as O from "effect/Option"
 import { ObjectId } from "mongodb"
@@ -15,7 +15,7 @@ describeMongo("Collection", (ctx) => {
 
       yield* _(Collection.insertOne(collection, { name: "John" }))
 
-      return yield* _(Collection.find(collection), FindCursor.toArray)
+      return yield* _(Collection.find(collection), UnknownFindCursor.toArray)
     })
 
     const result = await Effect.runPromise(program)
@@ -32,7 +32,7 @@ describeMongo("Collection", (ctx) => {
         Collection.insertMany(collection, [{ name: "NAME_1" }, { name: "NAME_2" }, { name: "NAME_3" }])
       )
 
-      return yield* _(Collection.find(collection), FindCursor.toArray)
+      return yield* _(Collection.find(collection), UnknownFindCursor.toArray)
     })
 
     const result = await Effect.runPromise(program)
