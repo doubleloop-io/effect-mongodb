@@ -1,8 +1,8 @@
 import * as Db from "@doubleloop-io/effect-mongodb/Db"
 import * as DocumentCollection from "@doubleloop-io/effect-mongodb/DocumentCollection"
+import * as DocumentFindCursor from "@doubleloop-io/effect-mongodb/DocumentFindCursor"
 import * as FindCursor from "@doubleloop-io/effect-mongodb/FindCursor"
 import * as MongoClient from "@doubleloop-io/effect-mongodb/MongoClient"
-import * as UnknownFindCursor from "@doubleloop-io/effect-mongodb/UnknownFindCursor"
 import * as Schema from "@effect/schema/Schema"
 import * as Effect from "effect/Effect"
 
@@ -20,7 +20,7 @@ const program = Effect.gen(function*(_) {
   const sourceCollection = yield* _(Db.collection(sourceDb, "records"))
   const sourceItems = yield* _(
     DocumentCollection.find(sourceCollection),
-    UnknownFindCursor.typed(MyType),
+    DocumentFindCursor.typed(MyType),
     FindCursor.toArray
   )
 

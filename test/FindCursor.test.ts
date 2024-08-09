@@ -1,7 +1,7 @@
 import * as Db from "@doubleloop-io/effect-mongodb/Db"
 import * as DocumentCollection from "@doubleloop-io/effect-mongodb/DocumentCollection"
+import * as DocumentFindCursor from "@doubleloop-io/effect-mongodb/DocumentFindCursor"
 import * as FindCursor from "@doubleloop-io/effect-mongodb/FindCursor"
-import * as UnknownFindCursor from "@doubleloop-io/effect-mongodb/UnknownFindCursor"
 import * as Arbitrary from "@effect/schema/Arbitrary"
 import * as FastCheck from "@effect/schema/FastCheck"
 import * as Schema from "@effect/schema/Schema"
@@ -21,7 +21,7 @@ describeMongo("FindCursor", (ctx) => {
         DocumentCollection.insertMany(collection, anyTestEntities.map((x) => encodeUser(x)))
       )
 
-      return yield* _(DocumentCollection.find(collection), UnknownFindCursor.typed(User), FindCursor.toArray)
+      return yield* _(DocumentCollection.find(collection), DocumentFindCursor.typed(User), FindCursor.toArray)
     })
 
     const result = await Effect.runPromise(program)
@@ -42,7 +42,7 @@ describeMongo("FindCursor", (ctx) => {
 
       return yield* _(
         DocumentCollection.find(collection),
-        UnknownFindCursor.typed(User),
+        DocumentFindCursor.typed(User),
         FindCursor.project(UserStats, { id: 1, nameLength: { $strLenCP: "$name" } }),
         FindCursor.toArray
       )

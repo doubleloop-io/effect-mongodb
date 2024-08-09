@@ -16,8 +16,8 @@ import type {
   InsertOneResult,
   OptionalUnlessRequiredId
 } from "mongodb"
+import * as DocumentFindCursor from "./DocumentFindCursor.js"
 import * as MongoError from "./MongoError.js"
-import * as UnknownFindCursor from "./UnknownFindCursor.js"
 
 export class DocumentCollection extends Data.TaggedClass("DocumentCollection")<{
   collection: Collection
@@ -26,8 +26,8 @@ export class DocumentCollection extends Data.TaggedClass("DocumentCollection")<{
 
 export const find = (
   collection: DocumentCollection
-): UnknownFindCursor.UnknownFindCursor =>
-  new UnknownFindCursor.UnknownFindCursor(
+): DocumentFindCursor.DocumentFindCursor =>
+  new DocumentFindCursor.DocumentFindCursor(
     {
       cursor: collection.collection.find()
     }

@@ -1,11 +1,11 @@
 import * as Db from "@doubleloop-io/effect-mongodb/Db"
 import * as DocumentCollection from "@doubleloop-io/effect-mongodb/DocumentCollection"
-import * as UnknownFindCursor from "@doubleloop-io/effect-mongodb/UnknownFindCursor"
+import * as DocumentFindCursor from "@doubleloop-io/effect-mongodb/DocumentFindCursor"
 import * as Effect from "effect/Effect"
 import { expect, test } from "vitest"
 import { describeMongo } from "./support/describe-mongo.js"
 
-describeMongo("UnknownFindCursor", (ctx) => {
+describeMongo("DocumentFindCursor", (ctx) => {
   test("filter", async () => {
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
@@ -22,8 +22,8 @@ describeMongo("UnknownFindCursor", (ctx) => {
 
       return yield* _(
         DocumentCollection.find(collection),
-        UnknownFindCursor.filter({ type: "Admin" }),
-        UnknownFindCursor.toArray
+        DocumentFindCursor.filter({ type: "Admin" }),
+        DocumentFindCursor.toArray
       )
     })
 
@@ -52,8 +52,8 @@ describeMongo("UnknownFindCursor", (ctx) => {
 
       return yield* _(
         DocumentCollection.find(collection),
-        UnknownFindCursor.project({ _id: 0, id: 1, type: 1, createdTime: now }),
-        UnknownFindCursor.toArray
+        DocumentFindCursor.project({ _id: 0, id: 1, type: 1, createdTime: now }),
+        DocumentFindCursor.toArray
       )
     })
 
@@ -83,8 +83,8 @@ describeMongo("UnknownFindCursor", (ctx) => {
 
       return yield* _(
         DocumentCollection.find(collection),
-        UnknownFindCursor.sort({ id: 1 }),
-        UnknownFindCursor.toArray
+        DocumentFindCursor.sort({ id: 1 }),
+        DocumentFindCursor.toArray
       )
     })
 
@@ -116,8 +116,8 @@ describeMongo("UnknownFindCursor", (ctx) => {
 
       return yield* _(
         DocumentCollection.find(collection),
-        UnknownFindCursor.limit(3),
-        UnknownFindCursor.toArray
+        DocumentFindCursor.limit(3),
+        DocumentFindCursor.toArray
       )
     })
 
@@ -149,11 +149,11 @@ describeMongo("UnknownFindCursor", (ctx) => {
 
       return yield* _(
         DocumentCollection.find(collection),
-        UnknownFindCursor.filter({ createdOn: { $lt: beforeJuly } }),
-        UnknownFindCursor.sort("createdOn", "ascending"),
-        UnknownFindCursor.project({ _id: 0, createdOn: 0 }),
-        UnknownFindCursor.limit(2),
-        UnknownFindCursor.toArray
+        DocumentFindCursor.filter({ createdOn: { $lt: beforeJuly } }),
+        DocumentFindCursor.sort("createdOn", "ascending"),
+        DocumentFindCursor.project({ _id: 0, createdOn: 0 }),
+        DocumentFindCursor.limit(2),
+        DocumentFindCursor.toArray
       )
     })
 
