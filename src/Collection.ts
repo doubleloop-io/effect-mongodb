@@ -1,11 +1,9 @@
 /**
  * @since 0.0.1
  */
-import * as Chunk from "effect/Chunk"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import * as O from "effect/Option"
-import * as Stream from "effect/Stream"
 import type {
   BulkWriteOptions,
   Document,
@@ -98,10 +96,5 @@ export const insertMany: {
     Effect.promise(() => collection.insertMany(docs, options)),
     Effect.catchAllDefect(MongoError.mongoErrorDie<InsertManyResult<T>>("insertMany error"))
   ))
-
-export const toArray = F.flow(
-  Stream.runCollect,
-  Effect.map(Chunk.toReadonlyArray)
-)
 
 const isCollection = (x: unknown) => x instanceof Collection
