@@ -5,12 +5,12 @@ import type * as Schema from "@effect/schema/Schema"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
-import type { Document, FindCursor, Sort, SortDirection } from "mongodb"
+import type { Document, FindCursor as MongoFindCursor, Sort, SortDirection } from "mongodb"
+import * as FindCursor from "./FindCursor.js"
 import * as MongoError from "./MongoError.js"
-import * as TypedFindCursor from "./TypedFindCursor.js"
 
 export class UnknownFindCursor extends Data.TaggedClass("UnknownFindCursor")<{
-  cursor: FindCursor<unknown>
+  cursor: MongoFindCursor<unknown>
 }> {
 }
 
@@ -68,15 +68,14 @@ export const toArray = (cursor: UnknownFindCursor): Effect.Effect<ReadonlyArray<
 export const typed: {
   <A, I = A, R = never>(
     schema: Schema.Schema<A, I, R>
-  ): (cursor: UnknownFindCursor) => TypedFindCursor.TypedFindCursor<A, I, R>
+  ): (cursor: UnknownFindCursor) => FindCursor.FindCursor<A, I, R>
   <A, I = A, R = never>(
     cursor: UnknownFindCursor,
     schema: Schema.Schema<A, I, R>
-  ): TypedFindCursor.TypedFindCursor<A, I, R>
+  ): FindCursor.FindCursor<A, I, R>
 } = F.dual(2, <A, I = A, R = never>(
   cursor: UnknownFindCursor,
   schema: Schema.Schema<A, I, R>
-): TypedFindCursor.TypedFindCursor<A, I, R> =>
-  new TypedFindCursor.TypedFindCursor<A, I, R>({ cursor: cursor.cursor, schema }))
+): FindCursor.FindCursor<A, I, R> => new FindCursor.FindCursor<A, I, R>({ cursor: cursor.cursor, schema }))
 
 const isFindCursor = (x: unknown) => x instanceof UnknownFindCursor

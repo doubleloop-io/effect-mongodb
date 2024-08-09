@@ -1,6 +1,6 @@
 import * as Collection from "@doubleloop-io/effect-mongodb/Collection"
 import * as Db from "@doubleloop-io/effect-mongodb/Db"
-import * as TypedFindCursor from "@doubleloop-io/effect-mongodb/TypedFindCursor"
+import * as FindCursor from "@doubleloop-io/effect-mongodb/FindCursor"
 import * as UnknownFindCursor from "@doubleloop-io/effect-mongodb/UnknownFindCursor"
 import * as Arbitrary from "@effect/schema/Arbitrary"
 import * as FastCheck from "@effect/schema/FastCheck"
@@ -9,7 +9,7 @@ import * as Effect from "effect/Effect"
 import { expect, test } from "vitest"
 import { describeMongo } from "./support/describe-mongo.js"
 
-describeMongo("TypedFindCursor", (ctx) => {
+describeMongo("FindCursor", (ctx) => {
   test("decode documents with schema", async () => {
     const anyTestEntities = FastCheck.sample(UserArbitrary, 3)
 
@@ -21,7 +21,7 @@ describeMongo("TypedFindCursor", (ctx) => {
         Collection.insertMany(collection, anyTestEntities.map((x) => encodeUser(x)))
       )
 
-      return yield* _(Collection.find(collection), UnknownFindCursor.typed(User), TypedFindCursor.toArray)
+      return yield* _(Collection.find(collection), UnknownFindCursor.typed(User), FindCursor.toArray)
     })
 
     const result = await Effect.runPromise(program)
@@ -43,8 +43,8 @@ describeMongo("TypedFindCursor", (ctx) => {
       return yield* _(
         Collection.find(collection),
         UnknownFindCursor.typed(User),
-        TypedFindCursor.project(UserStats, { id: 1, nameLength: { $strLenCP: "$name" } }),
-        TypedFindCursor.toArray
+        FindCursor.project(UserStats, { id: 1, nameLength: { $strLenCP: "$name" } }),
+        FindCursor.toArray
       )
     })
 
