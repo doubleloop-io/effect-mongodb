@@ -15,7 +15,7 @@ describeMongo("FindCursor", (ctx) => {
 
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(Db.collection<UserEncoded>(db, "decode-documents-with-schema"))
+      const collection = yield* _(Db.collection(db, "decode-documents-with-schema"))
 
       yield* _(
         DocumentCollection.insertMany(collection, anyTestEntities.map((x) => encodeUser(x)))
@@ -34,7 +34,7 @@ describeMongo("FindCursor", (ctx) => {
 
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(Db.collection<UserEncoded>(db, "project"))
+      const collection = yield* _(Db.collection(db, "project"))
 
       yield* _(
         DocumentCollection.insertMany(collection, anyUsers.map((x) => encodeUser(x)))
@@ -59,7 +59,6 @@ const User = Schema.Struct({
   id: Schema.Number,
   name: Schema.String
 })
-type UserEncoded = typeof User.Encoded
 const UserArbitrary = Arbitrary.make(User)
 const encodeUser = Schema.encodeSync(User)
 

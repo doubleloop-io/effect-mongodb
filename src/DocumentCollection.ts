@@ -1,11 +1,13 @@
 /**
  * @since 0.0.1
  */
+import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import * as O from "effect/Option"
 import type {
   BulkWriteOptions,
+  Collection,
   Document,
   Filter,
   FindOptions,
@@ -14,87 +16,91 @@ import type {
   InsertOneResult,
   OptionalUnlessRequiredId
 } from "mongodb"
-import { Collection } from "mongodb"
 import * as MongoError from "./MongoError.js"
 import * as UnknownFindCursor from "./UnknownFindCursor.js"
 
-export const find = <T extends Document = Document>(
-  collection: Collection<T>
+export class DocumentCollection extends Data.TaggedClass("DocumentCollection")<{
+  collection: Collection
+}> {
+}
+
+export const find = (
+  collection: DocumentCollection
 ): UnknownFindCursor.UnknownFindCursor =>
   new UnknownFindCursor.UnknownFindCursor(
     {
-      cursor: collection.find()
+      cursor: collection.collection.find()
     }
   )
 
 export const findOne: {
-  <T extends Document = Document>(
-    filter: Filter<T>,
+  (
+    filter: Filter<Document>,
     options?: FindOptions
   ): (
-    collection: Collection<T>
-  ) => Effect.Effect<O.Option<T>, MongoError.MongoError>
-  <T extends Document = Document>(
-    collection: Collection<T>,
-    filter: Filter<T>,
+    collection: DocumentCollection
+  ) => Effect.Effect<O.Option<Document>, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    filter: Filter<Document>,
     options?: FindOptions
-  ): Effect.Effect<O.Option<T>, MongoError.MongoError>
+  ): Effect.Effect<O.Option<Document>, MongoError.MongoError>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <T extends Document = Document>(
-    collection: Collection<T>,
-    filter: Filter<T>,
+  (
+    collection: DocumentCollection,
+    filter: Filter<Document>,
     options?: FindOptions
-  ): Effect.Effect<O.Option<T>, MongoError.MongoError> =>
+  ): Effect.Effect<O.Option<Document>, MongoError.MongoError> =>
     F.pipe(
-      Effect.promise(() => collection.findOne(filter, options)),
+      Effect.promise(() => collection.collection.findOne(filter, options)),
       Effect.map((value) => O.fromNullable(value)),
-      Effect.catchAllDefect(MongoError.mongoErrorDie<O.Option<T>>("findOne error"))
+      Effect.catchAllDefect(MongoError.mongoErrorDie<O.Option<Document>>("findOne error"))
     )
 )
 
 export const insertOne: {
-  <T extends Document = Document>(
-    doc: OptionalUnlessRequiredId<T>,
+  (
+    doc: OptionalUnlessRequiredId<Document>,
     options?: InsertOneOptions
   ): (
-    collection: Collection<T>
-  ) => Effect.Effect<InsertOneResult<T>, MongoError.MongoError>
-  <T extends Document = Document>(
-    collection: Collection<T>,
-    doc: OptionalUnlessRequiredId<T>,
+    collection: DocumentCollection
+  ) => Effect.Effect<InsertOneResult, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    doc: OptionalUnlessRequiredId<Document>,
     options?: InsertOneOptions
-  ): Effect.Effect<InsertOneResult<T>, MongoError.MongoError>
-} = F.dual((args) => isCollection(args[0]), <T extends Document = Document>(
-  collection: Collection<T>,
-  doc: OptionalUnlessRequiredId<T>,
+  ): Effect.Effect<InsertOneResult, MongoError.MongoError>
+} = F.dual((args) => isCollection(args[0]), (
+  collection: DocumentCollection,
+  doc: OptionalUnlessRequiredId<Document>,
   options?: InsertOneOptions
-): Effect.Effect<InsertOneResult<T>, MongoError.MongoError> =>
+): Effect.Effect<InsertOneResult, MongoError.MongoError> =>
   F.pipe(
-    Effect.promise(() => collection.insertOne(doc, options)),
-    Effect.catchAllDefect(MongoError.mongoErrorDie<InsertOneResult<T>>("insertOne error"))
+    Effect.promise(() => collection.collection.insertOne(doc, options)),
+    Effect.catchAllDefect(MongoError.mongoErrorDie<InsertOneResult>("insertOne error"))
   ))
 
 export const insertMany: {
-  <T extends Document = Document>(
-    docs: Array<OptionalUnlessRequiredId<T>>,
+  (
+    docs: Array<OptionalUnlessRequiredId<Document>>,
     options?: BulkWriteOptions
   ): (
-    collection: Collection<T>
-  ) => Effect.Effect<InsertOneResult<T>, MongoError.MongoError>
-  <T extends Document = Document>(
-    collection: Collection<T>,
-    docs: Array<OptionalUnlessRequiredId<T>>,
+    collection: DocumentCollection
+  ) => Effect.Effect<InsertOneResult, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    docs: Array<OptionalUnlessRequiredId<Document>>,
     options?: BulkWriteOptions
-  ): Effect.Effect<InsertOneResult<T>, MongoError.MongoError>
-} = F.dual((args) => isCollection(args[0]), <T extends Document = Document>(
-  collection: Collection<T>,
-  docs: Array<OptionalUnlessRequiredId<T>>,
+  ): Effect.Effect<InsertOneResult, MongoError.MongoError>
+} = F.dual((args) => isCollection(args[0]), (
+  collection: DocumentCollection,
+  docs: Array<OptionalUnlessRequiredId<Document>>,
   options?: BulkWriteOptions
-): Effect.Effect<InsertManyResult<T>, MongoError.MongoError> =>
+): Effect.Effect<InsertManyResult, MongoError.MongoError> =>
   F.pipe(
-    Effect.promise(() => collection.insertMany(docs, options)),
-    Effect.catchAllDefect(MongoError.mongoErrorDie<InsertManyResult<T>>("insertMany error"))
+    Effect.promise(() => collection.collection.insertMany(docs, options)),
+    Effect.catchAllDefect(MongoError.mongoErrorDie<InsertManyResult>("insertMany error"))
   ))
 
-const isCollection = (x: unknown) => x instanceof Collection
+const isCollection = (x: unknown) => x instanceof DocumentCollection
