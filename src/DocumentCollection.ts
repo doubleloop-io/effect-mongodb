@@ -1,13 +1,14 @@
 /**
  * @since 0.0.1
  */
+import type * as Schema from "@effect/schema/Schema"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import * as O from "effect/Option"
 import type {
   BulkWriteOptions,
-  Collection,
+  Collection as MongoCollection,
   Document,
   Filter,
   FindOptions,
@@ -16,11 +17,12 @@ import type {
   InsertOneResult,
   OptionalUnlessRequiredId
 } from "mongodb"
+import * as Collection from "./Collection.js"
 import * as DocumentFindCursor from "./DocumentFindCursor.js"
 import * as MongoError from "./MongoError.js"
 
 export class DocumentCollection extends Data.TaggedClass("DocumentCollection")<{
-  collection: Collection
+  collection: MongoCollection
 }> {
 }
 
@@ -104,3 +106,16 @@ export const insertMany: {
   ))
 
 const isCollection = (x: unknown) => x instanceof DocumentCollection
+
+export const typed: {
+  <A, I = A, R = never>(
+    schema: Schema.Schema<A, I, R>
+  ): (collection: DocumentCollection) => Collection.Collection<A, I, R>
+  <A, I = A, R = never>(
+    collection: DocumentCollection,
+    schema: Schema.Schema<A, I, R>
+  ): Collection.Collection<A, I, R>
+} = F.dual(2, <A, I = A, R = never>(
+  collection: DocumentCollection,
+  schema: Schema.Schema<A, I, R>
+): Collection.Collection<A, I, R> => new Collection.Collection<A, I, R>({ collection: collection.collection, schema }))
