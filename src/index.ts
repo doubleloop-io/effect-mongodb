@@ -1,7 +1,7 @@
 /**
  * @since 0.0.1
  */
-export * as Collection from "./Collection.js"
+export * as DocumentCollection from "./DocumentCollection.js"
 
 /**
  * @since 0.0.1

@@ -1,5 +1,5 @@
-import * as Collection from "@doubleloop-io/effect-mongodb/Collection"
 import * as Db from "@doubleloop-io/effect-mongodb/Db"
+import * as DocumentCollection from "@doubleloop-io/effect-mongodb/DocumentCollection"
 import * as FindCursor from "@doubleloop-io/effect-mongodb/FindCursor"
 import * as UnknownFindCursor from "@doubleloop-io/effect-mongodb/UnknownFindCursor"
 import * as Arbitrary from "@effect/schema/Arbitrary"
@@ -18,10 +18,10 @@ describeMongo("FindCursor", (ctx) => {
       const collection = yield* _(Db.collection<UserEncoded>(db, "decode-documents-with-schema"))
 
       yield* _(
-        Collection.insertMany(collection, anyTestEntities.map((x) => encodeUser(x)))
+        DocumentCollection.insertMany(collection, anyTestEntities.map((x) => encodeUser(x)))
       )
 
-      return yield* _(Collection.find(collection), UnknownFindCursor.typed(User), FindCursor.toArray)
+      return yield* _(DocumentCollection.find(collection), UnknownFindCursor.typed(User), FindCursor.toArray)
     })
 
     const result = await Effect.runPromise(program)
@@ -37,11 +37,11 @@ describeMongo("FindCursor", (ctx) => {
       const collection = yield* _(Db.collection<UserEncoded>(db, "project"))
 
       yield* _(
-        Collection.insertMany(collection, anyUsers.map((x) => encodeUser(x)))
+        DocumentCollection.insertMany(collection, anyUsers.map((x) => encodeUser(x)))
       )
 
       return yield* _(
-        Collection.find(collection),
+        DocumentCollection.find(collection),
         UnknownFindCursor.typed(User),
         FindCursor.project(UserStats, { id: 1, nameLength: { $strLenCP: "$name" } }),
         FindCursor.toArray
