@@ -10,29 +10,29 @@ import * as FindCursor from "./FindCursor.js"
 import * as MongoError from "./MongoError.js"
 
 export class DocumentFindCursor extends Data.TaggedClass("DocumentFindCursor")<{
-  cursor: MongoFindCursor<unknown>
+  cursor: MongoFindCursor<Document>
 }> {
 }
 
 export const filter: {
-  <T extends Document = Document>(
-    filter: T
+  (
+    filter: Document
   ): (cursor: DocumentFindCursor) => DocumentFindCursor
-  <T extends Document = Document>(cursor: DocumentFindCursor, filter: T): DocumentFindCursor
+  (cursor: DocumentFindCursor, filter: Document): DocumentFindCursor
 } = F.dual(
   2,
-  <T extends Document = Document>(cursor: DocumentFindCursor, filter: T): DocumentFindCursor =>
+  (cursor: DocumentFindCursor, filter: Document): DocumentFindCursor =>
     new DocumentFindCursor({ cursor: cursor.cursor.filter(filter) })
 )
 
 export const project: {
-  <T extends Document = Document>(
-    value: T
+  (
+    value: Document
   ): (cursor: DocumentFindCursor) => DocumentFindCursor
-  <T extends Document = Document>(cursor: DocumentFindCursor, value: T): DocumentFindCursor
+  (cursor: DocumentFindCursor, value: Document): DocumentFindCursor
 } = F.dual(
   2,
-  <T extends Document = Document>(cursor: DocumentFindCursor, value: T): DocumentFindCursor =>
+  (cursor: DocumentFindCursor, value: Document): DocumentFindCursor =>
     new DocumentFindCursor({ cursor: cursor.cursor.project(value) })
 )
 
