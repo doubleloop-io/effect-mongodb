@@ -11,7 +11,7 @@ export type MongoClient = MongoClient_
 
 export const connect = (url: string, options?: MongoClientOptions) =>
   Effect.promise(() => MongoClient_.connect(url, options)).pipe(
-    Effect.catchAll(MongoError.mongoErrorDie<ReadonlyArray<unknown>>("connect error"))
+    Effect.catchAll(MongoError.mongoErrorDie<MongoClient_>("connect error"))
   )
 
 export const db: {
