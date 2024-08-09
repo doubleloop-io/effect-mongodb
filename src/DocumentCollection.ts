@@ -105,17 +105,17 @@ export const insertMany: {
     Effect.catchAllDefect(MongoError.mongoErrorDie<InsertManyResult>("insertMany error"))
   ))
 
-const isCollection = (x: unknown) => x instanceof DocumentCollection
-
 export const typed: {
-  <A, I = A, R = never>(
+  <A extends Document, I extends Document = A, R = never>(
     schema: Schema.Schema<A, I, R>
   ): (collection: DocumentCollection) => Collection.Collection<A, I, R>
-  <A, I = A, R = never>(
+  <A extends Document, I extends Document = A, R = never>(
     collection: DocumentCollection,
     schema: Schema.Schema<A, I, R>
   ): Collection.Collection<A, I, R>
-} = F.dual(2, <A, I = A, R = never>(
+} = F.dual(2, <A extends Document, I extends Document = A, R = never>(
   collection: DocumentCollection,
   schema: Schema.Schema<A, I, R>
 ): Collection.Collection<A, I, R> => new Collection.Collection<A, I, R>({ collection: collection.collection, schema }))
+
+const isCollection = (x: unknown) => x instanceof DocumentCollection
