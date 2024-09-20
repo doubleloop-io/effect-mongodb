@@ -5,7 +5,9 @@ import * as FindCursor from "@doubleloop-io/effect-mongodb/FindCursor"
 import * as Arbitrary from "@effect/schema/Arbitrary"
 import * as FastCheck from "@effect/schema/FastCheck"
 import * as Schema from "@effect/schema/Schema"
+import * as Chunk from "effect/Chunk"
 import * as Effect from "effect/Effect"
+import * as Stream from "effect/Stream"
 import { expect, test } from "vitest"
 import { describeMongo } from "./support/describe-mongo.js"
 
@@ -52,6 +54,31 @@ describeMongo("FindCursor", (ctx) => {
 
     const users = anyUsers.map((x) => UserStats.make({ id: x.id, nameLength: x.name.length }))
     expect(result).toEqual(users)
+  })
+
+  test("stream", async () => {
+    const anyUsers = FastCheck.sample(UserArbitrary, 6)
+
+    const program = Effect.gen(function*(_) {
+      const db = yield* _(ctx.database)
+      const collection = yield* _(Db.collection(db, "stream"))
+
+      yield* _(
+        DocumentCollection.insertMany(collection, anyUsers.map((x) => encodeUser(x)))
+      )
+
+      return yield* _(
+        DocumentCollection.find(collection),
+        DocumentFindCursor.typed(User),
+        FindCursor.toStream,
+        Stream.runCollect,
+        Effect.map(Chunk.toReadonlyArray)
+      )
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result).toEqual(anyUsers)
   })
 })
 

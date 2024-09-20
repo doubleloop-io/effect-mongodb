@@ -1,7 +1,9 @@
 import * as Db from "@doubleloop-io/effect-mongodb/Db"
 import * as DocumentCollection from "@doubleloop-io/effect-mongodb/DocumentCollection"
 import * as DocumentFindCursor from "@doubleloop-io/effect-mongodb/DocumentFindCursor"
+import * as Chunk from "effect/Chunk"
 import * as Effect from "effect/Effect"
+import * as Stream from "effect/Stream"
 import { expect, test } from "vitest"
 import { describeMongo } from "./support/describe-mongo.js"
 
@@ -163,5 +165,31 @@ describeMongo("DocumentFindCursor", (ctx) => {
       expect.objectContaining({ id: 1 }),
       expect.objectContaining({ id: 5 })
     ])
+  })
+
+  test("stream", async () => {
+    const users = [
+      { id: 1, type: "User" },
+      { id: 2, type: "Admin" },
+      { id: 3, type: "User" },
+      { id: 4, type: "Admin" }
+    ]
+    const program = Effect.gen(function*(_) {
+      const db = yield* _(ctx.database)
+
+      const collection = yield* _(Db.collection(db, "stream"))
+      yield* _(DocumentCollection.insertMany(collection, users))
+
+      return yield* _(
+        DocumentCollection.find(collection),
+        DocumentFindCursor.toStream,
+        Stream.runCollect,
+        Effect.map(Chunk.toReadonlyArray)
+      )
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result).toEqual(users)
   })
 })

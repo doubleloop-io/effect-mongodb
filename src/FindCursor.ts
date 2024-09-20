@@ -1,11 +1,14 @@
 /**
  * @since 0.0.1
  */
+import type * as ParseResult from "@effect/schema/ParseResult"
 import * as Schema from "@effect/schema/Schema"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
+import * as Stream from "effect/Stream"
 import type { Document, FindCursor as FindCursor_, Sort, SortDirection } from "mongodb"
+import * as MongoError from "./MongoError.js"
 
 export class FindCursor<A, I = A, R = never> extends Data.TaggedClass("FindCursor")<{
   cursor: FindCursor_<unknown>
@@ -80,6 +83,17 @@ export const limit: {
 export const toArray = <A, I = A, R = never>(cursor: FindCursor<A, I, R>) => {
   const decode = Schema.decodeUnknown(cursor.schema)
   return Effect.promise(() => cursor.cursor.toArray()).pipe(Effect.flatMap(Effect.forEach((x) => decode(x))))
+}
+
+export const toStream = <A, I = A, R = never>(
+  cursor: FindCursor<A, I, R>
+): Stream.Stream<A, MongoError.MongoError | ParseResult.ParseError, R> => {
+  const decode = Schema.decodeUnknown(cursor.schema)
+  return F.pipe(
+    Stream.fromAsyncIterable(cursor.cursor, F.identity),
+    Stream.catchAll(MongoError.mongoErrorStream<A>("Unable to read from mongodb cursor")),
+    Stream.mapEffect((x) => decode(x))
+  )
 }
 
 const isTypedFindCursor = (x: unknown): x is FindCursor<unknown> => x instanceof FindCursor

@@ -5,6 +5,7 @@ import type * as Schema from "@effect/schema/Schema"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
+import * as Stream from "effect/Stream"
 import type { Document, FindCursor as MongoFindCursor, Sort, SortDirection } from "mongodb"
 import * as FindCursor from "./FindCursor.js"
 import * as MongoError from "./MongoError.js"
@@ -63,6 +64,14 @@ export const toArray = (cursor: DocumentFindCursor): Effect.Effect<ReadonlyArray
   F.pipe(
     Effect.promise(() => cursor.cursor.toArray()),
     Effect.catchAll(MongoError.mongoErrorDie<ReadonlyArray<Document>>("toArray error"))
+  )
+
+export const toStream = (
+  cursor: DocumentFindCursor
+): Stream.Stream<Document, MongoError.MongoError> =>
+  F.pipe(
+    Stream.fromAsyncIterable(cursor.cursor, F.identity),
+    Stream.catchAll(MongoError.mongoErrorStream<Document>("Unable to read from mongodb cursor"))
   )
 
 export const typed: {
