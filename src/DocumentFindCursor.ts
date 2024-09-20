@@ -59,10 +59,10 @@ export const limit: {
     new DocumentFindCursor({ cursor: cursor.cursor.limit(value) })
 )
 
-export const toArray = (cursor: DocumentFindCursor): Effect.Effect<ReadonlyArray<unknown>, MongoError.MongoError> =>
+export const toArray = (cursor: DocumentFindCursor): Effect.Effect<ReadonlyArray<Document>, MongoError.MongoError> =>
   F.pipe(
     Effect.promise(() => cursor.cursor.toArray()),
-    Effect.catchAll(MongoError.mongoErrorDie<ReadonlyArray<unknown>>("toArray error"))
+    Effect.catchAll(MongoError.mongoErrorDie<ReadonlyArray<Document>>("toArray error"))
   )
 
 export const typed: {
