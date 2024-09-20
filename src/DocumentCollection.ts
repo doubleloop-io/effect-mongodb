@@ -27,11 +27,13 @@ export class DocumentCollection extends Data.TaggedClass("DocumentCollection")<{
 }
 
 export const find = (
-  collection: DocumentCollection
+  collection: DocumentCollection,
+  // TODO: should we omit keys available as Cursor functions?
+  options?: FindOptions
 ): DocumentFindCursor.DocumentFindCursor =>
   new DocumentFindCursor.DocumentFindCursor(
     {
-      cursor: collection.collection.find()
+      cursor: collection.collection.find({}, options)
     }
   )
 
