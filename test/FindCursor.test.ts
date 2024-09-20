@@ -1,6 +1,6 @@
+import * as Collection from "@doubleloop-io/effect-mongodb/Collection"
 import * as Db from "@doubleloop-io/effect-mongodb/Db"
 import * as DocumentCollection from "@doubleloop-io/effect-mongodb/DocumentCollection"
-import * as DocumentFindCursor from "@doubleloop-io/effect-mongodb/DocumentFindCursor"
 import * as FindCursor from "@doubleloop-io/effect-mongodb/FindCursor"
 import * as Arbitrary from "@effect/schema/Arbitrary"
 import * as FastCheck from "@effect/schema/FastCheck"
@@ -17,13 +17,14 @@ describeMongo("FindCursor", (ctx) => {
 
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(Db.collection(db, "decode-documents-with-schema"))
-
-      yield* _(
-        DocumentCollection.insertMany(collection, anyTestEntities.map((x) => encodeUser(x)))
+      const collection = yield* _(
+        Db.collection(db, "decode-documents-with-schema"),
+        Effect.map(DocumentCollection.typed(User))
       )
 
-      return yield* _(DocumentCollection.find(collection), DocumentFindCursor.typed(User), FindCursor.toArray)
+      yield* _(Collection.insertMany(collection, anyTestEntities))
+
+      return yield* _(Collection.find(collection), FindCursor.toArray)
     })
 
     const result = await Effect.runPromise(program)
@@ -36,15 +37,12 @@ describeMongo("FindCursor", (ctx) => {
 
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(Db.collection(db, "project"))
+      const collection = yield* _(Db.collection(db, "project"), Effect.map(DocumentCollection.typed(User)))
 
-      yield* _(
-        DocumentCollection.insertMany(collection, anyUsers.map((x) => encodeUser(x)))
-      )
+      yield* _(Collection.insertMany(collection, anyUsers))
 
       return yield* _(
-        DocumentCollection.find(collection),
-        DocumentFindCursor.typed(User),
+        Collection.find(collection),
         FindCursor.project(UserStats, { id: 1, nameLength: { $strLenCP: "$name" } }),
         FindCursor.toArray
       )
@@ -61,15 +59,12 @@ describeMongo("FindCursor", (ctx) => {
 
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(Db.collection(db, "stream"))
+      const collection = yield* _(Db.collection(db, "stream"), Effect.map(DocumentCollection.typed(User)))
 
-      yield* _(
-        DocumentCollection.insertMany(collection, anyUsers.map((x) => encodeUser(x)))
-      )
+      yield* _(Collection.insertMany(collection, anyUsers))
 
       return yield* _(
-        DocumentCollection.find(collection),
-        DocumentFindCursor.typed(User),
+        Collection.find(collection),
         FindCursor.toStream,
         Stream.runCollect,
         Effect.map(Chunk.toReadonlyArray)
@@ -87,7 +82,6 @@ const User = Schema.Struct({
   name: Schema.String
 })
 const UserArbitrary = Arbitrary.make(User)
-const encodeUser = Schema.encodeSync(User)
 
 const UserStats = Schema.Struct({
   id: User.fields.id,
