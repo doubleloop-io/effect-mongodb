@@ -82,7 +82,10 @@ export const limit: {
 
 export const toArray = <A, I = A, R = never>(cursor: FindCursor<A, I, R>) => {
   const decode = Schema.decodeUnknown(cursor.schema)
-  return Effect.promise(() => cursor.cursor.toArray()).pipe(Effect.flatMap(Effect.forEach((x) => decode(x))))
+  return Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }).pipe(
+    Effect.catchAll(MongoError.mongoErrorDie<ReadonlyArray<A>>("Unable to get array from mongodb cursor")),
+    Effect.flatMap(Effect.forEach((x) => decode(x)))
+  )
 }
 
 export const toStream = <A, I = A, R = never>(
@@ -91,7 +94,7 @@ export const toStream = <A, I = A, R = never>(
   const decode = Schema.decodeUnknown(cursor.schema)
   return F.pipe(
     Stream.fromAsyncIterable(cursor.cursor, F.identity),
-    Stream.catchAll(MongoError.mongoErrorStream<A>("Unable to read from mongodb cursor")),
+    Stream.catchAll(MongoError.mongoErrorStream<A>("Unable to get stream from mongodb cursor")),
     Stream.mapEffect((x) => decode(x))
   )
 }
