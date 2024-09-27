@@ -26,16 +26,21 @@ export class DocumentCollection extends Data.TaggedClass("DocumentCollection")<{
 }> {
 }
 
-export const find = (
-  collection: DocumentCollection,
-  // TODO: should we omit keys available as Cursor functions?
-  options?: FindOptions
-): DocumentFindCursor.DocumentFindCursor =>
-  new DocumentFindCursor.DocumentFindCursor(
-    {
-      cursor: collection.collection.find({}, options)
-    }
-  )
+export const find: {
+  (options?: FindOptions): (collection: DocumentCollection) => DocumentFindCursor.DocumentFindCursor
+  (
+    collection: DocumentCollection,
+    options?: FindOptions
+  ): DocumentFindCursor.DocumentFindCursor
+} = F.dual(
+  (args) => isCollection(args[0]),
+  (collection: DocumentCollection, options?: FindOptions) =>
+    new DocumentFindCursor.DocumentFindCursor(
+      {
+        cursor: collection.collection.find({}, options)
+      }
+    )
+)
 
 export const findOne: {
   (
