@@ -1,3 +1,4 @@
+import * as Collection from "@doubleloop-io/effect-mongodb/Collection"
 import * as Db from "@doubleloop-io/effect-mongodb/Db"
 import * as DocumentCollection from "@doubleloop-io/effect-mongodb/DocumentCollection"
 import * as DocumentFindCursor from "@doubleloop-io/effect-mongodb/DocumentFindCursor"
@@ -12,7 +13,6 @@ const MyType = Schema.Struct({
   birthday: Schema.Date
 })
 type MyType = Schema.Schema.Type<typeof MyType>
-type MyTypeEncoded = Schema.Schema.Encoded<typeof MyType>
 
 const program = Effect.gen(function*(_) {
   const sourceInstance = yield* _(MongoClient.connect("mongodb://localhost:27017"))
@@ -26,13 +26,12 @@ const program = Effect.gen(function*(_) {
 
   const destinationInstance = yield* _(MongoClient.connect("mongodb://localhost:27017"))
   const destinationDb = yield* _(MongoClient.db(destinationInstance, "destination"))
-  const destinationCollection = yield* _(Db.collection(destinationDb, "records"))
+  const destinationCollection = yield* _(
+    Db.collection(destinationDb, "records"),
+    Effect.map(DocumentCollection.typed(MyType))
+  )
 
-  const dontBother: MyTypeEncoded = { name: "foo", age: 42, birthday: "2024-12-27" }
-  if (sourceItems && destinationCollection && dontBother) {
-    // Don't bother me with unused variables!
-  }
-  // Collection.insertMany(destinationCollection, sourceItems)
+  yield* _(Collection.insertMany(destinationCollection, sourceItems))
 })
 
 await program.pipe(Effect.runPromise)
