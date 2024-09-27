@@ -91,6 +91,21 @@ export const toArray = <A, I = A, R = never>(cursor: FindCursor<A, I, R>) => {
   )
 }
 
+export const toArrayEither = <A, I = A, R = never>(cursor: FindCursor<A, I, R>) => {
+  const decode = Schema.decodeUnknown(cursor.schema)
+  return Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }).pipe(
+    Effect.catchAll(MongoError.mongoErrorDie<ReadonlyArray<A>>("Unable to get array from mongodb cursor")),
+    Effect.flatMap(Effect.forEach((x) =>
+      F.pipe(
+        // keep new line
+        decode(x),
+        Effect.mapError((error) => Tuple.make(x, error)),
+        Effect.either
+      )
+    ))
+  )
+}
+
 export const toStream = <A, I = A, R = never>(
   cursor: FindCursor<A, I, R>
 ): Stream.Stream<A, MongoError.MongoError | ParseResult.ParseError, R> => {
