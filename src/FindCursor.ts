@@ -7,8 +7,11 @@ import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import * as Stream from "effect/Stream"
+import * as Tuple from "effect/Tuple"
 import type { Document, FindCursor as FindCursor_, Sort, SortDirection } from "mongodb"
 import * as MongoError from "./MongoError.js"
+
+import type * as E from "effect/Either"
 
 export class FindCursor<A, I = A, R = never> extends Data.TaggedClass("FindCursor")<{
   cursor: FindCursor_<unknown>
@@ -96,6 +99,24 @@ export const toStream = <A, I = A, R = never>(
     Stream.fromAsyncIterable(cursor.cursor, F.identity),
     Stream.catchAll(MongoError.mongoErrorStream<A>("Unable to get stream from mongodb cursor")),
     Stream.mapEffect((x) => decode(x))
+  )
+}
+
+export const toStreamEither = <A, I = A, R = never>(
+  cursor: FindCursor<A, I, R>
+): Stream.Stream<E.Either<A, [document: unknown, error: ParseResult.ParseError]>, MongoError.MongoError, R> => {
+  const decode = Schema.decodeUnknown(cursor.schema)
+  return F.pipe(
+    Stream.fromAsyncIterable(cursor.cursor, F.identity),
+    Stream.catchAll(MongoError.mongoErrorStream<A>("Unable to get stream either from mongodb cursor")),
+    Stream.mapEffect((x) =>
+      F.pipe(
+        // keep new line
+        decode(x),
+        Effect.mapError((error) => Tuple.make(x, error)),
+        Effect.either
+      )
+    )
   )
 }
 

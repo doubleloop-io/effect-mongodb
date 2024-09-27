@@ -4,7 +4,9 @@ import * as DocumentCollection from "@doubleloop-io/effect-mongodb/DocumentColle
 import * as FindCursor from "@doubleloop-io/effect-mongodb/FindCursor"
 import * as Arbitrary from "@effect/schema/Arbitrary"
 import * as FastCheck from "@effect/schema/FastCheck"
+import * as ParseResult from "@effect/schema/ParseResult"
 import * as Schema from "@effect/schema/Schema"
+import * as Array from "effect/Array"
 import * as Chunk from "effect/Chunk"
 import * as Effect from "effect/Effect"
 import * as Stream from "effect/Stream"
@@ -74,6 +76,34 @@ describeMongo("FindCursor", (ctx) => {
     const result = await Effect.runPromise(program)
 
     expect(result).toEqual(anyUsers)
+  })
+
+  test("stream with partitioned errors", async () => {
+    const program = Effect.gen(function*(_) {
+      const db = yield* _(ctx.database)
+      const documentCollection = yield* _(Db.collection(db, "stream-with-partitioned-errors"))
+      const collection = DocumentCollection.typed(documentCollection, User)
+
+      yield* _(Collection.insertMany(collection, FastCheck.sample(UserArbitrary, 6)))
+      yield* _(DocumentCollection.insertOne(documentCollection, { id: 999, surname: "foo" }))
+      yield* _(Collection.insertMany(collection, FastCheck.sample(UserArbitrary, 3)))
+
+      return yield* _(
+        Collection.find(collection),
+        FindCursor.toStreamEither,
+        Stream.runCollect,
+        Effect.map(Chunk.toReadonlyArray)
+      )
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(Array.getRights(result)).toHaveLength(9)
+    expect(Array.getLefts(result)).toEqual(
+      [
+        [expect.objectContaining({ id: 999, surname: "foo" }), expect.any(ParseResult.ParseError)] as const
+      ]
+    )
   })
 })
 
