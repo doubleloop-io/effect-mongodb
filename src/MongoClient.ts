@@ -30,3 +30,4 @@ export type MongoClientService<K extends string> = {
 } & Brand.Brand<K>
 
 export const Tag = <K extends string>(key: K) => Context.GenericTag<MongoClientService<K>>(key)
+export type TagType<K extends string> = ReturnType<typeof Tag<K>>
