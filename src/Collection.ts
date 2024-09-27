@@ -25,17 +25,27 @@ export class Collection<A extends Document, I extends Document = A, R = never> e
 
 export type FindOptions = Omit<MongoFindOptions, "projection">
 
-export const find = <A extends Document, I extends Document = A, R = never>(
-  collection: Collection<A, I, R>,
-  // TODO: should we omit keys available as Cursor functions?
-  options?: FindOptions
-): FindCursor.FindCursor<A, I, R> =>
-  new FindCursor.FindCursor<A, I, R>(
-    {
+export const find: {
+  (
+    options?: FindOptions
+  ): <A extends Document, I extends Document = A, R = never>(
+    collection: Collection<A, I, R>
+  ) => FindCursor.FindCursor<A, I, R>
+  <A extends Document, I extends Document = A, R = never>(
+    collection: Collection<A, I, R>,
+    options?: FindOptions
+  ): FindCursor.FindCursor<A, I, R>
+} = F.dual(
+  (args) => isCollection(args[0]),
+  <A extends Document, I extends Document = A, R = never>(
+    collection: Collection<A, I, R>,
+    options?: FindOptions
+  ): FindCursor.FindCursor<A, I, R> =>
+    new FindCursor.FindCursor<A, I, R>({
       cursor: collection.collection.find({}, options),
       schema: collection.schema
-    }
-  )
+    })
+)
 
 export const findOne: {
   <A extends Document, I extends Document = A, R = never>(
