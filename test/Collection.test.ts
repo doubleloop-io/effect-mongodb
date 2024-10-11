@@ -12,7 +12,7 @@ describeMongo("Collection", (ctx) => {
 
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(Db.collection(db, "find-one", User))
+      const collection = Db.collection(db, "find-one", User)
 
       yield* _(
         Collection.insertOne(collection, user)

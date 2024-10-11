@@ -11,7 +11,7 @@ describeMongo("DocumentFindCursor", (ctx) => {
   test("filter", async () => {
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(Db.documentCollection(db, "filter"))
+      const collection = Db.documentCollection(db, "filter")
 
       yield* _(
         DocumentCollection.insertMany(collection, [
@@ -42,7 +42,7 @@ describeMongo("DocumentFindCursor", (ctx) => {
 
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(Db.documentCollection(db, "project"))
+      const collection = Db.documentCollection(db, "project")
 
       yield* _(
         DocumentCollection.insertMany(collection, [
@@ -71,7 +71,7 @@ describeMongo("DocumentFindCursor", (ctx) => {
   test("sort", async () => {
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(Db.documentCollection(db, "sort"))
+      const collection = Db.documentCollection(db, "sort")
 
       yield* _(
         DocumentCollection.insertMany(collection, [
@@ -104,7 +104,7 @@ describeMongo("DocumentFindCursor", (ctx) => {
   test("limit", async () => {
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(Db.documentCollection(db, "limit"))
+      const collection = Db.documentCollection(db, "limit")
 
       yield* _(
         DocumentCollection.insertMany(collection, [
@@ -137,7 +137,7 @@ describeMongo("DocumentFindCursor", (ctx) => {
 
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(Db.documentCollection(db, "many-operations"))
+      const collection = Db.documentCollection(db, "many-operations")
 
       yield* _(
         DocumentCollection.insertMany(collection, [
@@ -177,7 +177,7 @@ describeMongo("DocumentFindCursor", (ctx) => {
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
 
-      const collection = yield* _(Db.documentCollection(db, "stream"))
+      const collection = Db.documentCollection(db, "stream")
       yield* _(DocumentCollection.insertMany(collection, users))
 
       return yield* _(
