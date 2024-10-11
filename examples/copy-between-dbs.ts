@@ -26,10 +26,7 @@ const program = Effect.gen(function*(_) {
 
   const destinationInstance = yield* _(MongoClient.connect("mongodb://localhost:27017"))
   const destinationDb = yield* _(MongoClient.db(destinationInstance, "destination"))
-  const destinationCollection = yield* _(
-    Db.documentCollection(destinationDb, "records"),
-    Effect.map(DocumentCollection.typed(MyType))
-  )
+  const destinationCollection = yield* _(Db.collection(destinationDb, "records", MyType))
 
   yield* _(Collection.insertMany(destinationCollection, sourceItems))
 })

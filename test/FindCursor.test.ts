@@ -19,10 +19,7 @@ describeMongo("FindCursor", (ctx) => {
 
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(
-        Db.documentCollection(db, "decode-documents-with-schema"),
-        Effect.map(DocumentCollection.typed(User))
-      )
+      const collection = yield* _(Db.collection(db, "decode-documents-with-schema", User))
 
       yield* _(Collection.insertMany(collection, anyTestEntities))
 
@@ -39,7 +36,7 @@ describeMongo("FindCursor", (ctx) => {
 
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(Db.documentCollection(db, "project"), Effect.map(DocumentCollection.typed(User)))
+      const collection = yield* _(Db.collection(db, "project", User))
 
       yield* _(Collection.insertMany(collection, anyUsers))
 
@@ -61,7 +58,7 @@ describeMongo("FindCursor", (ctx) => {
 
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(Db.documentCollection(db, "stream"), Effect.map(DocumentCollection.typed(User)))
+      const collection = yield* _(Db.collection(db, "stream", User))
 
       yield* _(Collection.insertMany(collection, anyUsers))
 

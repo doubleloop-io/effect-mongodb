@@ -1,6 +1,5 @@
 import * as Collection from "@doubleloop-io/effect-mongodb/Collection"
 import * as Db from "@doubleloop-io/effect-mongodb/Db"
-import * as DocumentCollection from "@doubleloop-io/effect-mongodb/DocumentCollection"
 import * as Schema from "@effect/schema/Schema"
 import * as Effect from "effect/Effect"
 import * as O from "effect/Option"
@@ -13,7 +12,7 @@ describeMongo("Collection", (ctx) => {
 
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(Db.documentCollection(db, "find-one"), Effect.map(DocumentCollection.typed(User)))
+      const collection = yield* _(Db.collection(db, "find-one", User))
 
       yield* _(
         Collection.insertOne(collection, user)
