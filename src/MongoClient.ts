@@ -18,11 +18,11 @@ export const connect = (url: string, options?: MongoClientOptions) =>
   )
 
 export const db: {
-  (dbName?: string, options?: DbOptions): (client: MongoClient) => Effect.Effect<Db>
-  (client: MongoClient, dbName?: string, options?: DbOptions): Effect.Effect<Db>
+  (dbName?: string, options?: DbOptions): (client: MongoClient) => Db
+  (client: MongoClient, dbName?: string, options?: DbOptions): Db
 } = F.dual(
   (args) => isMongoClient(args[0]),
-  (client: MongoClient, dbName?: string, options?: DbOptions) => Effect.sync(() => client.db(dbName, options))
+  (client: MongoClient, dbName?: string, options?: DbOptions) => client.db(dbName, options)
 )
 
 const isMongoClient = (x: unknown) => x instanceof MongoClient_

@@ -71,7 +71,7 @@ export const fromEffect = <DbK extends string, MongoClientK extends string, E = 
       const dbName_ = yield* _(dbName)
       const db = yield* _(
         client,
-        Effect.flatMap((client) => MongoClient.db(client, dbName_)),
+        Effect.map((client) => MongoClient.db(client, dbName_)),
         Effect.cached
       )
       return dbTag.of({ db } as DbService<DbK>) // TODO fix cast using branded ctor
