@@ -11,7 +11,7 @@ import * as DocumentCollection from "./DocumentCollection.js"
 import * as MongoClient from "./MongoClient.js"
 import type * as MongoError from "./MongoError.js"
 
-export const collection: {
+export const documentCollection: {
   (name: string): (db: Db) => Effect.Effect<DocumentCollection.DocumentCollection>
   (db: Db, name: string): Effect.Effect<DocumentCollection.DocumentCollection>
 } = F.dual(2, (db: Db, name: string) =>

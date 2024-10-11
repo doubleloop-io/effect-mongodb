@@ -17,7 +17,7 @@ type MyType = Schema.Schema.Type<typeof MyType>
 const program = Effect.gen(function*(_) {
   const sourceInstance = yield* _(MongoClient.connect("mongodb://localhost:27017"))
   const sourceDb = yield* _(MongoClient.db(sourceInstance, "source"))
-  const sourceCollection = yield* _(Db.collection(sourceDb, "records"))
+  const sourceCollection = yield* _(Db.documentCollection(sourceDb, "records"))
   const sourceItems = yield* _(
     DocumentCollection.find(sourceCollection),
     DocumentFindCursor.typed(MyType),
@@ -27,7 +27,7 @@ const program = Effect.gen(function*(_) {
   const destinationInstance = yield* _(MongoClient.connect("mongodb://localhost:27017"))
   const destinationDb = yield* _(MongoClient.db(destinationInstance, "destination"))
   const destinationCollection = yield* _(
-    Db.collection(destinationDb, "records"),
+    Db.documentCollection(destinationDb, "records"),
     Effect.map(DocumentCollection.typed(MyType))
   )
 

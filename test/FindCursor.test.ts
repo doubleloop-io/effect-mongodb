@@ -20,7 +20,7 @@ describeMongo("FindCursor", (ctx) => {
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
       const collection = yield* _(
-        Db.collection(db, "decode-documents-with-schema"),
+        Db.documentCollection(db, "decode-documents-with-schema"),
         Effect.map(DocumentCollection.typed(User))
       )
 
@@ -39,7 +39,7 @@ describeMongo("FindCursor", (ctx) => {
 
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(Db.collection(db, "project"), Effect.map(DocumentCollection.typed(User)))
+      const collection = yield* _(Db.documentCollection(db, "project"), Effect.map(DocumentCollection.typed(User)))
 
       yield* _(Collection.insertMany(collection, anyUsers))
 
@@ -61,7 +61,7 @@ describeMongo("FindCursor", (ctx) => {
 
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(Db.collection(db, "stream"), Effect.map(DocumentCollection.typed(User)))
+      const collection = yield* _(Db.documentCollection(db, "stream"), Effect.map(DocumentCollection.typed(User)))
 
       yield* _(Collection.insertMany(collection, anyUsers))
 
@@ -81,7 +81,7 @@ describeMongo("FindCursor", (ctx) => {
   test("stream with partitioned errors", async () => {
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const documentCollection = yield* _(Db.collection(db, "stream-with-partitioned-errors"))
+      const documentCollection = yield* _(Db.documentCollection(db, "stream-with-partitioned-errors"))
       const collection = DocumentCollection.typed(documentCollection, User)
 
       yield* _(Collection.insertMany(collection, FastCheck.sample(UserArbitrary, 6)))

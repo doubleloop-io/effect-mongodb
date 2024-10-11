@@ -19,7 +19,7 @@ type MyType = Schema.Schema.Type<typeof MyType>
 const program = Effect.gen(function*(_) {
   const sourceInstance = yield* _(MongoClient.connect("mongodb://localhost:27017"))
   const sourceDb = yield* _(MongoClient.db(sourceInstance, "source"))
-  const sourceCollection = yield* _(Db.collection(sourceDb, "records"))
+  const sourceCollection = yield* _(Db.documentCollection(sourceDb, "records"))
 
   yield* _(
     DocumentCollection.find(sourceCollection),

@@ -11,7 +11,7 @@ describeMongo("DocumentCollection", (ctx) => {
   test("insert and find", async () => {
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(Db.collection(db, "insert-and-find"))
+      const collection = yield* _(Db.documentCollection(db, "insert-and-find"))
 
       yield* _(DocumentCollection.insertOne(collection, { name: "John" }))
 
@@ -26,7 +26,7 @@ describeMongo("DocumentCollection", (ctx) => {
   test("insert many and find", async () => {
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(Db.collection(db, "insert-many-and-find"))
+      const collection = yield* _(Db.documentCollection(db, "insert-many-and-find"))
 
       yield* _(
         DocumentCollection.insertMany(collection, [{ name: "NAME_1" }, { name: "NAME_2" }, { name: "NAME_3" }])
@@ -47,7 +47,7 @@ describeMongo("DocumentCollection", (ctx) => {
   test("find one", async () => {
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(Db.collection(db, "find-one"))
+      const collection = yield* _(Db.documentCollection(db, "find-one"))
 
       yield* _(
         DocumentCollection.insertMany(collection, [{ name: "ANY_NAME_1" }, { name: "john" }, { name: "ANY_NAME_2" }])
@@ -64,7 +64,7 @@ describeMongo("DocumentCollection", (ctx) => {
   test("find one - no result", async () => {
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = yield* _(Db.collection(db, "find-one-no-result"))
+      const collection = yield* _(Db.documentCollection(db, "find-one-no-result"))
 
       yield* _(
         DocumentCollection.insertMany(collection, [{ name: "ANY_NAME_1" }, { name: "ANY_NAME_2" }, {
