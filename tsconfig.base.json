@@ -37,9 +37,9 @@
         "removeComments": false,
         "plugins": [{ "name": "@effect/language-service" }],
         "paths": {
-            "@doubleloop-io/effect-mongodb": ["./src/index.ts"],
-            "@doubleloop-io/effect-mongodb/*": ["./src/*.ts"],
-            "@doubleloop-io/effect-mongodb/test/*": ["./test/*.ts"]
+            "@doubleloop-io/effect-mongodb": ["./packages/effect-mongodb/src/index.js"],
+            "@doubleloop-io/effect-mongodb/*": ["./packages/effect-mongodb/src/*.js"],
+            "@doubleloop-io/effect-mongodb/test/*": ["./packages/effect-mongodb/test/*.js"]
         }
     }
 }
