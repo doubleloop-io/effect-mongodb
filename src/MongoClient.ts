@@ -21,9 +21,11 @@ export const db: {
   (dbName?: string, options?: DbOptions): (client: MongoClient) => Effect.Effect<Db>
   (client: MongoClient, dbName?: string, options?: DbOptions): Effect.Effect<Db>
 } = F.dual(
-  3,
+  (args) => isMongoClient(args[0]),
   (client: MongoClient, dbName?: string, options?: DbOptions) => Effect.sync(() => client.db(dbName, options))
 )
+
+const isMongoClient = (x: unknown) => x instanceof MongoClient_
 
 export type MongoClientService<K extends string> = {
   client: Effect.Effect<MongoClient, MongoError.MongoError>

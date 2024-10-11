@@ -33,7 +33,7 @@ export const find: {
     options?: FindOptions
   ): DocumentFindCursor.DocumentFindCursor
 } = F.dual(
-  (args) => isCollection(args[0]),
+  (args) => isDocumentCollection(args[0]),
   (collection: DocumentCollection, options?: FindOptions) =>
     new DocumentFindCursor.DocumentFindCursor(
       {
@@ -55,7 +55,7 @@ export const findOne: {
     options?: FindOptions
   ): Effect.Effect<O.Option<Document>, MongoError.MongoError>
 } = F.dual(
-  (args) => isCollection(args[0]),
+  (args) => isDocumentCollection(args[0]),
   (
     collection: DocumentCollection,
     filter: Filter<Document>,
@@ -80,7 +80,7 @@ export const insertOne: {
     doc: OptionalUnlessRequiredId<Document>,
     options?: InsertOneOptions
   ): Effect.Effect<InsertOneResult, MongoError.MongoError>
-} = F.dual((args) => isCollection(args[0]), (
+} = F.dual((args) => isDocumentCollection(args[0]), (
   collection: DocumentCollection,
   doc: OptionalUnlessRequiredId<Document>,
   options?: InsertOneOptions
@@ -102,7 +102,7 @@ export const insertMany: {
     docs: Array<OptionalUnlessRequiredId<Document>>,
     options?: BulkWriteOptions
   ): Effect.Effect<InsertOneResult, MongoError.MongoError>
-} = F.dual((args) => isCollection(args[0]), (
+} = F.dual((args) => isDocumentCollection(args[0]), (
   collection: DocumentCollection,
   docs: Array<OptionalUnlessRequiredId<Document>>,
   options?: BulkWriteOptions
@@ -120,9 +120,9 @@ export const typed: {
     collection: DocumentCollection,
     schema: Schema.Schema<A, I, R>
   ): Collection.Collection<A, I, R>
-} = F.dual(2, <A extends Document, I extends Document = A, R = never>(
+} = F.dual((args) => isDocumentCollection(args[0]), <A extends Document, I extends Document = A, R = never>(
   collection: DocumentCollection,
   schema: Schema.Schema<A, I, R>
 ): Collection.Collection<A, I, R> => new Collection.Collection<A, I, R>({ collection: collection.collection, schema }))
 
-const isCollection = (x: unknown) => x instanceof DocumentCollection
+const isDocumentCollection = (x: unknown) => x instanceof DocumentCollection

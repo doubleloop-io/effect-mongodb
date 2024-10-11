@@ -21,7 +21,7 @@ export const filter: {
   ): (cursor: DocumentFindCursor) => DocumentFindCursor
   (cursor: DocumentFindCursor, filter: Document): DocumentFindCursor
 } = F.dual(
-  2,
+  (args) => isDocumentFindCursor(args[0]),
   (cursor: DocumentFindCursor, filter: Document): DocumentFindCursor =>
     new DocumentFindCursor({ cursor: cursor.cursor.filter(filter) })
 )
@@ -32,7 +32,7 @@ export const project: {
   ): (cursor: DocumentFindCursor) => DocumentFindCursor
   (cursor: DocumentFindCursor, value: Document): DocumentFindCursor
 } = F.dual(
-  2,
+  (args) => isDocumentFindCursor(args[0]),
   (cursor: DocumentFindCursor, value: Document): DocumentFindCursor =>
     new DocumentFindCursor({ cursor: cursor.cursor.project(value) })
 )
@@ -44,7 +44,7 @@ export const sort: {
   ): (cursor: DocumentFindCursor) => DocumentFindCursor
   (cursor: DocumentFindCursor, sort: Sort | string, direction?: SortDirection): DocumentFindCursor
 } = F.dual(
-  (args) => isFindCursor(args[0]),
+  (args) => isDocumentFindCursor(args[0]),
   (cursor: DocumentFindCursor, sort: Sort | string, direction?: SortDirection): DocumentFindCursor =>
     new DocumentFindCursor({ cursor: cursor.cursor.sort(sort, direction) })
 )
@@ -55,7 +55,7 @@ export const limit: {
   ): (cursor: DocumentFindCursor) => DocumentFindCursor
   (cursor: DocumentFindCursor, value: number): DocumentFindCursor
 } = F.dual(
-  2,
+  (args) => isDocumentFindCursor(args[0]),
   (cursor: DocumentFindCursor, value: number): DocumentFindCursor =>
     new DocumentFindCursor({ cursor: cursor.cursor.limit(value) })
 )
@@ -82,9 +82,9 @@ export const typed: {
     cursor: DocumentFindCursor,
     schema: Schema.Schema<A, I, R>
   ): FindCursor.FindCursor<A, I, R>
-} = F.dual(2, <A, I = A, R = never>(
+} = F.dual((args) => isDocumentFindCursor(args[0]), <A, I = A, R = never>(
   cursor: DocumentFindCursor,
   schema: Schema.Schema<A, I, R>
 ): FindCursor.FindCursor<A, I, R> => new FindCursor.FindCursor<A, I, R>({ cursor: cursor.cursor, schema }))
 
-const isFindCursor = (x: unknown) => x instanceof DocumentFindCursor
+const isDocumentFindCursor = (x: unknown) => x instanceof DocumentFindCursor
