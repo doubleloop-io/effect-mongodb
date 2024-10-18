@@ -10,3 +10,4 @@ scratchpad/
 .env*
 .idea/
 .vscode/
+.envrc
