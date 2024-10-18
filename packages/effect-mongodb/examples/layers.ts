@@ -12,6 +12,13 @@ const db = yield* _(MongoClient.db(client, "source"))
 const sourceCollection = yield* _(Db.collection(db, "records"))
 ....
 
+Layer.effect(
+  FooClient,
+  Effect.gen(function() {
+    const client = yield *(MongoClient.connect("mongodb://localhost:27017"))
+    return FooClient.of({ client })
+  })
+)
 
 type DbService<T> = {
   db: Effect.Effect<Db, MongoError>
@@ -19,15 +26,15 @@ type DbService<T> = {
 
 const FooDb = Db.Tag("FooDb")
 
-const { dbEffect } = yield* _(FooDb)
-const db = yield* _(dbEffect)
+const { dbFactory } = yield* _(FooDb)
+const db = yield* _(dbFactory)
 const sourceCollection = yield* _(Db.collection(db, "records"))
 ....
 
 **** Db.ts ****
 const ServiceLive = (dbTag, clientTag, dbName: Effect<string>) => Layer.effect(
   dbTag,
-  Effect.get(function() {
+  Effect.gen(function() {
     const { clientEffect } = yield* _(clientTag)
     const dbEffect = F.pipe(
       Effect.all([clientEffect, dbName]),
