@@ -29,14 +29,21 @@ jobs:
       - name: Install packages
         run: pnpm install --frozen-lockfile
 
+      - name: Build
+        run: |
+          pnpm codegen
+          pnpm codemod
+
       - name: Check source state
-        run: pnpm check-source-state
+        run: git add packages/*/src && git diff-index --cached HEAD --exit-code packages/*/src
+
+      - name: Types
+        run: pnpm check
 
       - name: Lint
-        run: pnpm lint
-
-      - name: Typecheck
-        run: pnpm check
+        run: |
+          pnpm circular
+          pnpm lint
 
       - name: Test
         run: pnpm test
