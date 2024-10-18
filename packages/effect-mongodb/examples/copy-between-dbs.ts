@@ -1,10 +1,10 @@
-import * as Collection from "@doubleloop-io/effect-mongodb/Collection"
-import * as Db from "@doubleloop-io/effect-mongodb/Db"
-import * as DocumentCollection from "@doubleloop-io/effect-mongodb/DocumentCollection"
-import * as DocumentFindCursor from "@doubleloop-io/effect-mongodb/DocumentFindCursor"
-import * as FindCursor from "@doubleloop-io/effect-mongodb/FindCursor"
-import * as MongoClient from "@doubleloop-io/effect-mongodb/MongoClient"
 import * as Schema from "@effect/schema/Schema"
+import * as Collection from "effect-mongodb/Collection"
+import * as Db from "effect-mongodb/Db"
+import * as DocumentCollection from "effect-mongodb/DocumentCollection"
+import * as DocumentFindCursor from "effect-mongodb/DocumentFindCursor"
+import * as FindCursor from "effect-mongodb/FindCursor"
+import * as MongoClient from "effect-mongodb/MongoClient"
 import * as Effect from "effect/Effect"
 
 const MyType = Schema.Struct({

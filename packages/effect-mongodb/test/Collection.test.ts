@@ -1,6 +1,6 @@
-import * as Collection from "@doubleloop-io/effect-mongodb/Collection"
-import * as Db from "@doubleloop-io/effect-mongodb/Db"
 import * as Schema from "@effect/schema/Schema"
+import * as Collection from "effect-mongodb/Collection"
+import * as Db from "effect-mongodb/Db"
 import * as Effect from "effect/Effect"
 import * as O from "effect/Option"
 import { expect, test } from "vitest"
