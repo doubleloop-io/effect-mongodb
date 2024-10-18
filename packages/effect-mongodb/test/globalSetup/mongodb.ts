@@ -9,6 +9,7 @@ export async function setup({ provide }: GlobalSetupContext) {
 
   provide("mongoConnectionString", container.getConnectionString())
   if (process.env.EFFECT_MONGODB_DEBUG === "true") {
+    // eslint-disable-next-line no-console
     console.log(
       `[EFFECT_MONGODB_DEBUG] MongoDB connection string with direct connection: '${container.getConnectionString()}'`
     )
