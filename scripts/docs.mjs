@@ -3,7 +3,6 @@ import * as Path from "node:path"
 
 function packages() {
   return Fs.readdirSync("packages")
-    .concat(Fs.readdirSync("packages/ai"))
     .filter((_) => Fs.existsSync(Path.join("packages", _, "docs/modules")))
 }
 
