@@ -1,14 +1,14 @@
-import * as path from "node:path";
-import type { UserConfig } from "vitest/config";
+import * as path from "node:path"
+import type { UserConfig } from "vitest/config"
 
 const alias = (pkg: string, dir = pkg) => {
-  const name = `@doubleloop-io/${pkg}`;
-  const target = process.env.TEST_DIST !== undefined ? "dist/dist/esm" : "src";
+  const name = `@doubleloop-io/${pkg}`
+  const target = process.env.TEST_DIST !== undefined ? "dist/dist/esm" : "src"
   return ({
     [`${name}/test`]: path.join(__dirname, "packages", dir, "test"),
     [`${name}`]: path.join(__dirname, "packages", dir, target)
-  });
-};
+  })
+}
 
 const config: UserConfig = {
   esbuild: {
@@ -24,7 +24,7 @@ const config: UserConfig = {
     },
     alias: {
       ...alias("effect-mongodb")
-    },
+    }
   }
-};
-export default config;
+}
+export default config
