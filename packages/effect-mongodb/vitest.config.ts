@@ -2,7 +2,7 @@ import { mergeConfig, type UserConfigExport } from "vitest/config"
 import shared from "../../vitest.shared.js"
 
 const config: UserConfigExport = {
-  test:{
+  test: {
     globalSetup: ["./test/globalSetup/mongodb.ts"]
   }
 }
