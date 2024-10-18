@@ -1,3 +1,6 @@
+/**
+ * @since 0.0.1
+ */
 import type * as ParseResult from "@effect/schema/ParseResult"
 import * as Schema from "@effect/schema/Schema"
 import * as Data from "effect/Data"
