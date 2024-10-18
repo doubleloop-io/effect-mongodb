@@ -8,14 +8,23 @@
   "homepage": "https://github.com/doubleloop-io/effect-mongodb",
   "repository": {
     "type": "git",
-    "url": "https://github.com/doubleloop-io/effect-mongodb"
+    "url": "https://github.com/doubleloop-io/effect-mongodb",
+    "directory": "packages/effect-mongodb"
   },
   "bugs": {
     "url": "https://github.com/doubleloop-io/effect-mongodb/issues"
   },
+  "tags": [
+    "typescript",
+    "mongodb",
+    "effect",
+    "functional-programming"
+  ],
   "keywords": [
     "typescript",
-    "mongodb"
+    "mongodb",
+    "effect",
+    "functional-programming"
   ],
   "publishConfig": {
     "access": "public",
