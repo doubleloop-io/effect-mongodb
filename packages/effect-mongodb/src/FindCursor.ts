@@ -20,32 +20,32 @@ export class FindCursor<A, I = A, R = never> extends Data.TaggedClass("FindCurso
 export const filter: {
   <T extends Document = Document>(
     filter: T
-  ): <A, I = A, R = never>(cursor: FindCursor<A, I, R>) => FindCursor<A, I, R>
-  <A, I = A, R = never, T extends Document = Document>(
+  ): <A, I, R>(cursor: FindCursor<A, I, R>) => FindCursor<A, I, R>
+  <A, I, R, T extends Document = Document>(
     cursor: FindCursor<A, I, R>,
     filter: T
   ): FindCursor<A, I, R>
 } = F.dual(
   (args) => isFindCursor(args[0]),
-  <A, I = A, R = never, T extends Document = Document>(
+  <A, I, R, T extends Document = Document>(
     cursor: FindCursor<A, I, R>,
     filter: T
   ): FindCursor<A, I, R> => new FindCursor({ cursor: cursor.cursor.filter(filter), schema: cursor.schema })
 )
 
 export const project: {
-  <B, BI = B, BR = never, T extends Document = Document>(
+  <B, BI, BR, T extends Document = Document>(
     newSchema: Schema.Schema<B, BI, BR>,
     value: T
-  ): <A, I = A, R = never>(cursor: FindCursor<A, I, R>) => FindCursor<B, BI, BR>
-  <A, B, I = A, R = never, BI = B, BR = never, T extends Document = Document>(
+  ): <A, I, R>(cursor: FindCursor<A, I, R>) => FindCursor<B, BI, BR>
+  <A, B, I, R, BI, BR, T extends Document = Document>(
     cursor: FindCursor<A, I, R>,
     newSchema: Schema.Schema<B, BI, BR>,
     value: T
   ): FindCursor<B, BI, BR>
 } = F.dual(
   (args) => isFindCursor(args[0]),
-  <A, B, I = A, R = never, BI = B, BR = never, T extends Document = Document>(
+  <A, B, I, R, BI, BR, T extends Document = Document>(
     cursor: FindCursor<A, I, R>,
     newSchema: Schema.Schema<B, BI, BR>,
     value: T
@@ -56,15 +56,15 @@ export const sort: {
   (
     sort: Sort | string,
     direction?: SortDirection
-  ): <A, I = A, R = never>(cursor: FindCursor<A, I, R>) => FindCursor<A, I, R>
-  <A, I = A, R = never>(
+  ): <A, I, R>(cursor: FindCursor<A, I, R>) => FindCursor<A, I, R>
+  <A, I, R>(
     cursor: FindCursor<A, I, R>,
     sort: Sort | string,
     direction?: SortDirection
   ): FindCursor<A, I, R>
 } = F.dual(
   (args) => isFindCursor(args[0]),
-  <A, I = A, R = never>(
+  <A, I, R>(
     cursor: FindCursor<A, I, R>,
     sort: Sort | string,
     direction?: SortDirection
@@ -74,15 +74,15 @@ export const sort: {
 export const limit: {
   (
     value: number
-  ): <A, I = A, R = never>(cursor: FindCursor<A, I, R>) => FindCursor<A, I, R>
-  <A, I = A, R = never>(cursor: FindCursor<A, I, R>, value: number): FindCursor<A, I, R>
+  ): <A, I, R>(cursor: FindCursor<A, I, R>) => FindCursor<A, I, R>
+  <A, I, R>(cursor: FindCursor<A, I, R>, value: number): FindCursor<A, I, R>
 } = F.dual(
   (args) => isFindCursor(args[0]),
-  <A, I = A, R = never>(cursor: FindCursor<A, I, R>, value: number): FindCursor<A, I, R> =>
+  <A, I, R>(cursor: FindCursor<A, I, R>, value: number): FindCursor<A, I, R> =>
     new FindCursor({ cursor: cursor.cursor.limit(value), schema: cursor.schema })
 )
 
-export const toArray = <A, I = A, R = never>(cursor: FindCursor<A, I, R>) => {
+export const toArray = <A, I, R>(cursor: FindCursor<A, I, R>) => {
   const decode = Schema.decodeUnknown(cursor.schema)
   return Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }).pipe(
     Effect.catchAll(MongoError.mongoErrorDie<ReadonlyArray<A>>("Unable to get array from mongodb cursor")),
@@ -90,7 +90,7 @@ export const toArray = <A, I = A, R = never>(cursor: FindCursor<A, I, R>) => {
   )
 }
 
-export const toArrayEither = <A, I = A, R = never>(cursor: FindCursor<A, I, R>) => {
+export const toArrayEither = <A, I, R>(cursor: FindCursor<A, I, R>) => {
   const decode = Schema.decodeUnknown(cursor.schema)
   return Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }).pipe(
     Effect.catchAll(MongoError.mongoErrorDie<ReadonlyArray<A>>("Unable to get array from mongodb cursor")),
@@ -105,7 +105,7 @@ export const toArrayEither = <A, I = A, R = never>(cursor: FindCursor<A, I, R>) 
   )
 }
 
-export const toStream = <A, I = A, R = never>(
+export const toStream = <A, I, R>(
   cursor: FindCursor<A, I, R>
 ): Stream.Stream<A, MongoError.MongoError | ParseResult.ParseError, R> => {
   const decode = Schema.decodeUnknown(cursor.schema)
@@ -116,7 +116,7 @@ export const toStream = <A, I = A, R = never>(
   )
 }
 
-export const toStreamEither = <A, I = A, R = never>(
+export const toStreamEither = <A, I, R>(
   cursor: FindCursor<A, I, R>
 ): Stream.Stream<E.Either<A, [document: unknown, error: ParseResult.ParseError]>, MongoError.MongoError, R> => {
   const decode = Schema.decodeUnknown(cursor.schema)

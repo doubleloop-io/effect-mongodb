@@ -33,16 +33,14 @@ export type FindOptions = Omit<MongoFindOptions, "projection">
 export const find: {
   (
     options?: FindOptions
-  ): <A extends Document, I extends Document = A, R = never>(
-    collection: Collection<A, I, R>
-  ) => FindCursor.FindCursor<A, I, R>
-  <A extends Document, I extends Document = A, R = never>(
+  ): <A extends Document, I extends Document, R>(collection: Collection<A, I, R>) => FindCursor.FindCursor<A, I, R>
+  <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     options?: FindOptions
   ): FindCursor.FindCursor<A, I, R>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document = A, R = never>(
+  <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     options?: FindOptions
   ): FindCursor.FindCursor<A, I, R> =>
@@ -53,20 +51,20 @@ export const find: {
 )
 
 export const findOne: {
-  <A extends Document, I extends Document = A, R = never>(
+  <I extends Document>(
     filter: Filter<I>,
     options?: FindOptions
-  ): (
+  ): <A extends Document, R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<O.Option<Document>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document = A, R = never>(
+  <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
     options?: FindOptions
   ): Effect.Effect<O.Option<Document>, MongoError.MongoError | ParseResult.ParseError, R>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document = A, R = never>(
+  <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
     options?: FindOptions
@@ -81,18 +79,18 @@ export const findOne: {
 )
 
 export const insertOne: {
-  <A extends Document, I extends Document = A, R = never>(
+  <A extends Document>(
     doc: A,
     options?: InsertOneOptions
-  ): (
+  ): <I extends Document, R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<InsertOneResult, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document = A, R = never>(
+  <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     doc: A,
     options?: InsertOneOptions
   ): Effect.Effect<InsertOneResult, MongoError.MongoError | ParseResult.ParseError, R>
-} = F.dual((args) => isCollection(args[0]), <A extends Document, I extends Document = A, R = never>(
+} = F.dual((args) => isCollection(args[0]), <A extends Document, I extends Document, R>(
   collection: Collection<A, I, R>,
   doc: A,
   options?: InsertOneOptions
@@ -104,18 +102,18 @@ export const insertOne: {
   ))
 
 export const insertMany: {
-  <A extends Document, I extends Document = A, R = never>(
+  <A extends Document>(
     docs: Array<A>,
     options?: BulkWriteOptions
-  ): (
+  ): <I extends Document, R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<InsertManyResult, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document = A, R = never>(
+  <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     docs: Array<A>,
     options?: BulkWriteOptions
   ): Effect.Effect<InsertManyResult, MongoError.MongoError | ParseResult.ParseError, R>
-} = F.dual((args) => isCollection(args[0]), <A extends Document, I extends Document = A, R = never>(
+} = F.dual((args) => isCollection(args[0]), <A extends Document, I extends Document, R>(
   collection: Collection<A, I, R>,
   docs: Array<A>,
   options?: BulkWriteOptions
@@ -130,20 +128,20 @@ export const insertMany: {
 })
 
 export const deleteOne: {
-  <A extends Document, I extends Document = A, R = never>(
+  <I extends Document>(
     filter: Filter<I>,
     options?: DeleteOptions
-  ): (
+  ): <A extends Document, R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<DeleteResult, MongoError.MongoError, R>
-  <A extends Document, I extends Document = A, R = never>(
+  <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
     options?: DeleteOptions
   ): Effect.Effect<DeleteResult, MongoError.MongoError, R>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document = A, R = never>(
+  <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
     options?: DeleteOptions
@@ -154,20 +152,20 @@ export const deleteOne: {
 )
 
 export const deleteMany: {
-  <A extends Document, I extends Document = A, R = never>(
+  <I extends Document>(
     filter: Filter<I>,
     options?: DeleteOptions
-  ): (
+  ): <A extends Document, R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<DeleteResult, MongoError.MongoError, R>
-  <A extends Document, I extends Document = A, R = never>(
+  <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
     options?: DeleteOptions
   ): Effect.Effect<DeleteResult, MongoError.MongoError, R>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document = A, R = never>(
+  <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
     options?: DeleteOptions
