@@ -7,10 +7,11 @@ import * as Context from "effect/Context"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import * as Layer from "effect/Layer"
-import type { Document } from "mongodb"
+import type { Document, ListCollectionsOptions } from "mongodb"
 import { Db } from "mongodb"
 import type * as Collection from "./Collection.js"
 import * as DocumentCollection from "./DocumentCollection.js"
+import * as ListCollectionsCursor from "./ListCollectionsCursor.js"
 import * as MongoClient from "./MongoClient.js"
 import type * as MongoError from "./MongoError.js"
 
@@ -20,9 +21,7 @@ export const documentCollection: {
 } = F.dual(
   (args) => isDb(args[0]),
   (db: Db, name: string): DocumentCollection.DocumentCollection =>
-    new DocumentCollection.DocumentCollection({
-      collection: db.collection(name)
-    })
+    new DocumentCollection.DocumentCollection({ collection: db.collection(name) })
 )
 
 export const collection: {
@@ -42,6 +41,35 @@ export const collection: {
     name: string,
     schema: Schema.Schema<A, I, R>
   ): Collection.Collection<A, I, R> => DocumentCollection.typed(documentCollection(db, name), schema)
+)
+
+export const listCollections: {
+  (): (db: Db) => ListCollectionsCursor.ListCollectionsCursor
+  (filter: Document): (db: Db) => ListCollectionsCursor.ListCollectionsCursor
+  (
+    filter: Document,
+    options: Exclude<ListCollectionsOptions, "nameOnly"> & { nameOnly: true }
+  ): (db: Db) => ListCollectionsCursor.NameOnlyListCollectionsCursor
+  (
+    filter: Document,
+    options: Exclude<ListCollectionsOptions, "nameOnly"> & { nameOnly: false }
+  ): (db: Db) => ListCollectionsCursor.FullListCollectionsCursor
+  (db: Db): ListCollectionsCursor.ListCollectionsCursor
+  (db: Db, filter: Document): ListCollectionsCursor.ListCollectionsCursor
+  (
+    db: Db,
+    filter: Document,
+    options: Exclude<ListCollectionsOptions, "nameOnly"> & { nameOnly: true }
+  ): ListCollectionsCursor.NameOnlyListCollectionsCursor
+  (
+    db: Db,
+    filter: Document,
+    options: Exclude<ListCollectionsOptions, "nameOnly"> & { nameOnly: false }
+  ): ListCollectionsCursor.FullListCollectionsCursor
+} = F.dual(
+  (args) => isDb(args[0]),
+  (db: Db, filter?: Document, options?: ListCollectionsOptions): ListCollectionsCursor.ListCollectionsCursor =>
+    new ListCollectionsCursor.ListCollectionsCursor({ cursor: db.listCollections(filter, options) })
 )
 
 const isDb = (x: unknown) => x instanceof Db
