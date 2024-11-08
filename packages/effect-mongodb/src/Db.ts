@@ -7,13 +7,13 @@ import * as Context from "effect/Context"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import * as Layer from "effect/Layer"
-import type { Document, ListCollectionsOptions } from "mongodb"
+import type { Document, DropCollectionOptions, ListCollectionsOptions } from "mongodb"
 import { Db } from "mongodb"
 import type * as Collection from "./Collection.js"
 import * as DocumentCollection from "./DocumentCollection.js"
 import * as ListCollectionsCursor from "./ListCollectionsCursor.js"
 import * as MongoClient from "./MongoClient.js"
-import type * as MongoError from "./MongoError.js"
+import * as MongoError from "./MongoError.js"
 
 export const documentCollection: {
   (name: string): (db: Db) => DocumentCollection.DocumentCollection
@@ -21,7 +21,9 @@ export const documentCollection: {
 } = F.dual(
   (args) => isDb(args[0]),
   (db: Db, name: string): DocumentCollection.DocumentCollection =>
-    new DocumentCollection.DocumentCollection({ collection: db.collection(name) })
+    new DocumentCollection.DocumentCollection({
+      collection: db.collection(name)
+    })
 )
 
 export const collection: {
@@ -70,6 +72,20 @@ export const listCollections: {
   (args) => isDb(args[0]),
   (db: Db, filter?: Document, options?: ListCollectionsOptions): ListCollectionsCursor.ListCollectionsCursor =>
     new ListCollectionsCursor.ListCollectionsCursor({ cursor: db.listCollections(filter, options) })
+)
+
+export const dropCollection: {
+  (name: string): (db: Db) => Effect.Effect<boolean>
+  (name: string, options: DropCollectionOptions): (db: Db) => Effect.Effect<boolean, MongoError.MongoError>
+  (db: Db, name: string): Effect.Effect<boolean, MongoError.MongoError>
+  (db: Db, name: string, options: DropCollectionOptions): Effect.Effect<boolean, MongoError.MongoError>
+} = F.dual(
+  (args) => isDb(args[0]),
+  (db: Db, name: string, options?: DropCollectionOptions): Effect.Effect<boolean, MongoError.MongoError> =>
+    F.pipe(
+      Effect.promise(() => db.dropCollection(name, options)),
+      Effect.catchAllDefect(MongoError.mongoErrorDie<boolean>("dropCollection error"))
+    )
 )
 
 const isDb = (x: unknown) => x instanceof Db
