@@ -9,6 +9,8 @@ import * as O from "effect/Option"
 import type {
   BulkWriteOptions,
   Collection as MongoCollection,
+  DeleteOptions,
+  DeleteResult,
   Document,
   Filter,
   FindOptions,
@@ -111,6 +113,56 @@ export const insertMany: {
     Effect.promise(() => collection.collection.insertMany(docs, options)),
     Effect.catchAllDefect(MongoError.mongoErrorDie<InsertManyResult>("insertMany error"))
   ))
+
+export const deleteOne: {
+  (
+    filter: Filter<Document>,
+    options?: DeleteOptions
+  ): (
+    collection: DocumentCollection
+  ) => Effect.Effect<DeleteResult, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    filter: Filter<Document>,
+    options?: DeleteOptions
+  ): Effect.Effect<DeleteResult, MongoError.MongoError>
+} = F.dual(
+  (args) => isDocumentCollection(args[0]),
+  (
+    collection: DocumentCollection,
+    filter: Filter<Document>,
+    options?: DeleteOptions
+  ): Effect.Effect<DeleteResult, MongoError.MongoError> =>
+    F.pipe(
+      Effect.promise(() => collection.collection.deleteOne(filter, options)),
+      Effect.catchAllDefect(MongoError.mongoErrorDie<DeleteResult>("deleteOne error"))
+    )
+)
+
+export const deleteMany: {
+  (
+    filter: Filter<Document>,
+    options?: DeleteOptions
+  ): (
+    collection: DocumentCollection
+  ) => Effect.Effect<DeleteResult, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    filter: Filter<Document>,
+    options?: DeleteOptions
+  ): Effect.Effect<DeleteResult, MongoError.MongoError>
+} = F.dual(
+  (args) => isDocumentCollection(args[0]),
+  (
+    collection: DocumentCollection,
+    filter: Filter<Document>,
+    options?: DeleteOptions
+  ): Effect.Effect<DeleteResult, MongoError.MongoError> =>
+    F.pipe(
+      Effect.promise(() => collection.collection.deleteMany(filter, options)),
+      Effect.catchAllDefect(MongoError.mongoErrorDie<DeleteResult>("deleteMany error"))
+    )
+)
 
 export const typed: {
   <A extends Document, I extends Document = A, R = never>(
