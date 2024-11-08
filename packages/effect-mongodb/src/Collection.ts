@@ -11,13 +11,13 @@ import type {
   BulkWriteOptions,
   Collection as MongoCollection,
   Document,
-  Filter,
   FindOptions as MongoFindOptions,
   InsertManyResult,
   InsertOneOptions,
   InsertOneResult
 } from "mongodb"
 import * as FindCursor from "./FindCursor.js"
+import type { Filter } from "./internal/filter.js"
 import * as MongoError from "./MongoError.js"
 
 export class Collection<A extends Document, I extends Document = A, R = never> extends Data.TaggedClass("Collection")<{
@@ -70,7 +70,7 @@ export const findOne: {
     options?: FindOptions
   ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R> =>
     Effect.gen(function*(_) {
-      const value = yield* _(Effect.promise(() => collection.collection.findOne(filter as Filter<Document>, options)))
+      const value = yield* _(Effect.promise(() => collection.collection.findOne(filter, options)))
       if (value !== null) return O.some(yield* _(Schema.decodeUnknown(collection.schema)(value)))
       return O.none()
     }).pipe(

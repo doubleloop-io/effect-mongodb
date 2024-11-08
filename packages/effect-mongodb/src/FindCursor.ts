@@ -5,13 +5,12 @@ import type * as ParseResult from "@effect/schema/ParseResult"
 import * as Schema from "@effect/schema/Schema"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
+import type * as E from "effect/Either"
 import * as F from "effect/Function"
 import * as Stream from "effect/Stream"
 import * as Tuple from "effect/Tuple"
 import type { Document, FindCursor as FindCursor_, Sort, SortDirection } from "mongodb"
 import * as MongoError from "./MongoError.js"
-
-import type * as E from "effect/Either"
 
 export class FindCursor<A, I = A, R = never> extends Data.TaggedClass("FindCursor")<{
   cursor: FindCursor_<unknown>
