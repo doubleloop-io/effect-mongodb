@@ -153,4 +153,28 @@ export const deleteOne: {
     )
 )
 
+export const deleteMany: {
+  <A extends Document, I extends Document = A, R = never>(
+    filter: Filter<I>,
+    options?: DeleteOptions
+  ): (
+    collection: Collection<A, I, R>
+  ) => Effect.Effect<DeleteResult, MongoError.MongoError, R>
+  <A extends Document, I extends Document = A, R = never>(
+    collection: Collection<A, I, R>,
+    filter: Filter<I>,
+    options?: DeleteOptions
+  ): Effect.Effect<DeleteResult, MongoError.MongoError, R>
+} = F.dual(
+  (args) => isCollection(args[0]),
+  <A extends Document, I extends Document = A, R = never>(
+    collection: Collection<A, I, R>,
+    filter: Filter<I>,
+    options?: DeleteOptions
+  ): Effect.Effect<DeleteResult, MongoError.MongoError, R> =>
+    Effect.promise(() => collection.collection.deleteMany(filter, options)).pipe(
+      Effect.catchAllDefect(MongoError.mongoErrorDie<DeleteResult>("deleteMany error"))
+    )
+)
+
 const isCollection = (x: unknown) => x instanceof Collection
