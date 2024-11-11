@@ -17,6 +17,7 @@ import type {
   InsertManyResult,
   InsertOneOptions,
   InsertOneResult,
+  ReplaceOptions,
   UpdateFilter,
   UpdateOptions,
   UpdateResult
@@ -204,6 +205,43 @@ export const updateMany: {
       collection.collection.updateMany(filter, update as UpdateFilter<Document> | Array<Document>, options)
     ).pipe(
       Effect.catchAllDefect(MongoError.mongoErrorDie<UpdateResult>("updateMany error"))
+    )
+)
+
+export const replaceOne: {
+  <A extends Document, I extends Document>(
+    filter: Filter<I>,
+    // TODO: should we put WithoutId<A> here like the driver signature?
+    replacement: A,
+    options?: ReplaceOptions
+  ): <R>(
+    collection: Collection<A, I, R>
+  ) => Effect.Effect<UpdateResult | Document, MongoError.MongoError | ParseResult.ParseError, R>
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    filter: Filter<I>,
+    replacement: A,
+    options?: ReplaceOptions
+  ): Effect.Effect<UpdateResult | Document, MongoError.MongoError | ParseResult.ParseError, R>
+} = F.dual(
+  (args) => isCollection(args[0]),
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    filter: Filter<I>,
+    replacement: A,
+    options?: ReplaceOptions
+  ): Effect.Effect<
+    UpdateResult | Document,
+    MongoError.MongoError | ParseResult.ParseError,
+    R
+  > =>
+    F.pipe(
+      // TODO: extract function in Collection
+      Schema.encode(collection.schema)(replacement),
+      Effect.flatMap((replacement) =>
+        Effect.promise(() => collection.collection.replaceOne(filter, replacement, options))
+      ),
+      Effect.catchAllDefect(MongoError.mongoErrorDie<UpdateResult | Document>("replaceOne error"))
     )
 )
 

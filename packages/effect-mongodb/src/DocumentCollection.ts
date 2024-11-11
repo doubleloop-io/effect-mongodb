@@ -18,9 +18,11 @@ import type {
   InsertOneOptions,
   InsertOneResult,
   OptionalUnlessRequiredId,
+  ReplaceOptions,
   UpdateFilter,
   UpdateOptions,
-  UpdateResult
+  UpdateResult,
+  WithoutId
 } from "mongodb"
 import * as Collection from "./Collection.js"
 import * as DocumentFindCursor from "./DocumentFindCursor.js"
@@ -192,6 +194,34 @@ export const updateMany: {
     F.pipe(
       Effect.promise(() => collection.collection.updateMany(filter, update, options)),
       Effect.catchAllDefect(MongoError.mongoErrorDie<UpdateResult>("updateMany error"))
+    )
+)
+
+export const replaceOne: {
+  (
+    filter: Filter<Document>,
+    replacement: WithoutId<Document>,
+    options?: ReplaceOptions
+  ): (
+    collection: DocumentCollection
+  ) => Effect.Effect<UpdateResult | Document, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    filter: Filter<Document>,
+    replacement: WithoutId<Document>,
+    options?: ReplaceOptions
+  ): Effect.Effect<UpdateResult | Document, MongoError.MongoError>
+} = F.dual(
+  (args) => isDocumentCollection(args[0]),
+  (
+    collection: DocumentCollection,
+    filter: Filter<Document>,
+    replacement: WithoutId<Document>,
+    options?: ReplaceOptions
+  ): Effect.Effect<UpdateResult | Document, MongoError.MongoError> =>
+    F.pipe(
+      Effect.promise(() => collection.collection.replaceOne(filter, replacement, options)),
+      Effect.catchAllDefect(MongoError.mongoErrorDie<UpdateResult | Document>("replaceOne error"))
     )
 )
 
