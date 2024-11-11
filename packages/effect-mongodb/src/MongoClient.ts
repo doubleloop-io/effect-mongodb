@@ -12,7 +12,10 @@ import * as Context from "effect/Context"
 
 export type MongoClient = MongoClient_
 
-export const connect = (url: string, options?: MongoClientOptions) =>
+export const connect = (
+  url: string,
+  options?: MongoClientOptions
+): Effect.Effect<MongoClient, MongoError.MongoError> =>
   Effect.promise(() => MongoClient_.connect(url, options)).pipe(
     Effect.catchAll(MongoError.mongoErrorDie<MongoClient_>("connect error"))
   )
@@ -22,7 +25,7 @@ export const db: {
   (client: MongoClient, dbName?: string, options?: DbOptions): Db
 } = F.dual(
   (args) => isMongoClient(args[0]),
-  (client: MongoClient, dbName?: string, options?: DbOptions) => client.db(dbName, options)
+  (client: MongoClient, dbName?: string, options?: DbOptions): Db => client.db(dbName, options)
 )
 
 const isMongoClient = (x: unknown) => x instanceof MongoClient_

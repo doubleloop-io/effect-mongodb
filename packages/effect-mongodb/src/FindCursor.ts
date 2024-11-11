@@ -15,7 +15,8 @@ import * as MongoError from "./MongoError.js"
 export class FindCursor<A, I = A, R = never> extends Data.TaggedClass("FindCursor")<{
   cursor: FindCursor_<unknown>
   schema: Schema.Schema<A, I, R>
-}> {}
+}> {
+}
 
 export const filter: {
   <T extends Document = Document>(
@@ -82,8 +83,9 @@ export const limit: {
     new FindCursor({ cursor: cursor.cursor.limit(value), schema: cursor.schema })
 )
 
-// TODO: add explicit return type for public API
-export const toArray = <A, I, R>(cursor: FindCursor<A, I, R>) => {
+export const toArray = <A, I, R>(
+  cursor: FindCursor<A, I, R>
+): Effect.Effect<Array<A>, MongoError.MongoError | ParseResult.ParseError, R> => {
   const decode = Schema.decodeUnknown(cursor.schema)
   return Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }).pipe(
     Effect.catchAll(MongoError.mongoErrorDie<ReadonlyArray<A>>("Unable to get array from mongodb cursor")),
@@ -91,14 +93,14 @@ export const toArray = <A, I, R>(cursor: FindCursor<A, I, R>) => {
   )
 }
 
-// TODO: add explicit return type for public API
-export const toArrayEither = <A, I, R>(cursor: FindCursor<A, I, R>) => {
+export const toArrayEither = <A, I, R>(
+  cursor: FindCursor<A, I, R>
+): Effect.Effect<Array<E.Either<A, [document: unknown, error: ParseResult.ParseError]>>, MongoError.MongoError, R> => {
   const decode = Schema.decodeUnknown(cursor.schema)
   return Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }).pipe(
     Effect.catchAll(MongoError.mongoErrorDie<ReadonlyArray<A>>("Unable to get array from mongodb cursor")),
     Effect.flatMap(Effect.forEach((x) =>
       F.pipe(
-        // keep new line
         decode(x),
         Effect.mapError((error) => Tuple.make(x, error)),
         Effect.either
