@@ -1,5 +1,3 @@
-import * as Schema from "@effect/schema/Schema"
-import * as TreeFormatter from "@effect/schema/TreeFormatter"
 import * as Db from "effect-mongodb/Db"
 import * as DocumentCollection from "effect-mongodb/DocumentCollection"
 import * as DocumentFindCursor from "effect-mongodb/DocumentFindCursor"
@@ -7,6 +5,8 @@ import * as FindCursor from "effect-mongodb/FindCursor"
 import * as MongoClient from "effect-mongodb/MongoClient"
 import * as Effect from "effect/Effect"
 import * as E from "effect/Either"
+import * as ParseResult from "effect/ParseResult"
+import * as Schema from "effect/Schema"
 import * as Stream from "effect/Stream"
 
 const MyType = Schema.Struct({
@@ -28,7 +28,7 @@ const program = Effect.gen(function*(_) {
     Stream.mapEffect(
       E.match({
         onLeft: ([document, error]) =>
-          TreeFormatter.formatError(error).pipe(
+          ParseResult.TreeFormatter.formatError(error).pipe(
             Effect.flatMap((error) => Effect.logError(`Unable to decode item`, { document, error }))
           ),
         onRight: (x: MyType) => Effect.log(`Elaborate ${x}`)

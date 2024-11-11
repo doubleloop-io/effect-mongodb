@@ -1,10 +1,10 @@
 /**
  * @since 0.0.1
  */
-import type * as Schema from "@effect/schema/Schema"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
+import type * as Schema from "effect/Schema"
 import * as Stream from "effect/Stream"
 import type { Document, FindCursor as MongoFindCursor, Sort, SortDirection } from "mongodb"
 import * as FindCursor from "./FindCursor.js"

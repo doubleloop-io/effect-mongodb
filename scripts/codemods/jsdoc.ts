@@ -6,6 +6,7 @@ import type cs from "jscodeshift"
 //
 declare module "ast-types/gen/namedTypes.js" {
   namespace namedTypes {
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     interface CallExpression extends TSHasOptionalTypeParameterInstantiation {}
   }
 }

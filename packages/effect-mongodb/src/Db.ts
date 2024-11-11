@@ -1,12 +1,12 @@
 /**
  * @since 0.0.1
  */
-import type * as Schema from "@effect/schema/Schema"
 import type * as Brand from "effect/Brand"
 import * as Context from "effect/Context"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import * as Layer from "effect/Layer"
+import type * as Schema from "effect/Schema"
 import type { Document, DropCollectionOptions, ListCollectionsOptions } from "mongodb"
 import { Db } from "mongodb"
 import type * as Collection from "./Collection.js"

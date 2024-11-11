@@ -1,11 +1,11 @@
 /**
  * @since 0.0.1
  */
-import type * as Schema from "@effect/schema/Schema"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import * as O from "effect/Option"
+import type * as Schema from "effect/Schema"
 import type {
   AggregateOptions,
   BulkWriteOptions,

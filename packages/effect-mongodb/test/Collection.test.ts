@@ -1,9 +1,9 @@
-import * as Schema from "@effect/schema/Schema"
 import * as AggregationCursor from "effect-mongodb/AggregationCursor"
 import * as Collection from "effect-mongodb/Collection"
 import * as Db from "effect-mongodb/Db"
 import * as Effect from "effect/Effect"
 import * as O from "effect/Option"
+import * as Schema from "effect/Schema"
 import { expect, test } from "vitest"
 import { describeMongo } from "./support/describe-mongo.js"
 

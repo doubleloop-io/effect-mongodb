@@ -1,12 +1,12 @@
 /**
  * @since 0.0.1
  */
-import type * as ParseResult from "@effect/schema/ParseResult"
-import * as Schema from "@effect/schema/Schema"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import type * as E from "effect/Either"
 import * as F from "effect/Function"
+import type * as ParseResult from "effect/ParseResult"
+import * as Schema from "effect/Schema"
 import * as Stream from "effect/Stream"
 import * as Tuple from "effect/Tuple"
 import type { Document, FindCursor as FindCursor_, Sort, SortDirection } from "mongodb"

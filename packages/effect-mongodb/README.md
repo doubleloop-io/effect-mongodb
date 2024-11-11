@@ -5,10 +5,10 @@ A [MongoDB](https://github.com/mongodb/node-mongodb-native) toolkit for [Effect]
 ## Install
 
 ```shell
-pnpm install effect-mongodb effect @effect/schema mongodb
+pnpm install effect-mongodb effect mongodb
 ```
 
-Note that `effect`, `@effect/schema` and `mongodb` are requested as peer dependencies.
+Note that `effect`, and `mongodb` are requested as peer dependencies.
 
 ## Usage
 
