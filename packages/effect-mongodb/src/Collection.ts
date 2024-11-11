@@ -17,6 +17,7 @@ import type {
   InsertManyResult,
   InsertOneOptions,
   InsertOneResult,
+  RenameOptions,
   ReplaceOptions,
   UpdateFilter,
   UpdateOptions,
@@ -242,6 +243,32 @@ export const replaceOne: {
         Effect.promise(() => collection.collection.replaceOne(filter, replacement, options))
       ),
       Effect.catchAllDefect(MongoError.mongoErrorDie<UpdateResult | Document>("replaceOne error"))
+    )
+)
+
+export const rename: {
+  (
+    newName: string,
+    options?: RenameOptions
+  ): <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>
+  ) => Effect.Effect<Collection<A, I, R>, MongoError.MongoError, R>
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    newName: string,
+    options?: RenameOptions
+  ): Effect.Effect<Collection<A, I, R>, MongoError.MongoError, R>
+} = F.dual(
+  (args) => isCollection(args[0]),
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    newName: string,
+    options?: RenameOptions
+  ): Effect.Effect<Collection<A, I, R>, MongoError.MongoError, R> =>
+    F.pipe(
+      Effect.promise(() => collection.collection.rename(newName, options)),
+      Effect.map((newCollection) => new Collection<A, I, R>({ collection: newCollection, schema: collection.schema })),
+      Effect.catchAllDefect(MongoError.mongoErrorDie<Collection<A, I, R>>("rename error"))
     )
 )
 

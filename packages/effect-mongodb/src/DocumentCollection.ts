@@ -18,6 +18,7 @@ import type {
   InsertOneOptions,
   InsertOneResult,
   OptionalUnlessRequiredId,
+  RenameOptions,
   ReplaceOptions,
   UpdateFilter,
   UpdateOptions,
@@ -222,6 +223,31 @@ export const replaceOne: {
     F.pipe(
       Effect.promise(() => collection.collection.replaceOne(filter, replacement, options)),
       Effect.catchAllDefect(MongoError.mongoErrorDie<UpdateResult | Document>("replaceOne error"))
+    )
+)
+
+export const rename: {
+  (
+    newName: string,
+    options?: RenameOptions
+  ): (
+    collection: DocumentCollection
+  ) => Effect.Effect<MongoCollection, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    newName: string,
+    options?: RenameOptions
+  ): Effect.Effect<MongoCollection, MongoError.MongoError>
+} = F.dual(
+  (args) => isDocumentCollection(args[0]),
+  (
+    collection: DocumentCollection,
+    newName: string,
+    options?: RenameOptions
+  ): Effect.Effect<MongoCollection, MongoError.MongoError> =>
+    F.pipe(
+      Effect.promise(() => collection.collection.rename(newName, options)),
+      Effect.catchAllDefect(MongoError.mongoErrorDie<MongoCollection>("rename error"))
     )
 )
 
