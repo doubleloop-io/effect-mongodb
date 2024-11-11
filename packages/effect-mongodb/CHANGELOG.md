@@ -1,5 +1,19 @@
 # effect-mongodb
 
+## 0.0.3
+
+### Patch Changes
+
+- [`04a7439`](https://github.com/doubleloop-io/effect-mongodb/commit/04a74397723f0f4ae68af8defba49dff8f31fc31) Thanks [@devmatteini](https://github.com/devmatteini)! - - Db.listCollections with ListCollectionsCursor
+  - Db.dropCollection
+  - DocumentCollection/Collection.deleteOne
+  - DocumentCollection/Collection.deleteMany
+  - DocumentCollection/Collection.updateMant
+  - DocumentCollection/Collection.replaceOne
+  - DocumentCollection/Collection.rename
+  - DocumentCollection/Collection.createIndexes
+  - DocumentCollection/Collection.aggregate with DocumentAggregationCursor and AggregationCursor
+
 ## 0.0.2
 
 ### Patch Changes
