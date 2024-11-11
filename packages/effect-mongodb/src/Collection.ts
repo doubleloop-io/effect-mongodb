@@ -10,10 +10,12 @@ import * as O from "effect/Option"
 import type {
   BulkWriteOptions,
   Collection as MongoCollection,
+  CreateIndexesOptions,
   DeleteOptions,
   DeleteResult,
   Document,
   FindOptions as MongoFindOptions,
+  IndexDescription,
   InsertManyResult,
   InsertOneOptions,
   InsertOneResult,
@@ -269,6 +271,31 @@ export const rename: {
       Effect.promise(() => collection.collection.rename(newName, options)),
       Effect.map((newCollection) => new Collection<A, I, R>({ collection: newCollection, schema: collection.schema })),
       Effect.catchAllDefect(MongoError.mongoErrorDie<Collection<A, I, R>>("rename error"))
+    )
+)
+
+export const createIndexes: {
+  (
+    indexSpecs: Array<IndexDescription>,
+    options?: CreateIndexesOptions
+  ): <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>
+  ) => Effect.Effect<Array<string>, MongoError.MongoError, R>
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    indexSpecs: Array<IndexDescription>,
+    options?: CreateIndexesOptions
+  ): Effect.Effect<Array<string>, MongoError.MongoError, R>
+} = F.dual(
+  (args) => isCollection(args[0]),
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    indexSpecs: Array<IndexDescription>,
+    options?: CreateIndexesOptions
+  ): Effect.Effect<Array<string>, MongoError.MongoError, R> =>
+    F.pipe(
+      Effect.promise(() => collection.collection.createIndexes(indexSpecs, options)),
+      Effect.catchAllDefect(MongoError.mongoErrorDie<Array<string>>("createIndexes error"))
     )
 )
 

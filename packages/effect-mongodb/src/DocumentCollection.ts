@@ -9,11 +9,13 @@ import * as O from "effect/Option"
 import type {
   BulkWriteOptions,
   Collection as MongoCollection,
+  CreateIndexesOptions,
   DeleteOptions,
   DeleteResult,
   Document,
   Filter,
   FindOptions,
+  IndexDescription,
   InsertManyResult,
   InsertOneOptions,
   InsertOneResult,
@@ -248,6 +250,31 @@ export const rename: {
     F.pipe(
       Effect.promise(() => collection.collection.rename(newName, options)),
       Effect.catchAllDefect(MongoError.mongoErrorDie<MongoCollection>("rename error"))
+    )
+)
+
+export const createIndexes: {
+  (
+    indexSpecs: Array<IndexDescription>,
+    options?: CreateIndexesOptions
+  ): (
+    collection: DocumentCollection
+  ) => Effect.Effect<Array<string>, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    indexSpecs: Array<IndexDescription>,
+    options?: CreateIndexesOptions
+  ): Effect.Effect<Array<string>, MongoError.MongoError>
+} = F.dual(
+  (args) => isDocumentCollection(args[0]),
+  (
+    collection: DocumentCollection,
+    indexSpecs: Array<IndexDescription>,
+    options?: CreateIndexesOptions
+  ): Effect.Effect<Array<string>, MongoError.MongoError> =>
+    F.pipe(
+      Effect.promise(() => collection.collection.createIndexes(indexSpecs, options)),
+      Effect.catchAllDefect(MongoError.mongoErrorDie<Array<string>>("createIndexes error"))
     )
 )
 
