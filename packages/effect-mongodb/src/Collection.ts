@@ -16,7 +16,10 @@ import type {
   FindOptions as MongoFindOptions,
   InsertManyResult,
   InsertOneOptions,
-  InsertOneResult
+  InsertOneResult,
+  UpdateFilter,
+  UpdateOptions,
+  UpdateResult
 } from "mongodb"
 import * as FindCursor from "./FindCursor.js"
 import type { Filter } from "./internal/filter.js"
@@ -172,6 +175,35 @@ export const deleteMany: {
   ): Effect.Effect<DeleteResult, MongoError.MongoError, R> =>
     Effect.promise(() => collection.collection.deleteMany(filter, options)).pipe(
       Effect.catchAllDefect(MongoError.mongoErrorDie<DeleteResult>("deleteMany error"))
+    )
+)
+
+export const updateMany: {
+  <I extends Document>(
+    filter: Filter<I>,
+    update: UpdateFilter<I> | Array<Document>,
+    options?: UpdateOptions
+  ): <A extends Document, R>(
+    collection: Collection<A, I, R>
+  ) => Effect.Effect<UpdateResult, MongoError.MongoError, R>
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    filter: Filter<I>,
+    update: UpdateFilter<I> | Array<Document>,
+    options?: UpdateOptions
+  ): Effect.Effect<UpdateResult, MongoError.MongoError, R>
+} = F.dual(
+  (args) => isCollection(args[0]),
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    filter: Filter<I>,
+    update: UpdateFilter<I> | Array<Document>,
+    options?: UpdateOptions
+  ): Effect.Effect<UpdateResult, MongoError.MongoError, R> =>
+    Effect.promise(() =>
+      collection.collection.updateMany(filter, update as UpdateFilter<Document> | Array<Document>, options)
+    ).pipe(
+      Effect.catchAllDefect(MongoError.mongoErrorDie<UpdateResult>("updateMany error"))
     )
 )
 
