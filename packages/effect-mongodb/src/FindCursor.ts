@@ -82,6 +82,7 @@ export const limit: {
     new FindCursor({ cursor: cursor.cursor.limit(value), schema: cursor.schema })
 )
 
+// TODO: add explicit return type for public API
 export const toArray = <A, I, R>(cursor: FindCursor<A, I, R>) => {
   const decode = Schema.decodeUnknown(cursor.schema)
   return Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }).pipe(
@@ -90,6 +91,7 @@ export const toArray = <A, I, R>(cursor: FindCursor<A, I, R>) => {
   )
 }
 
+// TODO: add explicit return type for public API
 export const toArrayEither = <A, I, R>(cursor: FindCursor<A, I, R>) => {
   const decode = Schema.decodeUnknown(cursor.schema)
   return Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }).pipe(

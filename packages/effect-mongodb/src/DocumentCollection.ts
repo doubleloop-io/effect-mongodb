@@ -7,6 +7,7 @@ import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import * as O from "effect/Option"
 import type {
+  AggregateOptions,
   BulkWriteOptions,
   Collection as MongoCollection,
   CreateIndexesOptions,
@@ -28,6 +29,7 @@ import type {
   WithoutId
 } from "mongodb"
 import * as Collection from "./Collection.js"
+import * as DocumentAggregationCursor from "./DocumentAggregationCursor.js"
 import * as DocumentFindCursor from "./DocumentFindCursor.js"
 import * as MongoError from "./MongoError.js"
 
@@ -276,6 +278,30 @@ export const createIndexes: {
       Effect.promise(() => collection.collection.createIndexes(indexSpecs, options)),
       Effect.catchAllDefect(MongoError.mongoErrorDie<Array<string>>("createIndexes error"))
     )
+)
+
+export const aggregate: {
+  (
+    pipeline?: Array<Document>,
+    options?: AggregateOptions
+  ): (
+    collection: DocumentCollection
+  ) => DocumentAggregationCursor.DocumentAggregationCursor
+  (
+    collection: DocumentCollection,
+    pipeline?: Array<Document>,
+    options?: AggregateOptions
+  ): DocumentAggregationCursor.DocumentAggregationCursor
+} = F.dual(
+  (args) => isDocumentCollection(args[0]),
+  (
+    collection: DocumentCollection,
+    pipeline?: Array<Document>,
+    options?: AggregateOptions
+  ): DocumentAggregationCursor.DocumentAggregationCursor =>
+    new DocumentAggregationCursor.DocumentAggregationCursor({
+      cursor: collection.collection.aggregate(pipeline, options)
+    })
 )
 
 export const typed: {

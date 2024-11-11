@@ -1,12 +1,22 @@
 /**
  * @since 0.0.1
  */
+export * as AggregationCursor from "./AggregationCursor.js"
+
+/**
+ * @since 0.0.1
+ */
 export * as Collection from "./Collection.js"
 
 /**
  * @since 0.0.1
  */
 export * as Db from "./Db.js"
+
+/**
+ * @since 0.0.1
+ */
+export * as DocumentAggregationCursor from "./DocumentAggregationCursor.js"
 
 /**
  * @since 0.0.1

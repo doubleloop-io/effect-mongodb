@@ -8,6 +8,7 @@ import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import * as O from "effect/Option"
 import type {
+  AggregateOptions,
   BulkWriteOptions,
   Collection as MongoCollection,
   CreateIndexesOptions,
@@ -25,6 +26,7 @@ import type {
   UpdateOptions,
   UpdateResult
 } from "mongodb"
+import * as AggregationCursor from "./AggregationCursor.js"
 import * as FindCursor from "./FindCursor.js"
 import type { Filter } from "./internal/filter.js"
 import * as MongoError from "./MongoError.js"
@@ -297,6 +299,34 @@ export const createIndexes: {
       Effect.promise(() => collection.collection.createIndexes(indexSpecs, options)),
       Effect.catchAllDefect(MongoError.mongoErrorDie<Array<string>>("createIndexes error"))
     )
+)
+
+export const aggregate: {
+  <B extends Document, BI extends Document, BR>(
+    pipeline: Array<Document>,
+    schema: Schema.Schema<B, BI, BR>,
+    options?: AggregateOptions
+  ): <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>
+  ) => AggregationCursor.AggregationCursor<B, BI, BR>
+  <A extends Document, I extends Document, R, B extends Document, BI extends Document, BR>(
+    collection: Collection<A, I, R>,
+    pipeline: Array<Document>,
+    schema: Schema.Schema<B, BI, BR>,
+    options?: AggregateOptions
+  ): AggregationCursor.AggregationCursor<B, BI, BR>
+} = F.dual(
+  (args) => isCollection(args[0]),
+  <A extends Document, I extends Document, R, B extends Document, BI extends Document, BR>(
+    collection: Collection<A, I, R>,
+    pipeline: Array<Document>,
+    schema: Schema.Schema<B, BI, BR>,
+    options?: AggregateOptions
+  ): AggregationCursor.AggregationCursor<B, BI, BR> =>
+    new AggregationCursor.AggregationCursor<B, BI, BR>({
+      cursor: collection.collection.aggregate(pipeline, options),
+      schema
+    })
 )
 
 const isCollection = (x: unknown) => x instanceof Collection
