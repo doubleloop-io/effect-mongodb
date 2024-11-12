@@ -26,3 +26,8 @@ To inspect MongoDB test instance:
 4. Click Advanced Connection Options
 5. Enable `Direct Connection`
 6. Click `Connect`
+
+Useful links to explore mongodb package:
+
+- https://mongodb.github.io/node-mongodb-native/Next/classes/Collection.html (with links to source code)
+- https://www.mongodb.com/docs/v7.0/reference/method/js-collection/
