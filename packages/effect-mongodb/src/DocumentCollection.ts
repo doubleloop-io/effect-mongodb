@@ -39,17 +39,21 @@ export class DocumentCollection extends Data.TaggedClass("DocumentCollection")<{
 }
 
 export const find: {
-  (options?: FindOptions): (collection: DocumentCollection) => DocumentFindCursor.DocumentFindCursor
+  (
+    filter?: Filter<Document>,
+    options?: FindOptions
+  ): (collection: DocumentCollection) => DocumentFindCursor.DocumentFindCursor
   (
     collection: DocumentCollection,
+    filter?: Filter<Document>,
     options?: FindOptions
   ): DocumentFindCursor.DocumentFindCursor
 } = F.dual(
   (args) => isDocumentCollection(args[0]),
-  (collection: DocumentCollection, options?: FindOptions) =>
+  (collection: DocumentCollection, filter?: Filter<Document>, options?: FindOptions) =>
     new DocumentFindCursor.DocumentFindCursor(
       {
-        cursor: collection.collection.find({}, options)
+        cursor: collection.collection.find(filter ?? {}, options)
       }
     )
 )
