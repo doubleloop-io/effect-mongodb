@@ -20,19 +20,18 @@ export class FindCursor<A, I = A, R = never> extends Data.TaggedClass("FindCurso
 }
 
 export const filter: {
-  // TODO: T should be I type parameter
-  <T extends Document = Document>(
-    filter: Filter<T>
-  ): <A, I, R>(cursor: FindCursor<A, I, R>) => FindCursor<A, I, R>
-  <A, I, R, T extends Document = Document>(
+  <I extends Document>(
+    filter: Filter<I>
+  ): <A, R>(cursor: FindCursor<A, I, R>) => FindCursor<A, I, R>
+  <A, I extends Document, R>(
     cursor: FindCursor<A, I, R>,
-    filter: Filter<T>
+    filter: Filter<I>
   ): FindCursor<A, I, R>
 } = F.dual(
   (args) => isFindCursor(args[0]),
-  <A, I, R, T extends Document = Document>(
+  <A, I extends Document, R>(
     cursor: FindCursor<A, I, R>,
-    filter: Filter<T>
+    filter: Filter<I>
   ): FindCursor<A, I, R> => new FindCursor({ cursor: cursor.cursor.filter(filter), schema: cursor.schema })
 )
 
