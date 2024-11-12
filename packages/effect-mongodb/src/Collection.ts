@@ -18,6 +18,7 @@ import type {
   DropCollectionOptions,
   FindOptions as MongoFindOptions,
   IndexDescription,
+  IndexSpecification,
   InsertManyResult,
   InsertOneOptions,
   InsertOneResult,
@@ -324,6 +325,31 @@ export const createIndexes: {
     F.pipe(
       Effect.promise(() => collection.collection.createIndexes(indexSpecs, options)),
       Effect.catchAllDefect(MongoError.mongoErrorDie<Array<string>>("createIndexes error"))
+    )
+)
+
+export const createIndex: {
+  (
+    indexSpec: IndexSpecification,
+    options?: CreateIndexesOptions
+  ): <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>
+  ) => Effect.Effect<string, MongoError.MongoError, R>
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    indexSpec: IndexSpecification,
+    options?: CreateIndexesOptions
+  ): Effect.Effect<string, MongoError.MongoError, R>
+} = F.dual(
+  (args) => isCollection(args[0]),
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    indexSpec: IndexSpecification,
+    options?: CreateIndexesOptions
+  ): Effect.Effect<string, MongoError.MongoError, R> =>
+    F.pipe(
+      Effect.promise(() => collection.collection.createIndex(indexSpec, options)),
+      Effect.catchAllDefect(MongoError.mongoErrorDie<string>("createIndex error"))
     )
 )
 
