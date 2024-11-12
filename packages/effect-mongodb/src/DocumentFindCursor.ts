@@ -6,7 +6,7 @@ import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import type * as Schema from "effect/Schema"
 import * as Stream from "effect/Stream"
-import type { Document, FindCursor as MongoFindCursor, Sort, SortDirection } from "mongodb"
+import type { Document, Filter, FindCursor as MongoFindCursor, Sort, SortDirection } from "mongodb"
 import * as FindCursor from "./FindCursor.js"
 import * as MongoError from "./MongoError.js"
 
@@ -17,12 +17,12 @@ export class DocumentFindCursor extends Data.TaggedClass("DocumentFindCursor")<{
 
 export const filter: {
   (
-    filter: Document
+    filter: Filter<Document>
   ): (cursor: DocumentFindCursor) => DocumentFindCursor
-  (cursor: DocumentFindCursor, filter: Document): DocumentFindCursor
+  (cursor: DocumentFindCursor, filter: Filter<Document>): DocumentFindCursor
 } = F.dual(
   (args) => isDocumentFindCursor(args[0]),
-  (cursor: DocumentFindCursor, filter: Document): DocumentFindCursor =>
+  (cursor: DocumentFindCursor, filter: Filter<Document>): DocumentFindCursor =>
     new DocumentFindCursor({ cursor: cursor.cursor.filter(filter) })
 )
 

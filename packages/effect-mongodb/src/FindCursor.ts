@@ -10,6 +10,7 @@ import * as Schema from "effect/Schema"
 import * as Stream from "effect/Stream"
 import * as Tuple from "effect/Tuple"
 import type { Document, FindCursor as FindCursor_, Sort, SortDirection } from "mongodb"
+import type { Filter } from "./internal/filter.js"
 import * as MongoError from "./MongoError.js"
 
 export class FindCursor<A, I = A, R = never> extends Data.TaggedClass("FindCursor")<{
@@ -19,18 +20,19 @@ export class FindCursor<A, I = A, R = never> extends Data.TaggedClass("FindCurso
 }
 
 export const filter: {
+  // TODO: T should be I type parameter
   <T extends Document = Document>(
-    filter: T
+    filter: Filter<T>
   ): <A, I, R>(cursor: FindCursor<A, I, R>) => FindCursor<A, I, R>
   <A, I, R, T extends Document = Document>(
     cursor: FindCursor<A, I, R>,
-    filter: T
+    filter: Filter<T>
   ): FindCursor<A, I, R>
 } = F.dual(
   (args) => isFindCursor(args[0]),
   <A, I, R, T extends Document = Document>(
     cursor: FindCursor<A, I, R>,
-    filter: T
+    filter: Filter<T>
   ): FindCursor<A, I, R> => new FindCursor({ cursor: cursor.cursor.filter(filter), schema: cursor.schema })
 )
 
