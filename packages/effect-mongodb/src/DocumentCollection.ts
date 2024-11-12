@@ -14,6 +14,7 @@ import type {
   DeleteOptions,
   DeleteResult,
   Document,
+  DropCollectionOptions,
   Filter,
   FindOptions,
   IndexDescription,
@@ -256,6 +257,21 @@ export const rename: {
     F.pipe(
       Effect.promise(() => collection.collection.rename(newName, options)),
       Effect.catchAllDefect(MongoError.mongoErrorDie<MongoCollection>("rename error"))
+    )
+)
+
+export const drop: {
+  (options?: DropCollectionOptions): (collection: DocumentCollection) => Effect.Effect<boolean, MongoError.MongoError>
+  (collection: DocumentCollection, options?: DropCollectionOptions): Effect.Effect<boolean, MongoError.MongoError>
+} = F.dual(
+  (args) => isDocumentCollection(args[0]),
+  (
+    collection: DocumentCollection,
+    options?: DropCollectionOptions
+  ): Effect.Effect<boolean, MongoError.MongoError> =>
+    F.pipe(
+      Effect.promise(() => collection.collection.drop(options)),
+      Effect.catchAllDefect(MongoError.mongoErrorDie<boolean>("drop error"))
     )
 )
 

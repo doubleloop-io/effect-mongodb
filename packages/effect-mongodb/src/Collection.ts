@@ -15,6 +15,7 @@ import type {
   DeleteOptions,
   DeleteResult,
   Document,
+  DropCollectionOptions,
   FindOptions as MongoFindOptions,
   IndexDescription,
   InsertManyResult,
@@ -276,6 +277,28 @@ export const rename: {
       Effect.promise(() => collection.collection.rename(newName, options)),
       Effect.map((newCollection) => new Collection<A, I, R>({ collection: newCollection, schema: collection.schema })),
       Effect.catchAllDefect(MongoError.mongoErrorDie<Collection<A, I, R>>("rename error"))
+    )
+)
+
+export const drop: {
+  (
+    options?: DropCollectionOptions
+  ): <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>
+  ) => Effect.Effect<boolean, MongoError.MongoError, R>
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    options?: DropCollectionOptions
+  ): Effect.Effect<boolean, MongoError.MongoError, R>
+} = F.dual(
+  (args) => isCollection(args[0]),
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    options?: DropCollectionOptions
+  ): Effect.Effect<boolean, MongoError.MongoError, R> =>
+    F.pipe(
+      Effect.promise(() => collection.collection.drop(options)),
+      Effect.catchAllDefect(MongoError.mongoErrorDie<boolean>("drop error"))
     )
 )
 
