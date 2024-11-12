@@ -17,12 +17,14 @@ import type {
   Document,
   DropCollectionOptions,
   DropIndexesOptions,
+  FindOneAndReplaceOptions,
   FindOptions as MongoFindOptions,
   IndexDescription,
   IndexSpecification,
   InsertManyResult,
   InsertOneOptions,
   InsertOneResult,
+  ModifyResult as MongoModifyResult,
   RenameOptions,
   ReplaceOptions,
   UpdateFilter,
@@ -32,6 +34,8 @@ import type {
 import * as AggregationCursor from "./AggregationCursor.js"
 import * as FindCursor from "./FindCursor.js"
 import type { Filter } from "./internal/filter.js"
+import type { ModifyResult } from "./internal/modify-result.js"
+import * as SchemaExt from "./internal/schema.js"
 import * as MongoError from "./MongoError.js"
 
 export class Collection<A extends Document, I extends Document = A, R = never> extends Data.TaggedClass("Collection")<{
@@ -253,6 +257,87 @@ export const replaceOne: {
         Effect.promise(() => collection.collection.replaceOne(filter, replacement, options))
       ),
       Effect.catchAllDefect(MongoError.mongoErrorDie<UpdateResult | Document>("replaceOne error"))
+    )
+)
+
+export const findOneAndReplace: {
+  <A extends Document, I extends Document>(
+    filter: Filter<I>,
+    replacement: A,
+    options: FindOneAndReplaceOptions & { includeResultMetadata: true }
+  ): <R>(
+    collection: Collection<A, I, R>
+  ) => Effect.Effect<ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  <A extends Document, I extends Document>(
+    filter: Filter<I>,
+    replacement: A,
+    options: FindOneAndReplaceOptions & { includeResultMetadata: false }
+  ): <R>(
+    collection: Collection<A, I, R>
+  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  <A extends Document, I extends Document>(
+    filter: Filter<I>,
+    replacement: A,
+    options: FindOneAndReplaceOptions
+  ): <R>(
+    collection: Collection<A, I, R>
+  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  <A extends Document, I extends Document>(
+    filter: Filter<I>,
+    replacement: A
+  ): <R>(
+    collection: Collection<A, I, R>
+  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    filter: Filter<I>,
+    replacement: A,
+    options: FindOneAndReplaceOptions & { includeResultMetadata: true }
+  ): Effect.Effect<ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    filter: Filter<I>,
+    replacement: A,
+    options: FindOneAndReplaceOptions & { includeResultMetadata: false }
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    filter: Filter<I>,
+    replacement: A,
+    options: FindOneAndReplaceOptions
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    filter: Filter<I>,
+    replacement: A
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+} = F.dual(
+  (args) => isCollection(args[0]),
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    filter: Filter<I>,
+    replacement: A,
+    options?: FindOneAndReplaceOptions
+  ): Effect.Effect<O.Option<A> | ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R> =>
+    F.pipe(
+      // TODO: extract function in Collection
+      Schema.encode(collection.schema)(replacement),
+      Effect.flatMap((replacement) =>
+        Effect.promise(() => collection.collection.findOneAndReplace(filter, replacement, options ?? {}))
+      ),
+      Effect.flatMap((value) =>
+        Effect.gen(function*(_) {
+          if (options?.includeResultMetadata && !!value) {
+            const result = value as unknown as MongoModifyResult<I>
+            const maybeValue = yield* _(SchemaExt.decodeNullableDocument(collection.schema, result.value))
+            return { ...result, value: maybeValue }
+          }
+          return yield* _(SchemaExt.decodeNullableDocument(collection.schema, value))
+        })
+      ),
+      Effect.catchAllDefect(
+        MongoError.mongoErrorDie<O.Option<A> | ModifyResult<A>>("findOneAndReplace error")
+      )
     )
 )
 

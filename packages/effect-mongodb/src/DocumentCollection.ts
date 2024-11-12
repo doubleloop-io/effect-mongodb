@@ -17,12 +17,14 @@ import type {
   DropCollectionOptions,
   DropIndexesOptions,
   Filter,
+  FindOneAndReplaceOptions,
   FindOptions,
   IndexDescription,
   IndexSpecification,
   InsertManyResult,
   InsertOneOptions,
   InsertOneResult,
+  ModifyResult as MongoModifyResult,
   OptionalUnlessRequiredId,
   RenameOptions,
   ReplaceOptions,
@@ -34,6 +36,7 @@ import type {
 import * as Collection from "./Collection.js"
 import * as DocumentAggregationCursor from "./DocumentAggregationCursor.js"
 import * as DocumentFindCursor from "./DocumentFindCursor.js"
+import type { ModifyResult } from "./internal/modify-result.js"
 import * as MongoError from "./MongoError.js"
 
 export class DocumentCollection extends Data.TaggedClass("DocumentCollection")<{
@@ -234,6 +237,80 @@ export const replaceOne: {
     F.pipe(
       Effect.promise(() => collection.collection.replaceOne(filter, replacement, options)),
       Effect.catchAllDefect(MongoError.mongoErrorDie<UpdateResult | Document>("replaceOne error"))
+    )
+)
+
+export const findOneAndReplace: {
+  (
+    filter: Filter<Document>,
+    replacement: WithoutId<Document>,
+    options: FindOneAndReplaceOptions & { includeResultMetadata: true }
+  ): (
+    collection: DocumentCollection
+  ) => Effect.Effect<ModifyResult<Document>, MongoError.MongoError>
+  (
+    filter: Filter<Document>,
+    replacement: WithoutId<Document>,
+    options: FindOneAndReplaceOptions & { includeResultMetadata: false }
+  ): (
+    collection: DocumentCollection
+  ) => Effect.Effect<O.Option<Document>, MongoError.MongoError>
+  (
+    filter: Filter<Document>,
+    replacement: WithoutId<Document>,
+    options: FindOneAndReplaceOptions
+  ): (
+    collection: DocumentCollection
+  ) => Effect.Effect<O.Option<Document>, MongoError.MongoError>
+  (
+    filter: Filter<Document>,
+    replacement: WithoutId<Document>
+  ): (
+    collection: DocumentCollection
+  ) => Effect.Effect<O.Option<Document>, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    filter: Filter<Document>,
+    replacement: WithoutId<Document>,
+    options: FindOneAndReplaceOptions & { includeResultMetadata: true }
+  ): Effect.Effect<ModifyResult<Document>, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    filter: Filter<Document>,
+    replacement: WithoutId<Document>,
+    options: FindOneAndReplaceOptions & { includeResultMetadata: false }
+  ): Effect.Effect<O.Option<Document>, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    filter: Filter<Document>,
+    replacement: WithoutId<Document>,
+    options: FindOneAndReplaceOptions
+  ): Effect.Effect<O.Option<Document>, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    filter: Filter<Document>,
+    replacement: WithoutId<Document>
+  ): Effect.Effect<O.Option<Document>, MongoError.MongoError>
+} = F.dual(
+  (args) => isDocumentCollection(args[0]),
+  (
+    collection: DocumentCollection,
+    filter: Filter<Document>,
+    replacement: WithoutId<Document>,
+    options?: FindOneAndReplaceOptions
+  ): Effect.Effect<O.Option<Document> | ModifyResult<Document>, MongoError.MongoError> =>
+    F.pipe(
+      Effect.promise(() => collection.collection.findOneAndReplace(filter, replacement, options ?? {})),
+      Effect.map((value) => {
+        if (options?.includeResultMetadata && !!value) {
+          const result = value as unknown as MongoModifyResult<Document>
+          return { ...result, value: O.fromNullable(result.value) }
+        }
+        return O.fromNullable(value)
+      }),
+      Effect.catchAllDefect(
+        MongoError.mongoErrorDie<O.Option<Document> | ModifyResult<Document>>("findOneAndReplace error")
+      )
     )
 )
 
