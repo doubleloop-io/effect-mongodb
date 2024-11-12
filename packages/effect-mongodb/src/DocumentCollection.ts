@@ -15,6 +15,7 @@ import type {
   DeleteResult,
   Document,
   DropCollectionOptions,
+  DropIndexesOptions,
   Filter,
   FindOptions,
   IndexDescription,
@@ -321,6 +322,29 @@ export const createIndex: {
     F.pipe(
       Effect.promise(() => collection.collection.createIndex(indexSpec, options)),
       Effect.catchAllDefect(MongoError.mongoErrorDie<string>("createIndex error"))
+    )
+)
+
+export const dropIndex: {
+  (
+    indexName: string,
+    options?: DropIndexesOptions
+  ): (collection: DocumentCollection) => Effect.Effect<Document, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    indexName: string,
+    options?: DropIndexesOptions
+  ): Effect.Effect<Document, MongoError.MongoError>
+} = F.dual(
+  (args) => isDocumentCollection(args[0]),
+  (
+    collection: DocumentCollection,
+    indexName: string,
+    options?: DropIndexesOptions
+  ): Effect.Effect<Document, MongoError.MongoError> =>
+    F.pipe(
+      Effect.promise(() => collection.collection.dropIndex(indexName, options)),
+      Effect.catchAllDefect(MongoError.mongoErrorDie<Document>("dropIndex error"))
     )
 )
 
