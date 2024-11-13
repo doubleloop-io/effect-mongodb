@@ -132,7 +132,7 @@ export default [
     }
   },
   {
-    files: ["packages/*/src/**/*", "packages/*/test/**/*"],
+    files: ["packages/*/src/**/*"],
     rules: {
       "no-console": "error"
     }
