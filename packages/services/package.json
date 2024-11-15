@@ -2,10 +2,10 @@
   "name": "@effect-mongodb/services",
   "private": true,
   "author": "doubleloop.io",
-  "version": "0.0.4",
+  "version": "0.0.1",
   "type": "module",
   "license": "MIT",
-  "description": "A MongoDB toolkit for Effect",
+  "description": "Effect services for effect-mongodb",
   "homepage": "https://github.com/doubleloop-io/effect-mongodb",
   "repository": {
     "type": "git",
@@ -19,13 +19,15 @@
     "typescript",
     "mongodb",
     "effect",
-    "functional-programming"
+    "functional-programming",
+    "effect-mongodb"
   ],
   "keywords": [
     "typescript",
     "mongodb",
     "effect",
-    "functional-programming"
+    "functional-programming",
+    "effect-mongodb"
   ],
   "publishConfig": {
     "access": "public",
