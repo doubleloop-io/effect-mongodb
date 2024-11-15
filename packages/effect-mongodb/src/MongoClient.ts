@@ -1,14 +1,11 @@
 /**
  * @since 0.0.1
  */
-import type * as Brand from "effect/Brand"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import type { Db, DbOptions, MongoClientOptions } from "mongodb"
 import { MongoClient as MongoClient_ } from "mongodb"
 import * as MongoError from "./MongoError.js"
-
-import * as Context from "effect/Context"
 
 export type MongoClient = MongoClient_
 
@@ -29,10 +26,3 @@ export const db: {
 )
 
 const isMongoClient = (x: unknown) => x instanceof MongoClient_
-
-export type MongoClientService<K extends string> = {
-  client: Effect.Effect<MongoClient, MongoError.MongoError>
-} & Brand.Brand<K>
-
-export const Tag = <K extends string>(key: K) => Context.GenericTag<MongoClientService<K>>(key)
-export type TagType<K extends string> = ReturnType<typeof Tag<K>>
