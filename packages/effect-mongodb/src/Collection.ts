@@ -11,12 +11,14 @@ import type {
   AggregateOptions,
   BulkWriteOptions,
   Collection as MongoCollection,
+  CountDocumentsOptions,
   CreateIndexesOptions,
   DeleteOptions,
   DeleteResult,
   Document,
   DropCollectionOptions,
   DropIndexesOptions,
+  EstimatedDocumentCountOptions,
   FindOneAndReplaceOptions,
   FindOptions as MongoFindOptions,
   IndexDescription,
@@ -491,6 +493,53 @@ export const aggregate: {
       cursor: collection.collection.aggregate(pipeline, options),
       schema
     })
+)
+
+export const estimatedDocumentCount: {
+  (
+    options?: EstimatedDocumentCountOptions
+  ): <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>
+  ) => Effect.Effect<number, MongoError.MongoError, R>
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    options?: EstimatedDocumentCountOptions
+  ): Effect.Effect<number, MongoError.MongoError, R>
+} = F.dual(
+  (args) => isCollection(args[0]),
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    options?: EstimatedDocumentCountOptions
+  ): Effect.Effect<number, MongoError.MongoError, R> =>
+    F.pipe(
+      Effect.promise(() => collection.collection.estimatedDocumentCount(options)),
+      Effect.catchAllDefect(MongoError.mongoErrorDie<number>("estimatedDocumentCount error"))
+    )
+)
+
+export const countDocuments: {
+  <I extends Document>(
+    filter?: Filter<I>,
+    options?: CountDocumentsOptions
+  ): <A extends Document, R>(
+    collection: Collection<A, I, R>
+  ) => Effect.Effect<number, MongoError.MongoError, R>
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    filter?: Filter<I>,
+    options?: CountDocumentsOptions
+  ): Effect.Effect<number, MongoError.MongoError, R>
+} = F.dual(
+  (args) => isCollection(args[0]),
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    filter?: Filter<I>,
+    options?: CountDocumentsOptions
+  ): Effect.Effect<number, MongoError.MongoError, R> =>
+    F.pipe(
+      Effect.promise(() => collection.collection.countDocuments(filter, options)),
+      Effect.catchAllDefect(MongoError.mongoErrorDie<number>("countDocuments error"))
+    )
 )
 
 const isCollection = (x: unknown) => x instanceof Collection

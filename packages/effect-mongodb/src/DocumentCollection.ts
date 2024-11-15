@@ -10,12 +10,14 @@ import type {
   AggregateOptions,
   BulkWriteOptions,
   Collection as MongoCollection,
+  CountDocumentsOptions,
   CreateIndexesOptions,
   DeleteOptions,
   DeleteResult,
   Document,
   DropCollectionOptions,
   DropIndexesOptions,
+  EstimatedDocumentCountOptions,
   Filter,
   FindOneAndReplaceOptions,
   FindOptions,
@@ -447,6 +449,53 @@ export const aggregate: {
     new DocumentAggregationCursor.DocumentAggregationCursor({
       cursor: collection.collection.aggregate(pipeline, options)
     })
+)
+
+export const estimatedDocumentCount: {
+  (
+    options?: EstimatedDocumentCountOptions
+  ): (
+    collection: DocumentCollection
+  ) => Effect.Effect<number, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    options?: EstimatedDocumentCountOptions
+  ): Effect.Effect<number, MongoError.MongoError>
+} = F.dual(
+  (args) => isDocumentCollection(args[0]),
+  (
+    collection: DocumentCollection,
+    options?: EstimatedDocumentCountOptions
+  ): Effect.Effect<number, MongoError.MongoError> =>
+    F.pipe(
+      Effect.promise(() => collection.collection.estimatedDocumentCount(options)),
+      Effect.catchAllDefect(MongoError.mongoErrorDie<number>("estimatedDocumentCount error"))
+    )
+)
+
+export const countDocuments: {
+  (
+    filter?: Filter<Document>,
+    options?: CountDocumentsOptions
+  ): (
+    collection: DocumentCollection
+  ) => Effect.Effect<number, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    filter?: Filter<Document>,
+    options?: CountDocumentsOptions
+  ): Effect.Effect<number, MongoError.MongoError>
+} = F.dual(
+  (args) => isDocumentCollection(args[0]),
+  (
+    collection: DocumentCollection,
+    filter?: Filter<Document>,
+    options?: CountDocumentsOptions
+  ): Effect.Effect<number, MongoError.MongoError> =>
+    F.pipe(
+      Effect.promise(() => collection.collection.countDocuments(filter, options)),
+      Effect.catchAllDefect(MongoError.mongoErrorDie<number>("countDocuments error"))
+    )
 )
 
 export const typed: {
