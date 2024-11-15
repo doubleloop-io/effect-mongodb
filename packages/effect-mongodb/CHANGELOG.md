@@ -1,5 +1,13 @@
 # effect-mongodb
 
+## 0.0.5
+
+### Patch Changes
+
+- [`4287f85`](https://github.com/doubleloop-io/effect-mongodb/commit/4287f85efbd7aa91e96d0a382622b4cc46bbe748) Thanks [@devmatteini](https://github.com/devmatteini)! - Remove services related types from Db and MongoClient that are moved to the new package `@effect-mongodb/services`
+
+- [`00874e9`](https://github.com/doubleloop-io/effect-mongodb/commit/00874e936a7e54925c848749a54df536171587ac) Thanks [@VenomAV](https://github.com/VenomAV)! - Add estimetedDocumentCount and countDocuments in Collection and DocumentCollection
+
 ## 0.0.4
 
 ### Patch Changes
