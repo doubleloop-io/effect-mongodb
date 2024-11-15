@@ -39,7 +39,10 @@
     "paths": {
       "effect-mongodb": ["./packages/effect-mongodb/src/index.js"],
       "effect-mongodb/*": ["./packages/effect-mongodb/src/*.js"],
-      "effect-mongodb/test/*": ["./packages/effect-mongodb/test/*.js"]
+      "effect-mongodb/test/*": ["./packages/effect-mongodb/test/*.js"],
+      "@effect-mongodb/services": ["./packages/services/src/index.js"],
+      "@effect-mongodb/services/*": ["./packages/services/src/*.js"],
+      "@effect-mongodb/services/test/*": ["./packages/services/test/*.js"],
     }
   }
 }

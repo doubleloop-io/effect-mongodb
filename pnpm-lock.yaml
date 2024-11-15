@@ -161,6 +161,22 @@ importers:
         version: 6.8.0
     publishDirectory: dist
 
+  packages/services:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.5.4
+        version: 22.7.5
+      effect:
+        specifier: ^3.10.14
+        version: 3.10.14
+      effect-mongodb:
+        specifier: workspace:^
+        version: link:../effect-mongodb/dist
+      mongodb:
+        specifier: ^6.8.0
+        version: 6.8.0
+    publishDirectory: dist
+
 packages:
 
   '@ampproject/remapping@2.3.0':

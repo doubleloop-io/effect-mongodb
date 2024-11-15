@@ -2,7 +2,7 @@ import * as path from "node:path"
 import type { UserConfig } from "vitest/config"
 
 const alias = (pkg: string, dir = pkg) => {
-  const name = pkg === "effect-mongodb" ? "effect-mongodb" : `@doubleloop-io/${pkg}`
+  const name = pkg === "effect-mongodb" ? "effect-mongodb" : `@effect-mongodb/${pkg}`
   const target = process.env.TEST_DIST !== undefined ? "dist/dist/esm" : "src"
   return ({
     [`${name}/test`]: path.join(__dirname, "packages", dir, "test"),
@@ -23,7 +23,8 @@ const config: UserConfig = {
       concurrent: true
     },
     alias: {
-      ...alias("effect-mongodb")
+      ...alias("effect-mongodb"),
+      ...alias("services")
     }
   }
 }

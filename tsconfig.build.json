@@ -3,5 +3,6 @@
   "include": [],
   "references": [
     { "path": "packages/effect-mongodb/tsconfig.build.json" },
+    { "path": "packages/services/tsconfig.build.json" },
   ]
 }

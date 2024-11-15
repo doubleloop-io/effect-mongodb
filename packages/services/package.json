@@ -1,0 +1,60 @@
+{
+  "name": "@effect-mongodb/services",
+  "private": true,
+  "author": "doubleloop.io",
+  "version": "0.0.4",
+  "type": "module",
+  "license": "MIT",
+  "description": "A MongoDB toolkit for Effect",
+  "homepage": "https://github.com/doubleloop-io/effect-mongodb",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/doubleloop-io/effect-mongodb",
+    "directory": "packages/services"
+  },
+  "bugs": {
+    "url": "https://github.com/doubleloop-io/effect-mongodb/issues"
+  },
+  "tags": [
+    "typescript",
+    "mongodb",
+    "effect",
+    "functional-programming"
+  ],
+  "keywords": [
+    "typescript",
+    "mongodb",
+    "effect",
+    "functional-programming"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "directory": "dist",
+    "provenance": true
+  },
+  "packageManager": "pnpm@9.4.0",
+  "scripts": {
+    "codegen": "build-utils prepare-v2",
+    "build": "pnpm build-esm && pnpm build-annotate && pnpm build-cjs && build-utils pack-v2",
+    "build-esm": "tsc -b tsconfig.build.json",
+    "build-cjs": "babel build/esm --plugins @babel/transform-export-namespace-from --plugins @babel/transform-modules-commonjs --out-dir build/cjs --source-maps",
+    "build-annotate": "babel build/esm --plugins annotate-pure-calls --out-dir build/esm --source-maps",
+    "typecheck": "pnpm check",
+    "typecheck:w": "pnpm check --watch",
+    "dtslint": "dtslint dtslint",
+    "check": "tsc -b tsconfig.json",
+    "test": "vitest",
+    "coverage": "vitest --coverage"
+  },
+  "peerDependencies": {
+    "effect": "^3.10.14",
+    "mongodb": "^6.8.0",
+    "effect-mongodb": "workspace:^"
+  },
+  "devDependencies": {
+    "effect": "^3.10.14",
+    "mongodb": "^6.8.0",
+    "effect-mongodb": "workspace:^",
+    "@types/node": "^22.5.4"
+  }
+}
