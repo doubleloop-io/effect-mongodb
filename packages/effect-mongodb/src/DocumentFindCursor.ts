@@ -16,9 +16,7 @@ export class DocumentFindCursor extends Data.TaggedClass("DocumentFindCursor")<{
 }
 
 export const filter: {
-  (
-    filter: Filter<Document>
-  ): (cursor: DocumentFindCursor) => DocumentFindCursor
+  (filter: Filter<Document>): (cursor: DocumentFindCursor) => DocumentFindCursor
   (cursor: DocumentFindCursor, filter: Filter<Document>): DocumentFindCursor
 } = F.dual(
   (args) => isDocumentFindCursor(args[0]),
@@ -27,9 +25,7 @@ export const filter: {
 )
 
 export const project: {
-  (
-    value: Document
-  ): (cursor: DocumentFindCursor) => DocumentFindCursor
+  (value: Document): (cursor: DocumentFindCursor) => DocumentFindCursor
   (cursor: DocumentFindCursor, value: Document): DocumentFindCursor
 } = F.dual(
   (args) => isDocumentFindCursor(args[0]),
@@ -38,10 +34,7 @@ export const project: {
 )
 
 export const sort: {
-  (
-    sort: Sort | string,
-    direction?: SortDirection
-  ): (cursor: DocumentFindCursor) => DocumentFindCursor
+  (sort: Sort | string, direction?: SortDirection): (cursor: DocumentFindCursor) => DocumentFindCursor
   (cursor: DocumentFindCursor, sort: Sort | string, direction?: SortDirection): DocumentFindCursor
 } = F.dual(
   (args) => isDocumentFindCursor(args[0]),
@@ -50,9 +43,7 @@ export const sort: {
 )
 
 export const limit: {
-  (
-    value: number
-  ): (cursor: DocumentFindCursor) => DocumentFindCursor
+  (value: number): (cursor: DocumentFindCursor) => DocumentFindCursor
   (cursor: DocumentFindCursor, value: number): DocumentFindCursor
 } = F.dual(
   (args) => isDocumentFindCursor(args[0]),
@@ -75,13 +66,8 @@ export const toStream = (
   )
 
 export const typed: {
-  <A, I = A, R = never>(
-    schema: Schema.Schema<A, I, R>
-  ): (cursor: DocumentFindCursor) => FindCursor.FindCursor<A, I, R>
-  <A, I = A, R = never>(
-    cursor: DocumentFindCursor,
-    schema: Schema.Schema<A, I, R>
-  ): FindCursor.FindCursor<A, I, R>
+  <A, I = A, R = never>(schema: Schema.Schema<A, I, R>): (cursor: DocumentFindCursor) => FindCursor.FindCursor<A, I, R>
+  <A, I = A, R = never>(cursor: DocumentFindCursor, schema: Schema.Schema<A, I, R>): FindCursor.FindCursor<A, I, R>
 } = F.dual((args) => isDocumentFindCursor(args[0]), <A, I = A, R = never>(
   cursor: DocumentFindCursor,
   schema: Schema.Schema<A, I, R>

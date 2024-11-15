@@ -67,10 +67,7 @@ export const find: {
 )
 
 export const findOne: {
-  (
-    filter: Filter<Document>,
-    options?: FindOptions
-  ): (
+  (filter: Filter<Document>, options?: FindOptions): (
     collection: DocumentCollection
   ) => Effect.Effect<O.Option<Document>, MongoError.MongoError>
   (
@@ -93,10 +90,7 @@ export const findOne: {
 )
 
 export const insertOne: {
-  (
-    doc: OptionalUnlessRequiredId<Document>,
-    options?: InsertOneOptions
-  ): (
+  (doc: OptionalUnlessRequiredId<Document>, options?: InsertOneOptions): (
     collection: DocumentCollection
   ) => Effect.Effect<InsertOneResult, MongoError.MongoError>
   (
@@ -137,10 +131,7 @@ export const insertMany: {
   ))
 
 export const deleteOne: {
-  (
-    filter: Filter<Document>,
-    options?: DeleteOptions
-  ): (
+  (filter: Filter<Document>, options?: DeleteOptions): (
     collection: DocumentCollection
   ) => Effect.Effect<DeleteResult, MongoError.MongoError>
   (
@@ -162,10 +153,7 @@ export const deleteOne: {
 )
 
 export const deleteMany: {
-  (
-    filter: Filter<Document>,
-    options?: DeleteOptions
-  ): (
+  (filter: Filter<Document>, options?: DeleteOptions): (
     collection: DocumentCollection
   ) => Effect.Effect<DeleteResult, MongoError.MongoError>
   (
@@ -264,10 +252,7 @@ export const findOneAndReplace: {
   ): (
     collection: DocumentCollection
   ) => Effect.Effect<O.Option<Document>, MongoError.MongoError>
-  (
-    filter: Filter<Document>,
-    replacement: WithoutId<Document>
-  ): (
+  (filter: Filter<Document>, replacement: WithoutId<Document>): (
     collection: DocumentCollection
   ) => Effect.Effect<O.Option<Document>, MongoError.MongoError>
   (
@@ -317,10 +302,7 @@ export const findOneAndReplace: {
 )
 
 export const rename: {
-  (
-    newName: string,
-    options?: RenameOptions
-  ): (
+  (newName: string, options?: RenameOptions): (
     collection: DocumentCollection
   ) => Effect.Effect<MongoCollection, MongoError.MongoError>
   (
@@ -357,10 +339,7 @@ export const drop: {
 )
 
 export const createIndexes: {
-  (
-    indexSpecs: Array<IndexDescription>,
-    options?: CreateIndexesOptions
-  ): (
+  (indexSpecs: Array<IndexDescription>, options?: CreateIndexesOptions): (
     collection: DocumentCollection
   ) => Effect.Effect<Array<string>, MongoError.MongoError>
   (
@@ -428,10 +407,7 @@ export const dropIndex: {
 )
 
 export const aggregate: {
-  (
-    pipeline?: Array<Document>,
-    options?: AggregateOptions
-  ): (
+  (pipeline?: Array<Document>, options?: AggregateOptions): (
     collection: DocumentCollection
   ) => DocumentAggregationCursor.DocumentAggregationCursor
   (
@@ -452,9 +428,7 @@ export const aggregate: {
 )
 
 export const estimatedDocumentCount: {
-  (
-    options?: EstimatedDocumentCountOptions
-  ): (
+  (options?: EstimatedDocumentCountOptions): (
     collection: DocumentCollection
   ) => Effect.Effect<number, MongoError.MongoError>
   (
@@ -474,10 +448,7 @@ export const estimatedDocumentCount: {
 )
 
 export const countDocuments: {
-  (
-    filter?: Filter<Document>,
-    options?: CountDocumentsOptions
-  ): (
+  (filter?: Filter<Document>, options?: CountDocumentsOptions): (
     collection: DocumentCollection
   ) => Effect.Effect<number, MongoError.MongoError>
   (

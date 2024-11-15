@@ -72,10 +72,7 @@ export const find: {
 )
 
 export const findOne: {
-  <I extends Document>(
-    filter: Filter<I>,
-    options?: FindOptions
-  ): <A extends Document, R>(
+  <I extends Document>(filter: Filter<I>, options?: FindOptions): <A extends Document, R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<O.Option<Document>, MongoError.MongoError | ParseResult.ParseError, R>
   <A extends Document, I extends Document, R>(
@@ -100,10 +97,7 @@ export const findOne: {
 )
 
 export const insertOne: {
-  <A extends Document>(
-    doc: A,
-    options?: InsertOneOptions
-  ): <I extends Document, R>(
+  <A extends Document>(doc: A, options?: InsertOneOptions): <I extends Document, R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<InsertOneResult, MongoError.MongoError | ParseResult.ParseError, R>
   <A extends Document, I extends Document, R>(
@@ -123,10 +117,7 @@ export const insertOne: {
   ))
 
 export const insertMany: {
-  <A extends Document>(
-    docs: Array<A>,
-    options?: BulkWriteOptions
-  ): <I extends Document, R>(
+  <A extends Document>(docs: Array<A>, options?: BulkWriteOptions): <I extends Document, R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<InsertManyResult, MongoError.MongoError | ParseResult.ParseError, R>
   <A extends Document, I extends Document, R>(
@@ -149,10 +140,7 @@ export const insertMany: {
 })
 
 export const deleteOne: {
-  <I extends Document>(
-    filter: Filter<I>,
-    options?: DeleteOptions
-  ): <A extends Document, R>(
+  <I extends Document>(filter: Filter<I>, options?: DeleteOptions): <A extends Document, R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<DeleteResult, MongoError.MongoError, R>
   <A extends Document, I extends Document, R>(
@@ -173,10 +161,7 @@ export const deleteOne: {
 )
 
 export const deleteMany: {
-  <I extends Document>(
-    filter: Filter<I>,
-    options?: DeleteOptions
-  ): <A extends Document, R>(
+  <I extends Document>(filter: Filter<I>, options?: DeleteOptions): <A extends Document, R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<DeleteResult, MongoError.MongoError, R>
   <A extends Document, I extends Document, R>(
@@ -277,17 +262,10 @@ export const findOneAndReplace: {
   ): <R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document>(
-    filter: Filter<I>,
-    replacement: A,
-    options: FindOneAndReplaceOptions
-  ): <R>(
+  <A extends Document, I extends Document>(filter: Filter<I>, replacement: A, options: FindOneAndReplaceOptions): <R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document>(
-    filter: Filter<I>,
-    replacement: A
-  ): <R>(
+  <A extends Document, I extends Document>(filter: Filter<I>, replacement: A): <R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
   <A extends Document, I extends Document, R>(
@@ -344,10 +322,7 @@ export const findOneAndReplace: {
 )
 
 export const rename: {
-  (
-    newName: string,
-    options?: RenameOptions
-  ): <A extends Document, I extends Document, R>(
+  (newName: string, options?: RenameOptions): <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<Collection<A, I, R>, MongoError.MongoError, R>
   <A extends Document, I extends Document, R>(
@@ -370,9 +345,7 @@ export const rename: {
 )
 
 export const drop: {
-  (
-    options?: DropCollectionOptions
-  ): <A extends Document, I extends Document, R>(
+  (options?: DropCollectionOptions): <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<boolean, MongoError.MongoError, R>
   <A extends Document, I extends Document, R>(
@@ -392,10 +365,7 @@ export const drop: {
 )
 
 export const createIndexes: {
-  (
-    indexSpecs: Array<IndexDescription>,
-    options?: CreateIndexesOptions
-  ): <A extends Document, I extends Document, R>(
+  (indexSpecs: Array<IndexDescription>, options?: CreateIndexesOptions): <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<Array<string>, MongoError.MongoError, R>
   <A extends Document, I extends Document, R>(
@@ -417,10 +387,7 @@ export const createIndexes: {
 )
 
 export const createIndex: {
-  (
-    indexSpec: IndexSpecification,
-    options?: CreateIndexesOptions
-  ): <A extends Document, I extends Document, R>(
+  (indexSpec: IndexSpecification, options?: CreateIndexesOptions): <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<string, MongoError.MongoError, R>
   <A extends Document, I extends Document, R>(
@@ -442,10 +409,7 @@ export const createIndex: {
 )
 
 export const dropIndex: {
-  (
-    indexName: string,
-    options?: DropIndexesOptions
-  ): <A extends Document, I extends Document, R>(
+  (indexName: string, options?: DropIndexesOptions): <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<void, MongoError.MongoError, R>
   <A extends Document, I extends Document, R>(
@@ -496,9 +460,7 @@ export const aggregate: {
 )
 
 export const estimatedDocumentCount: {
-  (
-    options?: EstimatedDocumentCountOptions
-  ): <A extends Document, I extends Document, R>(
+  (options?: EstimatedDocumentCountOptions): <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<number, MongoError.MongoError, R>
   <A extends Document, I extends Document, R>(
@@ -518,10 +480,7 @@ export const estimatedDocumentCount: {
 )
 
 export const countDocuments: {
-  <I extends Document>(
-    filter?: Filter<I>,
-    options?: CountDocumentsOptions
-  ): <A extends Document, R>(
+  <I extends Document>(filter?: Filter<I>, options?: CountDocumentsOptions): <A extends Document, R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<number, MongoError.MongoError, R>
   <A extends Document, I extends Document, R>(

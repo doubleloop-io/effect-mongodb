@@ -20,13 +20,8 @@ export class FindCursor<A, I = A, R = never> extends Data.TaggedClass("FindCurso
 }
 
 export const filter: {
-  <I extends Document>(
-    filter: Filter<I>
-  ): <A, R>(cursor: FindCursor<A, I, R>) => FindCursor<A, I, R>
-  <A, I extends Document, R>(
-    cursor: FindCursor<A, I, R>,
-    filter: Filter<I>
-  ): FindCursor<A, I, R>
+  <I extends Document>(filter: Filter<I>): <A, R>(cursor: FindCursor<A, I, R>) => FindCursor<A, I, R>
+  <A, I extends Document, R>(cursor: FindCursor<A, I, R>, filter: Filter<I>): FindCursor<A, I, R>
 } = F.dual(
   (args) => isFindCursor(args[0]),
   <A, I extends Document, R>(
@@ -55,10 +50,7 @@ export const project: {
 )
 
 export const sort: {
-  (
-    sort: Sort | string,
-    direction?: SortDirection
-  ): <A, I, R>(cursor: FindCursor<A, I, R>) => FindCursor<A, I, R>
+  (sort: Sort | string, direction?: SortDirection): <A, I, R>(cursor: FindCursor<A, I, R>) => FindCursor<A, I, R>
   <A, I, R>(
     cursor: FindCursor<A, I, R>,
     sort: Sort | string,
@@ -74,9 +66,7 @@ export const sort: {
 )
 
 export const limit: {
-  (
-    value: number
-  ): <A, I, R>(cursor: FindCursor<A, I, R>) => FindCursor<A, I, R>
+  (value: number): <A, I, R>(cursor: FindCursor<A, I, R>) => FindCursor<A, I, R>
   <A, I, R>(cursor: FindCursor<A, I, R>, value: number): FindCursor<A, I, R>
 } = F.dual(
   (args) => isFindCursor(args[0]),
