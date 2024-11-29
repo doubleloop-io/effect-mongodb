@@ -45,6 +45,31 @@ describeMongo("DocumentCollection", (ctx) => {
     }
   })
 
+  test("insert a class instance as record", async () => {
+    class MyClass {
+      name: string
+
+      constructor(name: string) {
+        this.name = name
+      }
+    }
+
+    const program = Effect.gen(function*(_) {
+      const db = yield* _(ctx.database)
+      const collection = Db.documentCollection(db, "insert-a-class-instance-as-record")
+
+      yield* _(DocumentCollection.insertOne(collection, new MyClass("John")))
+
+      return yield* _(DocumentCollection.find(collection), DocumentFindCursor.toArray)
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result).toHaveLength(1)
+    expect(result[0]).toEqual({ _id: expect.any(ObjectId), name: "John" })
+    expect(result[0]).not.toBeInstanceOf(MyClass)
+  })
+
   test("insert many and find", async () => {
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
