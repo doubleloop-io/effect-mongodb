@@ -74,12 +74,12 @@ export const find: {
 export const findOne: {
   <I extends Document>(filter: Filter<I>, options?: FindOptions): <A extends Document, R>(
     collection: Collection<A, I, R>
-  ) => Effect.Effect<O.Option<Document>, MongoError.MongoError | ParseResult.ParseError, R>
+  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
     options?: FindOptions
-  ): Effect.Effect<O.Option<Document>, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
 } = F.dual(
   (args) => isCollection(args[0]),
   <A extends Document, I extends Document, R>(
