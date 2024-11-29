@@ -52,8 +52,8 @@ importers:
         specifier: ^0.5.0
         version: 0.5.0(tsx@4.19.1)(typescript@5.6.2)
       '@effect/dtslint':
-        specifier: ^0.1.1
-        version: 0.1.1(typescript@5.6.2)
+        specifier: ^0.1.2
+        version: 0.1.2(typescript@5.6.2)
       '@effect/eslint-plugin':
         specifier: ^0.2.0
         version: 0.2.0
@@ -418,8 +418,8 @@ packages:
       tsx: ^4.1.0
       typescript: ^5.2.2
 
-  '@effect/dtslint@0.1.1':
-    resolution: {integrity: sha512-/xbyEjxt31JsBp5YlJiRPlBz01tOgkk2NTgYJFYNS9OoH1x2xaiwMrzJFjg3/6S+D7D2Tqi7jKQTRXTQSSW8AA==}
+  '@effect/dtslint@0.1.2':
+    resolution: {integrity: sha512-fTEN3N2JccgKoF2rlpEi1zQciD0Jl87SBI08sUSdpK3qxcOWUXRxDx+Le5W9wrumzYBwqTdHOsC/EaZRAPvSfg==}
     engines: {node: '>=18.0.0'}
     hasBin: true
     peerDependencies:
@@ -4048,7 +4048,7 @@ snapshots:
       tsx: 4.19.1
       typescript: 5.6.2
 
-  '@effect/dtslint@0.1.1(typescript@5.6.2)':
+  '@effect/dtslint@0.1.2(typescript@5.6.2)':
     dependencies:
       fs-extra: 11.2.0
       tslint: 6.1.3(typescript@5.6.2)
