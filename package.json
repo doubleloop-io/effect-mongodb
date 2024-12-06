@@ -21,7 +21,7 @@
     "dtslint-clean": "dtslint --clean",
     "changeset-version": "changeset version && node scripts/version.mjs",
     "changeset-publish": "pnpm lint-fix && pnpm build && TEST_DIST= pnpm vitest && changeset publish",
-    "check-source-state": "git add src && git diff-index --cached HEAD --exit-code src"
+    "check-source-state": "git add packages/*/src && git diff-index --cached HEAD --exit-code packages/*/src"
   },
   "resolutions": {
     "dependency-tree": "^10.0.9",
