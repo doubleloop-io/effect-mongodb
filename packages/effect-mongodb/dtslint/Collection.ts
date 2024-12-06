@@ -57,3 +57,9 @@ Collection.updateMany(collection, { birthday: "2024-11-28" }, { $set: { birthday
 
 // $ExpectType Effect<UpdateResult<Document>, MongoError, never>
 F.pipe(collection, Collection.updateMany({ birthday: "2024-11-28" }, { $set: { birthday: "2024-11-29" } }))
+
+// $ExpectType Effect<Document | UpdateResult<Document>, MongoError | ParseError, never>
+Collection.replaceOne(collection, { birthday: "2024-11-28" }, myType)
+
+// $ExpectType Effect<Document | UpdateResult<Document>, MongoError | ParseError, never>
+F.pipe(collection, Collection.replaceOne({ birthday: "2024-11-28" }, myType))
