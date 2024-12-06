@@ -39,3 +39,15 @@ Collection.insertMany(collection, [myType])
 
 // $ExpectType Effect<InsertManyResult<Document>, MongoError | ParseError, never>
 F.pipe(collection, Collection.insertMany([myType]))
+
+// $ExpectType Effect<DeleteResult, MongoError, never>
+Collection.deleteOne(collection, { birthday: "2024-11-28" })
+
+// $ExpectType Effect<DeleteResult, MongoError, never>
+F.pipe(collection, Collection.deleteOne({ birthday: "2024-11-28" }))
+
+// $ExpectType Effect<DeleteResult, MongoError, never>
+Collection.deleteMany(collection, { birthday: "2024-11-28" })
+
+// $ExpectType Effect<DeleteResult, MongoError, never>
+F.pipe(collection, Collection.deleteMany({ birthday: "2024-11-28" }))
