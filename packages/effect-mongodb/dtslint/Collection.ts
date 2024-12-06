@@ -8,7 +8,8 @@ const MyType = Schema.Struct({
   birthday: Schema.Date
 })
 type MyType = typeof MyType.Type
-type MyTypeEncoded = typeof MyType.Encoded
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type MyTypeEncoded = typeof MyType.Encoded4
 
 declare const myType: MyType
 
