@@ -7,6 +7,10 @@ import * as Schema from "effect/Schema"
 const MyType = Schema.Struct({
   birthday: Schema.Date
 })
+type MyType = typeof MyType.Type
+type MyTypeEncoded = typeof MyType.Encoded
+
+declare const myType: MyType
 
 declare const documentCollection: DocumentCollection.DocumentCollection
 const collection = DocumentCollection.typed(documentCollection, MyType)
@@ -22,3 +26,15 @@ Collection.findOne(collection, { birthday: "2024-11-28" })
 
 // $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
 F.pipe(collection, Collection.findOne({ birthday: "2024-11-28" }))
+
+// $ExpectType Effect<InsertOneResult<Document>, MongoError | ParseError, never>
+Collection.insertOne(collection, myType)
+
+// $ExpectType Effect<InsertOneResult<Document>, MongoError | ParseError, never>
+F.pipe(collection, Collection.insertOne(myType))
+
+// $ExpectType Effect<InsertManyResult<Document>, MongoError | ParseError, never>
+Collection.insertMany(collection, [myType])
+
+// $ExpectType Effect<InsertManyResult<Document>, MongoError | ParseError, never>
+F.pipe(collection, Collection.insertMany([myType]))
