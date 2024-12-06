@@ -9,7 +9,7 @@ const MyType = Schema.Struct({
 })
 type MyType = typeof MyType.Type
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-type MyTypeEncoded = typeof MyType.Encoded4
+type MyTypeEncoded = typeof MyType.Encoded
 
 declare const myType: MyType
 
