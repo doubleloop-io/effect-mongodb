@@ -4,7 +4,7 @@
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
-import * as O from "effect/Option"
+import type * as O from "effect/Option"
 import type * as ParseResult from "effect/ParseResult"
 import * as Schema from "effect/Schema"
 import type {
@@ -89,8 +89,7 @@ export const findOne: {
   ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R> =>
     Effect.gen(function*(_) {
       const value = yield* _(Effect.promise(() => collection.collection.findOne(filter, options)))
-      if (value !== null) return O.some(yield* _(Schema.decodeUnknown(collection.schema)(value)))
-      return O.none()
+      return yield* _(SchemaExt.decodeNullableDocument(collection.schema, value))
     }).pipe(
       Effect.catchAllDefect(MongoError.mongoErrorDie<O.Option<A>>("findOne error"))
     )
