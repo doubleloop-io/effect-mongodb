@@ -87,3 +87,9 @@ Collection.findOneAndReplace(collection, { birthday: "2024-11-28" }, myType)
 
 // $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
 F.pipe(collection, Collection.findOneAndReplace({ birthday: "2024-11-28" }, myType))
+
+// $ExpectType Effect<Collection<{ readonly birthday: Date; }, { readonly birthday: string; }, never>, MongoError, never>
+Collection.rename(collection, "new-collection")
+
+// $ExpectType Effect<Collection<{ readonly birthday: Date; }, { readonly birthday: string; }, never>, MongoError, never>
+F.pipe(collection, Collection.rename("new-collection"))
