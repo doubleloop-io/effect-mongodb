@@ -29,7 +29,9 @@ jobs:
         run: git add packages/*/src && git diff-index --cached HEAD --exit-code packages/*/src
 
       - name: Types
-        run: pnpm check
+        run: |
+          pnpm check
+          pnpm dtslint
 
       - name: Lint
         run: |
