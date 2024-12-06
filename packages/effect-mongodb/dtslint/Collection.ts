@@ -63,3 +63,27 @@ Collection.replaceOne(collection, { birthday: "2024-11-28" }, myType)
 
 // $ExpectType Effect<Document | UpdateResult<Document>, MongoError | ParseError, never>
 F.pipe(collection, Collection.replaceOne({ birthday: "2024-11-28" }, myType))
+
+// $ExpectType Effect<ModifyResult<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+Collection.findOneAndReplace(collection, { birthday: "2024-11-28" }, myType, { includeResultMetadata: true })
+
+// $ExpectType Effect<ModifyResult<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+F.pipe(collection, Collection.findOneAndReplace({ birthday: "2024-11-28" }, myType, { includeResultMetadata: true }))
+
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+Collection.findOneAndReplace(collection, { birthday: "2024-11-28" }, myType, { includeResultMetadata: false })
+
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+F.pipe(collection, Collection.findOneAndReplace({ birthday: "2024-11-28" }, myType, { includeResultMetadata: false }))
+
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+Collection.findOneAndReplace(collection, { birthday: "2024-11-28" }, myType, { comment: "any" })
+
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+F.pipe(collection, Collection.findOneAndReplace({ birthday: "2024-11-28" }, myType, { comment: "any" }))
+
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+Collection.findOneAndReplace(collection, { birthday: "2024-11-28" }, myType)
+
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+F.pipe(collection, Collection.findOneAndReplace({ birthday: "2024-11-28" }, myType))
