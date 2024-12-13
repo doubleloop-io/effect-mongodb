@@ -42,7 +42,7 @@ export const collection: {
 )
 
 export const listCollections: {
-  (): (db: Db) => ListCollectionsCursor.ListCollectionsCursor
+  (db: Db): ListCollectionsCursor.ListCollectionsCursor
   (filter: Document): (db: Db) => ListCollectionsCursor.ListCollectionsCursor
   (
     filter: Document,
@@ -52,7 +52,6 @@ export const listCollections: {
     filter: Document,
     options: Exclude<ListCollectionsOptions, "nameOnly"> & { nameOnly: false }
   ): (db: Db) => ListCollectionsCursor.FullListCollectionsCursor
-  (db: Db): ListCollectionsCursor.ListCollectionsCursor
   (db: Db, filter: Document): ListCollectionsCursor.ListCollectionsCursor
   (
     db: Db,
@@ -71,7 +70,7 @@ export const listCollections: {
 )
 
 export const dropCollection: {
-  (name: string): (db: Db) => Effect.Effect<boolean>
+  (name: string): (db: Db) => Effect.Effect<boolean, MongoError.MongoError>
   (name: string, options: DropCollectionOptions): (db: Db) => Effect.Effect<boolean, MongoError.MongoError>
   (db: Db, name: string): Effect.Effect<boolean, MongoError.MongoError>
   (db: Db, name: string, options: DropCollectionOptions): Effect.Effect<boolean, MongoError.MongoError>
