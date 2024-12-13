@@ -190,3 +190,23 @@ Collection.aggregate(collection, groupByBirthday, MyAggregatedType)
 
 // $ExpectType AggregationCursor<{ readonly _id: Date; readonly birthdays: number; }, { readonly _id: string; readonly birthdays: number; }, never>
 F.pipe(collection, Collection.aggregate(groupByBirthday, MyAggregatedType))
+
+// -------------------------------------------------------------------------------------
+// estimatedDocumentCount
+// -------------------------------------------------------------------------------------
+
+// $ExpectType Effect<number, MongoError, never>
+Collection.estimatedDocumentCount(collection)
+
+// $ExpectType Effect<number, MongoError, never>
+F.pipe(collection, Collection.estimatedDocumentCount())
+
+// -------------------------------------------------------------------------------------
+// countDocuments
+// -------------------------------------------------------------------------------------
+
+// $ExpectType Effect<number, MongoError, never>
+Collection.countDocuments(collection, { birthday: "2024-11-28" })
+
+// $ExpectType Effect<number, MongoError, never>
+F.pipe(collection, Collection.countDocuments({ birthday: "2024-11-28" }))
