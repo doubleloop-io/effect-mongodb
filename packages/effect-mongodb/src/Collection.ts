@@ -407,6 +407,7 @@ export const createIndex: {
     )
 )
 
+// TODO: review return type. Should we return Document like mongodb driver?
 export const dropIndex: {
   (indexName: string, options?: DropIndexesOptions): <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>

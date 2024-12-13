@@ -144,3 +144,33 @@ Collection.drop(collection)
 
 // $ExpectType Effect<boolean, MongoError, never>
 F.pipe(collection, Collection.drop())
+
+// -------------------------------------------------------------------------------------
+// createIndexes
+// -------------------------------------------------------------------------------------
+
+// $ExpectType Effect<string[], MongoError, never>
+Collection.createIndexes(collection, [{ key: { birthday: 1 } }])
+
+// $ExpectType Effect<string[], MongoError, never>
+F.pipe(collection, Collection.createIndexes([{ key: { birthday: 1 } }]))
+
+// -------------------------------------------------------------------------------------
+// createIndex
+// -------------------------------------------------------------------------------------
+
+// $ExpectType Effect<string, MongoError, never>
+Collection.createIndex(collection, { birthday: 1 })
+
+// $ExpectType Effect<string, MongoError, never>
+F.pipe(collection, Collection.createIndex({ birthday: 1 }))
+
+// -------------------------------------------------------------------------------------
+// dropIndex
+// -------------------------------------------------------------------------------------
+
+// $ExpectType Effect<void, MongoError, never>
+Collection.dropIndex(collection, "birthday_1")
+
+// $ExpectType Effect<void, MongoError, never>
+F.pipe(collection, Collection.dropIndex("birthday_1"))
