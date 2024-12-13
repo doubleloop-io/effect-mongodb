@@ -174,3 +174,19 @@ Collection.dropIndex(collection, "birthday_1")
 
 // $ExpectType Effect<void, MongoError, never>
 F.pipe(collection, Collection.dropIndex("birthday_1"))
+
+// -------------------------------------------------------------------------------------
+// aggregate
+// -------------------------------------------------------------------------------------
+
+const MyAggregatedType = Schema.Struct({
+  _id: Schema.Date,
+  birthdays: Schema.Number
+})
+const groupByBirthday = [{ $group: { _id: "$birthday", birthdays: { $sum: 1 } } }]
+
+// $ExpectType AggregationCursor<{ readonly _id: Date; readonly birthdays: number; }, { readonly _id: string; readonly birthdays: number; }, never>
+Collection.aggregate(collection, groupByBirthday, MyAggregatedType)
+
+// $ExpectType AggregationCursor<{ readonly _id: Date; readonly birthdays: number; }, { readonly _id: string; readonly birthdays: number; }, never>
+F.pipe(collection, Collection.aggregate(groupByBirthday, MyAggregatedType))
