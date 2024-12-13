@@ -7,6 +7,7 @@ import * as F from "effect/Function"
 import type * as O from "effect/Option"
 import type * as ParseResult from "effect/ParseResult"
 import * as Schema from "effect/Schema"
+import type { Simplify } from "effect/Schema"
 import type {
   AggregateOptions,
   BulkWriteOptions,
@@ -35,101 +36,123 @@ import type {
 } from "mongodb"
 import * as AggregationCursor from "./AggregationCursor.js"
 import * as FindCursor from "./FindCursor.js"
-import type { Filter } from "./internal/filter.js"
+import type * as DocumentSchema from "./internal/document-schema.js"
+import type { Filter as GenericFilter } from "./internal/filter.js"
 import type { ModifyResult } from "./internal/modify-result.js"
 import * as SchemaExt from "./internal/schema.js"
 import * as MongoError from "./MongoError.js"
 
-export class Collection<A extends Document, I extends Document = A, R = never> extends Data.TaggedClass("Collection")<{
+export class Collection<TSchema extends DocumentSchema.Any> extends Data.TaggedClass("Collection")<{
   collection: MongoCollection
-  schema: Schema.Schema<A, I, R>
+  schema: TSchema
 }> {
+  get basicSchema(): DocumentSchema.BasicSchema<TSchema> {
+    return this.schema as any
+  }
 }
 
 export type FindOptions = Omit<MongoFindOptions, "projection">
+type Filter<TSchema extends DocumentSchema.Any> = GenericFilter<DocumentSchema.Encoded<TSchema>>
 
 export const find: {
-  <I extends Document>(
-    filter?: Filter<I>,
+  <TSchema extends DocumentSchema.Any>(
+    filter?: Filter<TSchema>,
     options?: FindOptions
-  ): <A extends Document, R>(collection: Collection<A, I, R>) => FindCursor.FindCursor<A, I, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    filter?: Filter<I>,
+  ): (collection: Collection<TSchema>) => FindCursor.FindCursorFromSchema<TSchema>
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
+    filter?: Filter<TSchema>,
     options?: FindOptions
-  ): FindCursor.FindCursor<A, I, R>
+  ): FindCursor.FindCursorFromSchema<TSchema>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    filter?: Filter<I>,
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
+    filter?: Filter<TSchema>,
     options?: FindOptions
-  ): FindCursor.FindCursor<A, I, R> =>
-    new FindCursor.FindCursor<A, I, R>({
-      cursor: collection.collection.find(filter ?? {}, options),
-      schema: collection.schema
-    })
+  ): FindCursor.FindCursorFromSchema<TSchema> =>
+    new FindCursor.FindCursor(
+      {
+        cursor: collection.collection.find(filter ?? {}, options),
+        schema: collection.basicSchema
+      }
+    )
 )
 
 export const findOne: {
-  <I extends Document>(filter: Filter<I>, options?: FindOptions): <A extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    filter: Filter<I>,
+  <TSchema extends DocumentSchema.Any>(filter: Filter<TSchema>, options?: FindOptions): (
+    collection: Collection<TSchema>
+  ) => Effect.Effect<
+    O.Option<DocumentSchema.Type<TSchema>>,
+    MongoError.MongoError | ParseResult.ParseError,
+    DocumentSchema.Context<TSchema>
+  >
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
+    filter: Filter<TSchema>,
     options?: FindOptions
-  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<
+    O.Option<DocumentSchema.Type<TSchema>>,
+    MongoError.MongoError | ParseResult.ParseError,
+    DocumentSchema.Context<TSchema>
+  >
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    filter: Filter<I>,
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
+    filter: Filter<TSchema>,
     options?: FindOptions
-  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R> =>
+  ): Effect.Effect<
+    O.Option<Simplify<DocumentSchema.Type<TSchema>>>,
+    MongoError.MongoError | ParseResult.ParseError,
+    DocumentSchema.Context<TSchema>
+  > =>
     Effect.gen(function*(_) {
       const value = yield* _(Effect.promise(() => collection.collection.findOne(filter, options)))
-      return yield* _(SchemaExt.decodeNullableDocument(collection.schema, value))
+      return yield* _(SchemaExt.decodeNullableDocument(collection.basicSchema, value))
     }).pipe(
-      Effect.catchAllDefect(MongoError.mongoErrorDie<O.Option<A>>("findOne error"))
+      Effect.catchAllDefect(MongoError.mongoErrorDie<O.Option<DocumentSchema.Type<TSchema>>>("findOne error"))
     )
 )
 
 export const insertOne: {
-  <A extends Document>(doc: A, options?: InsertOneOptions): <I extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<InsertOneResult, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    doc: A,
+  <TSchema extends DocumentSchema.Any>(
+    doc: DocumentSchema.Type<TSchema>,
     options?: InsertOneOptions
-  ): Effect.Effect<InsertOneResult, MongoError.MongoError | ParseResult.ParseError, R>
-} = F.dual((args) => isCollection(args[0]), <A extends Document, I extends Document, R>(
-  collection: Collection<A, I, R>,
-  doc: A,
+  ): (
+    collection: Collection<TSchema>
+  ) => Effect.Effect<InsertOneResult, MongoError.MongoError | ParseResult.ParseError, DocumentSchema.Context<TSchema>>
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
+    doc: DocumentSchema.Type<TSchema>,
+    options?: InsertOneOptions
+  ): Effect.Effect<InsertOneResult, MongoError.MongoError | ParseResult.ParseError, DocumentSchema.Context<TSchema>>
+} = F.dual((args) => isCollection(args[0]), <TSchema extends DocumentSchema.Any>(
+  collection: Collection<TSchema>,
+  doc: DocumentSchema.Type<TSchema>,
   options?: InsertOneOptions
-): Effect.Effect<InsertOneResult, MongoError.MongoError | ParseResult.ParseError, R> =>
+): Effect.Effect<InsertOneResult, MongoError.MongoError | ParseResult.ParseError, DocumentSchema.Context<TSchema>> =>
   F.pipe(
-    Schema.encode(collection.schema)(doc),
+    Schema.encode(collection.basicSchema)(doc),
     Effect.flatMap((doc) => Effect.promise(() => collection.collection.insertOne(doc, options))),
     Effect.catchAllDefect(MongoError.mongoErrorDie<InsertOneResult>("insertOne error"))
   ))
 
 export const insertMany: {
-  <A extends Document>(docs: Array<A>, options?: BulkWriteOptions): <I extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<InsertManyResult, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    docs: Array<A>,
+  <TSchema extends DocumentSchema.Any>(docs: Array<DocumentSchema.Type<TSchema>>, options?: BulkWriteOptions): (
+    collection: Collection<TSchema>
+  ) => Effect.Effect<InsertManyResult, MongoError.MongoError | ParseResult.ParseError, DocumentSchema.Context<TSchema>>
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
+    docs: Array<DocumentSchema.Type<TSchema>>,
     options?: BulkWriteOptions
-  ): Effect.Effect<InsertManyResult, MongoError.MongoError | ParseResult.ParseError, R>
-} = F.dual((args) => isCollection(args[0]), <A extends Document, I extends Document, R>(
-  collection: Collection<A, I, R>,
-  docs: Array<A>,
+  ): Effect.Effect<InsertManyResult, MongoError.MongoError | ParseResult.ParseError, DocumentSchema.Context<TSchema>>
+} = F.dual((args) => isCollection(args[0]), <TSchema extends DocumentSchema.Any>(
+  collection: Collection<TSchema>,
+  docs: Array<DocumentSchema.Type<TSchema>>,
   options?: BulkWriteOptions
-): Effect.Effect<InsertManyResult, MongoError.MongoError | ParseResult.ParseError, R> => {
-  const encode = Schema.encode(collection.schema)
+): Effect.Effect<InsertManyResult, MongoError.MongoError | ParseResult.ParseError, DocumentSchema.Context<TSchema>> => {
+  const encode = Schema.encode(collection.basicSchema)
   return F.pipe(
     docs,
     Effect.forEach((doc) => encode(doc)),
@@ -139,69 +162,69 @@ export const insertMany: {
 })
 
 export const deleteOne: {
-  <I extends Document>(filter: Filter<I>, options?: DeleteOptions): <A extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<DeleteResult, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    filter: Filter<I>,
+  <TSchema extends DocumentSchema.Any>(filter: Filter<TSchema>, options?: DeleteOptions): (
+    collection: Collection<TSchema>
+  ) => Effect.Effect<DeleteResult, MongoError.MongoError, DocumentSchema.Context<TSchema>>
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
+    filter: Filter<TSchema>,
     options?: DeleteOptions
-  ): Effect.Effect<DeleteResult, MongoError.MongoError, R>
+  ): Effect.Effect<DeleteResult, MongoError.MongoError, DocumentSchema.Context<TSchema>>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    filter: Filter<I>,
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
+    filter: Filter<TSchema>,
     options?: DeleteOptions
-  ): Effect.Effect<DeleteResult, MongoError.MongoError, R> =>
+  ): Effect.Effect<DeleteResult, MongoError.MongoError, DocumentSchema.Context<TSchema>> =>
     Effect.promise(() => collection.collection.deleteOne(filter, options)).pipe(
       Effect.catchAllDefect(MongoError.mongoErrorDie<DeleteResult>("deleteOne error"))
     )
 )
 
 export const deleteMany: {
-  <I extends Document>(filter: Filter<I>, options?: DeleteOptions): <A extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<DeleteResult, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    filter: Filter<I>,
+  <TSchema extends DocumentSchema.Any>(filter: Filter<TSchema>, options?: DeleteOptions): (
+    collection: Collection<TSchema>
+  ) => Effect.Effect<DeleteResult, MongoError.MongoError, DocumentSchema.Context<TSchema>>
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
+    filter: Filter<TSchema>,
     options?: DeleteOptions
-  ): Effect.Effect<DeleteResult, MongoError.MongoError, R>
+  ): Effect.Effect<DeleteResult, MongoError.MongoError, DocumentSchema.Context<TSchema>>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    filter: Filter<I>,
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
+    filter: Filter<TSchema>,
     options?: DeleteOptions
-  ): Effect.Effect<DeleteResult, MongoError.MongoError, R> =>
+  ): Effect.Effect<DeleteResult, MongoError.MongoError, DocumentSchema.Context<TSchema>> =>
     Effect.promise(() => collection.collection.deleteMany(filter, options)).pipe(
       Effect.catchAllDefect(MongoError.mongoErrorDie<DeleteResult>("deleteMany error"))
     )
 )
 
 export const updateMany: {
-  <I extends Document>(
-    filter: Filter<I>,
-    update: UpdateFilter<I> | Array<Document>,
+  <TSchema extends DocumentSchema.Any>(
+    filter: Filter<TSchema>,
+    update: UpdateFilter<DocumentSchema.Encoded<TSchema>> | Array<Document>,
     options?: UpdateOptions
-  ): <A extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<UpdateResult, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    filter: Filter<I>,
-    update: UpdateFilter<I> | Array<Document>,
+  ): (
+    collection: Collection<TSchema>
+  ) => Effect.Effect<UpdateResult, MongoError.MongoError, DocumentSchema.Context<TSchema>>
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
+    filter: Filter<TSchema>,
+    update: UpdateFilter<DocumentSchema.Encoded<TSchema>> | Array<Document>,
     options?: UpdateOptions
-  ): Effect.Effect<UpdateResult, MongoError.MongoError, R>
+  ): Effect.Effect<UpdateResult, MongoError.MongoError, DocumentSchema.Context<TSchema>>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    filter: Filter<I>,
-    update: UpdateFilter<I> | Array<Document>,
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
+    filter: Filter<TSchema>,
+    update: UpdateFilter<DocumentSchema.Encoded<TSchema>> | Array<Document>,
     options?: UpdateOptions
-  ): Effect.Effect<UpdateResult, MongoError.MongoError, R> =>
+  ): Effect.Effect<UpdateResult, MongoError.MongoError, DocumentSchema.Context<TSchema>> =>
     Effect.promise(() =>
       collection.collection.updateMany(filter, update as UpdateFilter<Document> | Array<Document>, options)
     ).pipe(
@@ -210,35 +233,43 @@ export const updateMany: {
 )
 
 export const replaceOne: {
-  <A extends Document, I extends Document>(
-    filter: Filter<I>,
+  <TSchema extends DocumentSchema.Any>(
+    filter: Filter<TSchema>,
     // TODO: should we put WithoutId<A> here like the driver signature?
-    replacement: A,
+    replacement: DocumentSchema.Type<TSchema>,
     options?: ReplaceOptions
-  ): <R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<UpdateResult | Document, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    filter: Filter<I>,
-    replacement: A,
-    options?: ReplaceOptions
-  ): Effect.Effect<UpdateResult | Document, MongoError.MongoError | ParseResult.ParseError, R>
-} = F.dual(
-  (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    filter: Filter<I>,
-    replacement: A,
+  ): (
+    collection: Collection<TSchema>
+  ) => Effect.Effect<
+    UpdateResult | Document,
+    MongoError.MongoError | ParseResult.ParseError,
+    DocumentSchema.Context<TSchema>
+  >
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
+    filter: Filter<TSchema>,
+    replacement: DocumentSchema.Type<TSchema>,
     options?: ReplaceOptions
   ): Effect.Effect<
     UpdateResult | Document,
     MongoError.MongoError | ParseResult.ParseError,
-    R
+    DocumentSchema.Context<TSchema>
+  >
+} = F.dual(
+  (args) => isCollection(args[0]),
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
+    filter: Filter<TSchema>,
+    replacement: DocumentSchema.Type<TSchema>,
+    options?: ReplaceOptions
+  ): Effect.Effect<
+    UpdateResult | Document,
+    MongoError.MongoError | ParseResult.ParseError,
+    DocumentSchema.Context<TSchema>
   > =>
     F.pipe(
       // TODO: extract function in Collection
-      Schema.encode(collection.schema)(replacement),
+      Schema.encode(collection.basicSchema)(replacement),
       Effect.flatMap((replacement) =>
         Effect.promise(() => collection.collection.replaceOne(filter, replacement, options))
       ),
@@ -247,116 +278,158 @@ export const replaceOne: {
 )
 
 export const findOneAndReplace: {
-  <A extends Document, I extends Document>(
-    filter: Filter<I>,
-    replacement: A,
+  <TSchema extends DocumentSchema.Any>(
+    filter: Filter<TSchema>,
+    replacement: DocumentSchema.Type<TSchema>,
     options: FindOneAndReplaceOptions & { includeResultMetadata: true }
-  ): <R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document>(
-    filter: Filter<I>,
-    replacement: A,
+  ): (
+    collection: Collection<TSchema>
+  ) => Effect.Effect<
+    ModifyResult<DocumentSchema.Type<TSchema>>,
+    MongoError.MongoError | ParseResult.ParseError,
+    DocumentSchema.Context<TSchema>
+  >
+  <TSchema extends DocumentSchema.Any>(
+    filter: Filter<TSchema>,
+    replacement: DocumentSchema.Type<TSchema>,
     options: FindOneAndReplaceOptions & { includeResultMetadata: false }
-  ): <R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document>(filter: Filter<I>, replacement: A, options: FindOneAndReplaceOptions): <R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document>(filter: Filter<I>, replacement: A): <R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    filter: Filter<I>,
-    replacement: A,
-    options: FindOneAndReplaceOptions & { includeResultMetadata: true }
-  ): Effect.Effect<ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    filter: Filter<I>,
-    replacement: A,
-    options: FindOneAndReplaceOptions & { includeResultMetadata: false }
-  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    filter: Filter<I>,
-    replacement: A,
+  ): (
+    collection: Collection<TSchema>
+  ) => Effect.Effect<
+    O.Option<DocumentSchema.Type<TSchema>>,
+    MongoError.MongoError | ParseResult.ParseError,
+    DocumentSchema.Context<TSchema>
+  >
+  <TSchema extends DocumentSchema.Any>(
+    filter: Filter<TSchema>,
+    replacement: DocumentSchema.Type<TSchema>,
     options: FindOneAndReplaceOptions
-  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    filter: Filter<I>,
-    replacement: A
-  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ): (
+    collection: Collection<TSchema>
+  ) => Effect.Effect<
+    O.Option<DocumentSchema.Type<TSchema>>,
+    MongoError.MongoError | ParseResult.ParseError,
+    DocumentSchema.Context<TSchema>
+  >
+  <TSchema extends DocumentSchema.Any>(filter: Filter<TSchema>, replacement: DocumentSchema.Type<TSchema>): (
+    collection: Collection<TSchema>
+  ) => Effect.Effect<
+    O.Option<DocumentSchema.Type<TSchema>>,
+    MongoError.MongoError | ParseResult.ParseError,
+    DocumentSchema.Context<TSchema>
+  >
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
+    filter: Filter<TSchema>,
+    replacement: DocumentSchema.Type<TSchema>,
+    options: FindOneAndReplaceOptions & { includeResultMetadata: true }
+  ): Effect.Effect<
+    ModifyResult<DocumentSchema.Type<TSchema>>,
+    MongoError.MongoError | ParseResult.ParseError,
+    DocumentSchema.Context<TSchema>
+  >
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
+    filter: Filter<TSchema>,
+    replacement: DocumentSchema.Type<TSchema>,
+    options: FindOneAndReplaceOptions & { includeResultMetadata: false }
+  ): Effect.Effect<
+    O.Option<DocumentSchema.Type<TSchema>>,
+    MongoError.MongoError | ParseResult.ParseError,
+    DocumentSchema.Context<TSchema>
+  >
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
+    filter: Filter<TSchema>,
+    replacement: DocumentSchema.Type<TSchema>,
+    options: FindOneAndReplaceOptions
+  ): Effect.Effect<
+    O.Option<DocumentSchema.Type<TSchema>>,
+    MongoError.MongoError | ParseResult.ParseError,
+    DocumentSchema.Context<TSchema>
+  >
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
+    filter: Filter<TSchema>,
+    replacement: DocumentSchema.Type<TSchema>
+  ): Effect.Effect<
+    O.Option<DocumentSchema.Type<TSchema>>,
+    MongoError.MongoError | ParseResult.ParseError,
+    DocumentSchema.Context<TSchema>
+  >
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    filter: Filter<I>,
-    replacement: A,
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
+    filter: Filter<TSchema>,
+    replacement: DocumentSchema.Type<TSchema>,
     options?: FindOneAndReplaceOptions
-  ): Effect.Effect<O.Option<A> | ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R> =>
+  ): Effect.Effect<
+    O.Option<Simplify<DocumentSchema.Type<TSchema>>> | ModifyResult<Simplify<DocumentSchema.Type<TSchema>>>,
+    MongoError.MongoError | ParseResult.ParseError,
+    DocumentSchema.Context<TSchema>
+  > =>
     F.pipe(
       // TODO: extract function in Collection
-      Schema.encode(collection.schema)(replacement),
+      Schema.encode(collection.basicSchema)(replacement),
       Effect.flatMap((replacement) =>
         Effect.promise(() => collection.collection.findOneAndReplace(filter, replacement, options ?? {}))
       ),
       Effect.flatMap((value) =>
         Effect.gen(function*(_) {
           if (options?.includeResultMetadata && !!value) {
-            const result = value as unknown as MongoModifyResult<I>
-            const maybeValue = yield* _(SchemaExt.decodeNullableDocument(collection.schema, result.value))
+            const result = value as unknown as MongoModifyResult<DocumentSchema.Encoded<TSchema>>
+            const maybeValue = yield* _(SchemaExt.decodeNullableDocument(collection.basicSchema, result.value))
             return { ...result, value: maybeValue }
           }
-          return yield* _(SchemaExt.decodeNullableDocument(collection.schema, value))
+          return yield* _(SchemaExt.decodeNullableDocument(collection.basicSchema, value))
         })
       ),
       Effect.catchAllDefect(
-        MongoError.mongoErrorDie<O.Option<A> | ModifyResult<A>>("findOneAndReplace error")
+        MongoError.mongoErrorDie<O.Option<DocumentSchema.Type<TSchema>> | ModifyResult<DocumentSchema.Type<TSchema>>>(
+          "findOneAndReplace error"
+        )
       )
     )
 )
 
 export const rename: {
-  (newName: string, options?: RenameOptions): <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<Collection<A, I, R>, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  (newName: string, options?: RenameOptions): <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>
+  ) => Effect.Effect<Collection<TSchema>, MongoError.MongoError, DocumentSchema.Context<TSchema>>
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
     newName: string,
     options?: RenameOptions
-  ): Effect.Effect<Collection<A, I, R>, MongoError.MongoError, R>
+  ): Effect.Effect<Collection<TSchema>, MongoError.MongoError, DocumentSchema.Context<TSchema>>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
     newName: string,
     options?: RenameOptions
-  ): Effect.Effect<Collection<A, I, R>, MongoError.MongoError, R> =>
+  ): Effect.Effect<Collection<TSchema>, MongoError.MongoError, DocumentSchema.Context<TSchema>> =>
     F.pipe(
       Effect.promise(() => collection.collection.rename(newName, options)),
-      Effect.map((newCollection) => new Collection<A, I, R>({ collection: newCollection, schema: collection.schema })),
-      Effect.catchAllDefect(MongoError.mongoErrorDie<Collection<A, I, R>>("rename error"))
+      Effect.map((newCollection) => new Collection<TSchema>({ collection: newCollection, schema: collection.schema })),
+      Effect.catchAllDefect(MongoError.mongoErrorDie<Collection<TSchema>>("rename error"))
     )
 )
 
 export const drop: {
-  (options?: DropCollectionOptions): <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<boolean, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  (options?: DropCollectionOptions): <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>
+  ) => Effect.Effect<boolean, MongoError.MongoError, DocumentSchema.Context<TSchema>>
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
     options?: DropCollectionOptions
-  ): Effect.Effect<boolean, MongoError.MongoError, R>
+  ): Effect.Effect<boolean, MongoError.MongoError, DocumentSchema.Context<TSchema>>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
     options?: DropCollectionOptions
-  ): Effect.Effect<boolean, MongoError.MongoError, R> =>
+  ): Effect.Effect<boolean, MongoError.MongoError, DocumentSchema.Context<TSchema>> =>
     F.pipe(
       Effect.promise(() => collection.collection.drop(options)),
       Effect.catchAllDefect(MongoError.mongoErrorDie<boolean>("drop error"))
@@ -364,21 +437,21 @@ export const drop: {
 )
 
 export const createIndexes: {
-  (indexSpecs: Array<IndexDescription>, options?: CreateIndexesOptions): <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<Array<string>, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  (indexSpecs: Array<IndexDescription>, options?: CreateIndexesOptions): <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>
+  ) => Effect.Effect<Array<string>, MongoError.MongoError, DocumentSchema.Context<TSchema>>
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
     indexSpecs: Array<IndexDescription>,
     options?: CreateIndexesOptions
-  ): Effect.Effect<Array<string>, MongoError.MongoError, R>
+  ): Effect.Effect<Array<string>, MongoError.MongoError, DocumentSchema.Context<TSchema>>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
     indexSpecs: Array<IndexDescription>,
     options?: CreateIndexesOptions
-  ): Effect.Effect<Array<string>, MongoError.MongoError, R> =>
+  ): Effect.Effect<Array<string>, MongoError.MongoError, DocumentSchema.Context<TSchema>> =>
     F.pipe(
       Effect.promise(() => collection.collection.createIndexes(indexSpecs, options)),
       Effect.catchAllDefect(MongoError.mongoErrorDie<Array<string>>("createIndexes error"))
@@ -386,21 +459,21 @@ export const createIndexes: {
 )
 
 export const createIndex: {
-  (indexSpec: IndexSpecification, options?: CreateIndexesOptions): <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<string, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  (indexSpec: IndexSpecification, options?: CreateIndexesOptions): <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>
+  ) => Effect.Effect<string, MongoError.MongoError, DocumentSchema.Context<TSchema>>
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
     indexSpec: IndexSpecification,
     options?: CreateIndexesOptions
-  ): Effect.Effect<string, MongoError.MongoError, R>
+  ): Effect.Effect<string, MongoError.MongoError, DocumentSchema.Context<TSchema>>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
     indexSpec: IndexSpecification,
     options?: CreateIndexesOptions
-  ): Effect.Effect<string, MongoError.MongoError, R> =>
+  ): Effect.Effect<string, MongoError.MongoError, DocumentSchema.Context<TSchema>> =>
     F.pipe(
       Effect.promise(() => collection.collection.createIndex(indexSpec, options)),
       Effect.catchAllDefect(MongoError.mongoErrorDie<string>("createIndex error"))
@@ -409,21 +482,21 @@ export const createIndex: {
 
 // TODO: review return type. Should we return Document like mongodb driver?
 export const dropIndex: {
-  (indexName: string, options?: DropIndexesOptions): <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<void, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  (indexName: string, options?: DropIndexesOptions): <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>
+  ) => Effect.Effect<void, MongoError.MongoError, DocumentSchema.Context<TSchema>>
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
     indexName: string,
     options?: DropIndexesOptions
-  ): Effect.Effect<void, MongoError.MongoError, R>
+  ): Effect.Effect<void, MongoError.MongoError, DocumentSchema.Context<TSchema>>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
     indexName: string,
     options?: DropIndexesOptions
-  ): Effect.Effect<void, MongoError.MongoError, R> =>
+  ): Effect.Effect<void, MongoError.MongoError, DocumentSchema.Context<TSchema>> =>
     F.pipe(
       Effect.promise(() => collection.collection.dropIndex(indexName, options)),
       Effect.asVoid,
@@ -432,47 +505,59 @@ export const dropIndex: {
 )
 
 export const aggregate: {
-  <B extends Document, BI extends Document, BR>(
+  <TSchemaB extends DocumentSchema.Any>(
     pipeline: Array<Document>,
-    schema: Schema.Schema<B, BI, BR>,
+    schema: TSchemaB,
     options?: AggregateOptions
-  ): <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => AggregationCursor.AggregationCursor<B, BI, BR>
-  <A extends Document, I extends Document, R, B extends Document, BI extends Document, BR>(
-    collection: Collection<A, I, R>,
+  ): <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>
+  ) => AggregationCursor.AggregationCursor<
+    Simplify<DocumentSchema.Type<TSchemaB>>,
+    Simplify<DocumentSchema.Encoded<TSchemaB>>,
+    DocumentSchema.Context<TSchemaB>
+  >
+  <TSchema extends DocumentSchema.Any, TSchemaB extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
     pipeline: Array<Document>,
-    schema: Schema.Schema<B, BI, BR>,
+    schema: TSchemaB,
     options?: AggregateOptions
-  ): AggregationCursor.AggregationCursor<B, BI, BR>
+  ): AggregationCursor.AggregationCursor<
+    Simplify<DocumentSchema.Type<TSchemaB>>,
+    Simplify<DocumentSchema.Encoded<TSchemaB>>,
+    DocumentSchema.Context<TSchemaB>
+  >
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R, B extends Document, BI extends Document, BR>(
-    collection: Collection<A, I, R>,
+  <TSchema extends DocumentSchema.Any, TSchemaB extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
     pipeline: Array<Document>,
-    schema: Schema.Schema<B, BI, BR>,
+    schema: TSchemaB,
     options?: AggregateOptions
-  ): AggregationCursor.AggregationCursor<B, BI, BR> =>
-    new AggregationCursor.AggregationCursor<B, BI, BR>({
+  ): AggregationCursor.AggregationCursor<
+    Simplify<DocumentSchema.Type<TSchemaB>>,
+    Simplify<DocumentSchema.Encoded<TSchemaB>>,
+    DocumentSchema.Context<TSchemaB>
+  > =>
+    new AggregationCursor.AggregationCursor({
       cursor: collection.collection.aggregate(pipeline, options),
-      schema
+      schema: schema as any
     })
 )
 
 export const estimatedDocumentCount: {
-  (options?: EstimatedDocumentCountOptions): <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<number, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  (options?: EstimatedDocumentCountOptions): <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>
+  ) => Effect.Effect<number, MongoError.MongoError, DocumentSchema.Context<TSchema>>
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
     options?: EstimatedDocumentCountOptions
-  ): Effect.Effect<number, MongoError.MongoError, R>
+  ): Effect.Effect<number, MongoError.MongoError, DocumentSchema.Context<TSchema>>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
     options?: EstimatedDocumentCountOptions
-  ): Effect.Effect<number, MongoError.MongoError, R> =>
+  ): Effect.Effect<number, MongoError.MongoError, DocumentSchema.Context<TSchema>> =>
     F.pipe(
       Effect.promise(() => collection.collection.estimatedDocumentCount(options)),
       Effect.catchAllDefect(MongoError.mongoErrorDie<number>("estimatedDocumentCount error"))
@@ -480,21 +565,21 @@ export const estimatedDocumentCount: {
 )
 
 export const countDocuments: {
-  <I extends Document>(filter?: Filter<I>, options?: CountDocumentsOptions): <A extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<number, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    filter?: Filter<I>,
+  <TSchema extends DocumentSchema.Any>(filter?: Filter<TSchema>, options?: CountDocumentsOptions): (
+    collection: Collection<TSchema>
+  ) => Effect.Effect<number, MongoError.MongoError, DocumentSchema.Context<TSchema>>
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
+    filter?: Filter<TSchema>,
     options?: CountDocumentsOptions
-  ): Effect.Effect<number, MongoError.MongoError, R>
+  ): Effect.Effect<number, MongoError.MongoError, DocumentSchema.Context<TSchema>>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    filter?: Filter<I>,
+  <TSchema extends DocumentSchema.Any>(
+    collection: Collection<TSchema>,
+    filter?: Filter<TSchema>,
     options?: CountDocumentsOptions
-  ): Effect.Effect<number, MongoError.MongoError, R> =>
+  ): Effect.Effect<number, MongoError.MongoError, DocumentSchema.Context<TSchema>> =>
     F.pipe(
       Effect.promise(() => collection.collection.countDocuments(filter, options)),
       Effect.catchAllDefect(MongoError.mongoErrorDie<number>("countDocuments error"))

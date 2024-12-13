@@ -129,10 +129,10 @@ F.pipe(collection, Collection.findOneAndReplace({ birthday: "2024-11-28" }, myTy
 // rename
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Effect<Collection<{ readonly birthday: Date; }, { readonly birthday: string; }, never>, MongoError, never>
+// $ExpectType Effect<Collection<Struct<{ birthday: typeof Date$; }>>, MongoError, never>
 Collection.rename(collection, "new-collection")
 
-// $ExpectType Effect<Collection<{ readonly birthday: Date; }, { readonly birthday: string; }, never>, MongoError, never>
+// $ExpectType Effect<Collection<Struct<{ birthday: typeof Date$; }>>, MongoError, never>
 F.pipe(collection, Collection.rename("new-collection"))
 
 // -------------------------------------------------------------------------------------

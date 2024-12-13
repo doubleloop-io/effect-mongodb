@@ -6,10 +6,12 @@ import * as Effect from "effect/Effect"
 import type * as E from "effect/Either"
 import * as F from "effect/Function"
 import type * as ParseResult from "effect/ParseResult"
+import type { Simplify } from "effect/Schema"
 import * as Schema from "effect/Schema"
 import * as Stream from "effect/Stream"
 import * as Tuple from "effect/Tuple"
 import type { Document, FindCursor as FindCursor_, Sort, SortDirection } from "mongodb"
+import type * as DocumentSchema from "./internal/document-schema.js"
 import type { Filter } from "./internal/filter.js"
 import * as MongoError from "./MongoError.js"
 
@@ -18,6 +20,15 @@ export class FindCursor<A, I = A, R = never> extends Data.TaggedClass("FindCurso
   schema: Schema.Schema<A, I, R>
 }> {
 }
+export type FindCursorFromSchema<
+  TSchema extends DocumentSchema.DocumentSchema<any>
+> = FindCursor<
+  Simplify<
+    DocumentSchema.Type<TSchema>
+  >,
+  Simplify<DocumentSchema.Encoded<TSchema>>,
+  DocumentSchema.Context<TSchema>
+>
 
 export const filter: {
   <I extends Document>(filter: Filter<I>): <A, R>(cursor: FindCursor<A, I, R>) => FindCursor<A, I, R>

@@ -5,7 +5,6 @@ import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import * as O from "effect/Option"
-import type * as Schema from "effect/Schema"
 import type {
   AggregateOptions,
   BulkWriteOptions,
@@ -38,6 +37,7 @@ import type {
 import * as Collection from "./Collection.js"
 import * as DocumentAggregationCursor from "./DocumentAggregationCursor.js"
 import * as DocumentFindCursor from "./DocumentFindCursor.js"
+import type * as DocumentSchema from "./internal/document-schema.js"
 import type { ModifyResult } from "./internal/modify-result.js"
 import * as MongoError from "./MongoError.js"
 
@@ -470,16 +470,16 @@ export const countDocuments: {
 )
 
 export const typed: {
-  <A extends Document, I extends Document = A, R = never>(
-    schema: Schema.Schema<A, I, R>
-  ): (collection: DocumentCollection) => Collection.Collection<A, I, R>
-  <A extends Document, I extends Document = A, R = never>(
+  <TSchema extends DocumentSchema.Any>(
+    schema: TSchema
+  ): (collection: DocumentCollection) => Collection.Collection<TSchema>
+  <TSchema extends DocumentSchema.Any>(
     collection: DocumentCollection,
-    schema: Schema.Schema<A, I, R>
-  ): Collection.Collection<A, I, R>
-} = F.dual((args) => isDocumentCollection(args[0]), <A extends Document, I extends Document = A, R = never>(
+    schema: TSchema
+  ): Collection.Collection<TSchema>
+} = F.dual((args) => isDocumentCollection(args[0]), <TSchema extends DocumentSchema.Any>(
   collection: DocumentCollection,
-  schema: Schema.Schema<A, I, R>
-): Collection.Collection<A, I, R> => new Collection.Collection<A, I, R>({ collection: collection.collection, schema }))
+  schema: TSchema
+): Collection.Collection<TSchema> => new Collection.Collection<TSchema>({ collection: collection.collection, schema }))
 
 const isDocumentCollection = (x: unknown) => x instanceof DocumentCollection

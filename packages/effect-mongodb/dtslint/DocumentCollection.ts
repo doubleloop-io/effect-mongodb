@@ -7,12 +7,18 @@ const MyType = Schema.Struct({
 
 declare const documentCollection: DocumentCollection.DocumentCollection
 
-// $ExpectType Collection<{ readonly birthday: Date; }, { readonly birthday: string; }, never>
+// $ExpectType Collection<Struct<{ birthday: typeof Date$; }>>
 DocumentCollection.typed(documentCollection, MyType)
 
 // @ts-expect-error
 DocumentCollection.typed(documentCollection, Schema.Date)
 
-// TODO the following test should work, i.e. array are not acceptable as a collection type
-// // @ts-expect-error
-// DocumentCollection.typed(documentCollection, Schema.Array(MyType))
+// @ts-expect-error
+DocumentCollection.typed(documentCollection, Schema.Array(MyType))
+
+class MyClass extends Schema.Class<MyClass>("MyClass")({
+  name: Schema.String
+}) {}
+// TODO the following test should work, i.e. we should accept classes as well
+// @ts-expect-error
+DocumentCollection.typed(documentCollection, MyClass)
