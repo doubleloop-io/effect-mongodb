@@ -4,6 +4,7 @@ import * as FindCursor from "effect-mongodb/FindCursor"
 import * as F from "effect/Function"
 import * as Schema from "effect/Schema"
 
+// TODO: try to use class Schema to improve test assertions
 const MyType = Schema.Struct({
   birthday: Schema.Date
 })
@@ -133,3 +134,13 @@ Collection.rename(collection, "new-collection")
 
 // $ExpectType Effect<Collection<{ readonly birthday: Date; }, { readonly birthday: string; }, never>, MongoError, never>
 F.pipe(collection, Collection.rename("new-collection"))
+
+// -------------------------------------------------------------------------------------
+// drop
+// -------------------------------------------------------------------------------------
+
+// $ExpectType Effect<boolean, MongoError, never>
+Collection.drop(collection)
+
+// $ExpectType Effect<boolean, MongoError, never>
+F.pipe(collection, Collection.drop())
