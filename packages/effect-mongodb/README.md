@@ -83,3 +83,19 @@ For document-based modules, these functions can only fail with a `MongoError`, w
 fail also with a `ParseError`. For this reason, the schema-based modules provide two additional functions:
 `toArrayEither` and `toStreamEither`. These functions return, respectively, an array and a stream of `Either`s, allowing
 the code to process all the documents, even if some of them are invalid.
+
+## Known limitations
+
+### Filters for Schema-based operations
+
+Using `Filter` in schema-based operations (e.g. `find`, `deleteOne`, etc.) is not as straightforward as in
+document-based operations.
+Given a `Schema<A, I, R>`, `A` is the runtime/decoded type of the documents, while `I` is the persisted/encoded type of
+the same documents.
+Therefore, to filter documents in MongoDB, the client must provide a filter of type `Filter<I>`, where `Filter` is the
+type provided by the MongoDB driver.
+
+A better approach, given the design of the Schema-based operations, would be to provide filters as `Filter<A>`, but
+we didn't yet find a straightforward way to map `Filter<A>` to `Filter<I>`.
+For this reason, we decided to keep the original MongoDB filter type.
+In the future, this may (hopefully) change.
