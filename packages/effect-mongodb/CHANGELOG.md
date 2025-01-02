@@ -1,5 +1,11 @@
 # effect-mongodb
 
+## 0.1.0
+
+### Minor Changes
+
+- [`e52f494`](https://github.com/doubleloop-io/effect-mongodb/commit/e52f4944ccae2dea261138781460b3d40567eb53) Thanks [@devmatteini](https://github.com/devmatteini)! - upgrade mongodb version to 6.9.0 to fully support mongodb server 8
+
 ## 0.0.5
 
 ### Patch Changes
