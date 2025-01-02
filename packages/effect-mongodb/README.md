@@ -38,21 +38,3 @@ Here is a list of design decisions made and principles followed while developing
    [`TaggedError`](https://effect.website/docs/data-types/data/#taggederror), to wrap the original MongoDB errors.
    The current implementation is basic, but it will be extended to provide more detailed information and a finer error
    handling.
-
-## Development
-
-Export `EFFECT_MONGODB_DEBUG` environment variable to see debug logs in tests.
-
-To inspect MongoDB test instance:
-
-1. Copy the connection string from the console
-2. Open Mongo Compass
-3. Paste the URI
-4. Click Advanced Connection Options
-5. Enable `Direct Connection`
-6. Click `Connect`
-
-Useful links to explore mongodb package:
-
-- https://mongodb.github.io/node-mongodb-native/Next/classes/Collection.html (with links to source code)
-- https://www.mongodb.com/docs/v7.0/reference/method/js-collection/
