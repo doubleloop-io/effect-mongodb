@@ -21,7 +21,8 @@
     "dtslint-clean": "dtslint --clean",
     "changeset-version": "changeset version && node scripts/version.mjs",
     "changeset-publish": "pnpm lint-fix && pnpm build && TEST_DIST= pnpm vitest && changeset publish",
-    "check-source-state": "git add packages/*/src && git diff-index --cached HEAD --exit-code packages/*/src"
+    "check-source-state": "git add packages/*/src && git diff-index --cached HEAD --exit-code packages/*/src",
+    "infra": "docker compose up"
   },
   "resolutions": {
     "dependency-tree": "^10.0.9",
