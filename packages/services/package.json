@@ -50,12 +50,12 @@
   },
   "peerDependencies": {
     "effect": "^3.10.14",
-    "mongodb": "^6.8.0",
+    "mongodb": "^6.9.0",
     "effect-mongodb": "workspace:^"
   },
   "devDependencies": {
     "effect": "^3.10.14",
-    "mongodb": "^6.8.0",
+    "mongodb": "^6.9.0",
     "effect-mongodb": "workspace:^",
     "@types/node": "^22.5.4"
   }
