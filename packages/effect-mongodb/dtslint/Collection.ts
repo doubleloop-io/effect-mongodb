@@ -21,10 +21,10 @@ const collection = DocumentCollection.typed(documentCollection, MyType)
 // find
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Effect<{ readonly birthday: Date; }[], MongoError | ParseError, never>
+// $ExpectType Effect<readonly { readonly birthday: Date; }[], MongoError | ParseError, never>
 FindCursor.toArray(Collection.find(collection, { birthday: "2024-11-28" }))
 
-// $ExpectType Effect<{ readonly birthday: Date; }[], MongoError | ParseError, never>
+// $ExpectType Effect<readonly { readonly birthday: Date; }[], MongoError | ParseError, never>
 F.pipe(collection, Collection.find({ birthday: "2024-11-28" }), FindCursor.toArray)
 
 // -------------------------------------------------------------------------------------

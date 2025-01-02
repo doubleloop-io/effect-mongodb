@@ -76,7 +76,7 @@ export const limit: {
 
 export const toArray = <A, I, R>(
   cursor: FindCursor<A, I, R>
-): Effect.Effect<Array<A>, MongoError.MongoError | ParseResult.ParseError, R> => {
+): Effect.Effect<ReadonlyArray<A>, MongoError.MongoError | ParseResult.ParseError, R> => {
   const decode = Schema.decodeUnknown(cursor.schema)
   return Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }).pipe(
     Effect.catchAll(MongoError.mongoErrorDie<ReadonlyArray<A>>("Unable to get array from mongodb cursor")),
@@ -86,7 +86,11 @@ export const toArray = <A, I, R>(
 
 export const toArrayEither = <A, I, R>(
   cursor: FindCursor<A, I, R>
-): Effect.Effect<Array<E.Either<A, [document: unknown, error: ParseResult.ParseError]>>, MongoError.MongoError, R> => {
+): Effect.Effect<
+  ReadonlyArray<E.Either<A, [document: unknown, error: ParseResult.ParseError]>>,
+  MongoError.MongoError,
+  R
+> => {
   const decode = Schema.decodeUnknown(cursor.schema)
   return Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }).pipe(
     Effect.catchAll(MongoError.mongoErrorDie<ReadonlyArray<A>>("Unable to get array from mongodb cursor")),
