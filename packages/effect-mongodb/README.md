@@ -38,3 +38,17 @@ Here is a list of design decisions made and principles followed while developing
    [`TaggedError`](https://effect.website/docs/data-types/data/#taggederror), to wrap the original MongoDB errors.
    The current implementation is basic, but it will be extended to provide more detailed information and a finer error
    handling.
+
+### Cursors
+
+All cursor modules provide, at least, two functions:
+- `toArray`, which returns an `Effect` that resolves to an array of documents.
+  This kind of function loads all the documents from the cursor and returns them as an array.
+- `toStream`, which returns a [`Stream`](https://effect.website/docs/stream/introduction/) of documents.
+  Instead, this kind of function leverages the async iterable nature of the underlying MongoDB driver's cursor, and
+  allows to process the documents one by one, without loading them all in memory.
+
+For document-based modules, these functions can only fail with a `MongoError`, while for schema-based modules, they can
+fail also with a `ParseError`. For this reason, the schema-based modules provide two additional functions:
+`toArrayEither` and `toStreamEither`. These functions return, respectively, an array and a stream of `Either`s, allowing
+the code to process all the documents, even if some of them are invalid.
