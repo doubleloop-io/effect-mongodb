@@ -12,7 +12,38 @@ Note that `effect`, and `mongodb` are requested as peer dependencies.
 
 ## Usage
 
-TODO
+Here is a simple example of how to use this package:
+
+```typescript
+import * as Collection from "effect-mongodb/Collection"
+import * as Db from "effect-mongodb/Db"
+import * as FindCursor from "effect-mongodb/FindCursor"
+import * as MongoClient from "effect-mongodb/MongoClient"
+import * as Effect from "effect/Effect"
+import * as Schema from "effect/Schema"
+
+const Person = Schema.Struct({
+   name: Schema.String,
+   age: Schema.Number,
+   birthday: Schema.Date
+})
+
+const program = Effect.gen(function*(_) {
+   const client = yield* _(MongoClient.connect("mongodb://localhost:27017"))
+   const db = MongoClient.db(client, "source-db")
+   const sourceCollection = Db.collection(db, "source", Person)
+   const destinationCollection = Db.collection(db, "destination", Person)
+   
+   const items = yield* _(Collection.find(sourceCollection), FindCursor.toArray)
+
+   yield* _(Collection.insertMany(destinationCollection, items))
+})
+
+await program.pipe(Effect.runPromise)
+
+```
+
+Find more examples in the [examples](./examples) folder.
 
 ## Design decisions
 
