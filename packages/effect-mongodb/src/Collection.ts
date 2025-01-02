@@ -44,6 +44,7 @@ export class Collection<A extends Document, I extends Document = A, R = never> e
   collection: MongoCollection
   schema: Schema.Schema<A, I, R>
 }> {
+  readonly encode = Schema.encode(this.schema)
 }
 
 export type FindOptions = Omit<MongoFindOptions, "projection">
@@ -110,7 +111,7 @@ export const insertOne: {
   options?: InsertOneOptions
 ): Effect.Effect<InsertOneResult, MongoError.MongoError | ParseResult.ParseError, R> =>
   F.pipe(
-    Schema.encode(collection.schema)(doc),
+    collection.encode(doc),
     Effect.flatMap((doc) => Effect.promise(() => collection.collection.insertOne(doc, options))),
     Effect.catchAllDefect(MongoError.mongoErrorDie<InsertOneResult>("insertOne error"))
   ))
@@ -129,10 +130,9 @@ export const insertMany: {
   docs: Array<A>,
   options?: BulkWriteOptions
 ): Effect.Effect<InsertManyResult, MongoError.MongoError | ParseResult.ParseError, R> => {
-  const encode = Schema.encode(collection.schema)
   return F.pipe(
     docs,
-    Effect.forEach((doc) => encode(doc)),
+    Effect.forEach((doc) => collection.encode(doc)),
     Effect.flatMap((docs) => Effect.promise(() => collection.collection.insertMany(docs, options))),
     Effect.catchAllDefect(MongoError.mongoErrorDie<InsertManyResult>("insertMany error"))
   )
@@ -237,8 +237,7 @@ export const replaceOne: {
     R
   > =>
     F.pipe(
-      // TODO: extract function in Collection
-      Schema.encode(collection.schema)(replacement),
+      collection.encode(replacement),
       Effect.flatMap((replacement) =>
         Effect.promise(() => collection.collection.replaceOne(filter, replacement, options))
       ),
@@ -299,8 +298,7 @@ export const findOneAndReplace: {
     options?: FindOneAndReplaceOptions
   ): Effect.Effect<O.Option<A> | ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R> =>
     F.pipe(
-      // TODO: extract function in Collection
-      Schema.encode(collection.schema)(replacement),
+      collection.encode(replacement),
       Effect.flatMap((replacement) =>
         Effect.promise(() => collection.collection.findOneAndReplace(filter, replacement, options ?? {}))
       ),
