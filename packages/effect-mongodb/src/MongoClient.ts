@@ -17,6 +17,17 @@ export const connect = (
     Effect.catchAll(MongoError.mongoErrorDie<MongoClient_>("connect error"))
   )
 
+export const close: {
+  (force?: boolean): (client: MongoClient) => Effect.Effect<void, MongoError.MongoError>
+  (client: MongoClient, force?: boolean): Effect.Effect<void, MongoError.MongoError>
+} = F.dual(
+  (args) => isMongoClient(args[0]),
+  (client: MongoClient, force?: boolean): Effect.Effect<void, MongoError.MongoError> =>
+    Effect.promise(() => client.close(force)).pipe(
+      Effect.catchAll(MongoError.mongoErrorDie<void>("close error"))
+    )
+)
+
 export const db: {
   (dbName?: string, options?: DbOptions): (client: MongoClient) => Db
   (client: MongoClient, dbName?: string, options?: DbOptions): Db
