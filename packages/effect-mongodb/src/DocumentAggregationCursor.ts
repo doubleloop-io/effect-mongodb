@@ -5,7 +5,7 @@ import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import * as Stream from "effect/Stream"
-import type { AggregationCursor as MongoAggregationCursor } from "mongodb"
+import type { AggregationCursor as MongoAggregationCursor, Document } from "mongodb"
 import * as MongoError from "./MongoError.js"
 
 export class DocumentAggregationCursor

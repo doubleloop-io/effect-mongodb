@@ -12,8 +12,8 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "moduleResolution": "NodeNext",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": [],
+    "lib": ["ES2022"],
+    "types": ["node"],
     "isolatedModules": true,
     "sourceMap": true,
     "declarationMap": true,
@@ -42,7 +42,7 @@
       "effect-mongodb/test/*": ["./packages/effect-mongodb/test/*.js"],
       "@effect-mongodb/services": ["./packages/services/src/index.js"],
       "@effect-mongodb/services/*": ["./packages/services/src/*.js"],
-      "@effect-mongodb/services/test/*": ["./packages/services/test/*.js"],
+      "@effect-mongodb/services/test/*": ["./packages/services/test/*.js"]
     }
   }
 }
