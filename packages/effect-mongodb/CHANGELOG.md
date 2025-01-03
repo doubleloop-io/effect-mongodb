@@ -1,5 +1,16 @@
 # effect-mongodb
 
+## 0.1.2
+
+### Patch Changes
+
+- [`5de41db`](https://github.com/doubleloop-io/effect-mongodb/commit/5de41dbbacb1fcfd4c38cc3e9c24a992741d94b6) Thanks [@devmatteini](https://github.com/devmatteini)! - Fix errors on `DocumentCollection`:
+
+  - `insertOne` data-first overload when only passing collection and doc
+  - `insertMany` return type is always `InsertManyResult`
+  - `rename` now returns a new `DocumentCollection` (like `Collection.rename`)
+  - `dropIndex` now returns void (like `Collection.dropIndex`)
+
 ## 0.1.1
 
 ### Patch Changes
