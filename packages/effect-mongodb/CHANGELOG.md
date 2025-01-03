@@ -1,5 +1,17 @@
 # effect-mongodb
 
+## 0.1.1
+
+### Patch Changes
+
+- [`e167c6f`](https://github.com/doubleloop-io/effect-mongodb/commit/e167c6fe94cda5b9ee04f17496e4dd303a06769d) Thanks [@devmatteini](https://github.com/devmatteini)! - fix: set base tsconfig types to node and remove DOM from lib
+
+- [`468805d`](https://github.com/doubleloop-io/effect-mongodb/commit/468805d21bc921d7690060e95e4dd447aeca149b) Thanks [@devmatteini](https://github.com/devmatteini)! - Add close to MongoClient
+
+- [`a0c6e2e`](https://github.com/doubleloop-io/effect-mongodb/commit/a0c6e2e37bb72e96e999c416602ef34b5264e2a9) Thanks [@devmatteini](https://github.com/devmatteini)! - Improve the composability of functions by returning mutable arrays and accepting readonly arrays as input parameters.
+
+- [`122d816`](https://github.com/doubleloop-io/effect-mongodb/commit/122d816a53c6ea41b254e8ea76d7a8d17a44ce8f) Thanks [@devmatteini](https://github.com/devmatteini)! - Add connectScoped to MongoClient
+
 ## 0.1.0
 
 ### Minor Changes
