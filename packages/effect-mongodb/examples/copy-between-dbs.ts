@@ -34,8 +34,7 @@ const program = Effect.gen(function*(_) {
   const destinationDb = MongoClient.db(destinationInstance, "destination")
   const destinationCollection = Db.collection(destinationDb, "records", MyType)
 
-  // TODO: should we always take readonly arrays as input?
-  yield* _(Collection.insertMany(destinationCollection, [...sourceItems]))
+  yield* _(Collection.insertMany(destinationCollection, sourceItems))
 })
 
 await program.pipe(Effect.scoped, Effect.runPromise)
