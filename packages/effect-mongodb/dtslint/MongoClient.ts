@@ -1,5 +1,4 @@
 import * as MongoClient from "effect-mongodb/MongoClient"
-import { connectScoped } from "effect-mongodb/MongoClient"
 import * as F from "effect/Function"
 
 declare const client: MongoClient.MongoClient
