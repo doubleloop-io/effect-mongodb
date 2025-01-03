@@ -91,6 +91,10 @@ export const findOne: {
 )
 
 export const insertOne: {
+  (
+    collection: DocumentCollection,
+    doc: OptionalUnlessRequiredId<Document>
+  ): Effect.Effect<InsertOneResult, MongoError.MongoError>
   (doc: OptionalUnlessRequiredId<Document>, options?: InsertOneOptions): (
     collection: DocumentCollection
   ) => Effect.Effect<InsertOneResult, MongoError.MongoError>
@@ -115,12 +119,12 @@ export const insertMany: {
     options?: BulkWriteOptions
   ): (
     collection: DocumentCollection
-  ) => Effect.Effect<InsertOneResult, MongoError.MongoError>
+  ) => Effect.Effect<InsertManyResult, MongoError.MongoError>
   (
     collection: DocumentCollection,
     docs: ReadonlyArray<OptionalUnlessRequiredId<Document>>,
     options?: BulkWriteOptions
-  ): Effect.Effect<InsertOneResult, MongoError.MongoError>
+  ): Effect.Effect<InsertManyResult, MongoError.MongoError>
 } = F.dual((args) => isDocumentCollection(args[0]), (
   collection: DocumentCollection,
   docs: ReadonlyArray<OptionalUnlessRequiredId<Document>>,
@@ -307,22 +311,23 @@ export const findOneAndReplace: {
 export const rename: {
   (newName: string, options?: RenameOptions): (
     collection: DocumentCollection
-  ) => Effect.Effect<MongoCollection, MongoError.MongoError>
+  ) => Effect.Effect<DocumentCollection, MongoError.MongoError>
   (
     collection: DocumentCollection,
     newName: string,
     options?: RenameOptions
-  ): Effect.Effect<MongoCollection, MongoError.MongoError>
+  ): Effect.Effect<DocumentCollection, MongoError.MongoError>
 } = F.dual(
   (args) => isDocumentCollection(args[0]),
   (
     collection: DocumentCollection,
     newName: string,
     options?: RenameOptions
-  ): Effect.Effect<MongoCollection, MongoError.MongoError> =>
+  ): Effect.Effect<DocumentCollection, MongoError.MongoError> =>
     F.pipe(
       Effect.promise(() => collection.collection.rename(newName, options)),
-      Effect.catchAllDefect(MongoError.mongoErrorDie<MongoCollection>("rename error"))
+      Effect.map((collection) => new DocumentCollection({ collection })),
+      Effect.catchAllDefect(MongoError.mongoErrorDie<DocumentCollection>("rename error"))
     )
 )
 
@@ -386,26 +391,28 @@ export const createIndex: {
     )
 )
 
+// TODO: review return type. Should we return Document like mongodb driver?
 export const dropIndex: {
   (
     indexName: string,
     options?: DropIndexesOptions
-  ): (collection: DocumentCollection) => Effect.Effect<Document, MongoError.MongoError>
+  ): (collection: DocumentCollection) => Effect.Effect<void, MongoError.MongoError>
   (
     collection: DocumentCollection,
     indexName: string,
     options?: DropIndexesOptions
-  ): Effect.Effect<Document, MongoError.MongoError>
+  ): Effect.Effect<void, MongoError.MongoError>
 } = F.dual(
   (args) => isDocumentCollection(args[0]),
   (
     collection: DocumentCollection,
     indexName: string,
     options?: DropIndexesOptions
-  ): Effect.Effect<Document, MongoError.MongoError> =>
+  ): Effect.Effect<void, MongoError.MongoError> =>
     F.pipe(
       Effect.promise(() => collection.collection.dropIndex(indexName, options)),
-      Effect.catchAllDefect(MongoError.mongoErrorDie<Document>("dropIndex error"))
+      Effect.asVoid,
+      Effect.catchAllDefect(MongoError.mongoErrorDie<void>("dropIndex error"))
     )
 )
 
