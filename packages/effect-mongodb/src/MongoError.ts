@@ -8,9 +8,25 @@ import * as Match from "effect/Match"
 import * as Stream from "effect/Stream"
 import { MongoError as MongoError_ } from "mongodb"
 
+export class DbErrorSource extends Data.TaggedClass("DbErrorSource")<{
+  module: string
+  functionName: string
+  db: string
+}> {}
+
+export class CollectionErrorSource extends Data.TaggedClass("CollectionErrorSource")<{
+  module: string
+  functionName: string
+  db: string
+  collection: string
+}> {}
+
+export type ErrorSource = DbErrorSource | CollectionErrorSource
+
 export class MongoError extends Data.TaggedError("MongoError")<{
   message: string
   innerError: MongoError_
+  source?: ErrorSource
 }> {}
 
 export const mongoErrorDie: {
@@ -20,13 +36,7 @@ export const mongoErrorDie: {
   F.pipe(
     Match.value(error),
     Match.when(Match.instanceOf(MongoError_), (innerError) => Effect.fail(new MongoError({ message, innerError }))),
-    Match.orElse((cause) =>
-      Effect.die(
-        new Error(message, {
-          cause
-        })
-      )
-    )
+    Match.orElse((cause) => Effect.die(new Error(message, { cause })))
   ))
 
 export const mongoErrorStream: {
