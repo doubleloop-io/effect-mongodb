@@ -3,6 +3,7 @@
  */
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
+import type * as Scope from "effect/Scope"
 import type { Db, DbOptions, MongoClientOptions } from "mongodb"
 import { MongoClient as MongoClient_ } from "mongodb"
 import * as MongoError from "./MongoError.js"
@@ -27,6 +28,15 @@ export const close: {
       Effect.catchAll(MongoError.mongoErrorDie<void>("close error"))
     )
 )
+
+export const connectScoped = (
+  url: string,
+  options?: MongoClientOptions & { forceClose?: boolean }
+): Effect.Effect<MongoClient, MongoError.MongoError, Scope.Scope> =>
+  Effect.acquireRelease(
+    connect(url, options),
+    (client) => close(client, options?.forceClose).pipe(Effect.orDie)
+  )
 
 export const db: {
   (dbName?: string, options?: DbOptions): (client: MongoClient) => Db
