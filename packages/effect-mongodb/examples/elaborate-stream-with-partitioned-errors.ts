@@ -16,14 +16,8 @@ const MyType = Schema.Struct({
 })
 type MyType = typeof MyType.Type
 
-const mongoClient = (url: string) =>
-  Effect.acquireRelease(
-    MongoClient.connect(url),
-    (client) => MongoClient.close(client).pipe(Effect.orDie)
-  )
-
 const program = Effect.gen(function*(_) {
-  const sourceInstance = yield* _(mongoClient("mongodb://localhost:27017"))
+  const sourceInstance = yield* _(MongoClient.connectScoped("mongodb://localhost:27017"))
   const sourceDb = MongoClient.db(sourceInstance, "elaborate-stream-with-partitioned-errors")
   const sourceCollection = Db.documentCollection(sourceDb, "records")
   yield* _(DocumentCollection.insertMany(sourceCollection, [

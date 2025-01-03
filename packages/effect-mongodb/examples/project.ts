@@ -17,14 +17,8 @@ const MyTypeProjection = Schema.Struct({
   valuesMax: Schema.Int
 })
 
-const mongoClient = (url: string) =>
-  Effect.acquireRelease(
-    MongoClient.connect(url),
-    (client) => MongoClient.close(client).pipe(Effect.orDie)
-  )
-
 const program = Effect.gen(function*(_) {
-  const sourceInstance = yield* _(mongoClient("mongodb://localhost:27017"))
+  const sourceInstance = yield* _(MongoClient.connectScoped("mongodb://localhost:27017"))
   const sourceDb = MongoClient.db(sourceInstance, "project")
   const sourceCollection = Db.collection(sourceDb, "records", MyType)
   yield* _(Collection.insertMany(sourceCollection, [
