@@ -2,4 +2,4 @@
 "effect-mongodb": patch
 ---
 
-Collection: toArray and toArrayEither now returns readonly array like other APIs
+Improve the composability of functions by returning mutable arrays and accepting readonly arrays as input parameters.

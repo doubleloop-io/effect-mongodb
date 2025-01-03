@@ -14,7 +14,7 @@ declare const cursor: AggregationCursor.AggregationCursor<User, UserEncoded, Use
 // toArray
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Effect<readonly { readonly id: string; }[], MongoError | ParseError, never>
+// $ExpectType Effect<{ readonly id: string; }[], MongoError | ParseError, never>
 AggregationCursor.toArray(cursor)
 
 // -------------------------------------------------------------------------------------

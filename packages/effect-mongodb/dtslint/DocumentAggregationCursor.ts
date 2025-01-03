@@ -6,7 +6,7 @@ declare const cursor: DocumentAggregationCursor.DocumentAggregationCursor
 // toArray
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Effect<readonly Document[], MongoError, never>
+// $ExpectType Effect<Document[], MongoError, never>
 DocumentAggregationCursor.toArray(cursor)
 
 // -------------------------------------------------------------------------------------

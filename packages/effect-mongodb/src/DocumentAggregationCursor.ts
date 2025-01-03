@@ -15,10 +15,10 @@ export class DocumentAggregationCursor
 
 export const toArray = (
   cursor: DocumentAggregationCursor
-): Effect.Effect<ReadonlyArray<Document>, MongoError.MongoError> =>
+): Effect.Effect<Array<Document>, MongoError.MongoError> =>
   F.pipe(
     Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }),
-    Effect.catchAll(MongoError.mongoErrorDie<ReadonlyArray<Document>>(`${cursor._tag}.toArray error`))
+    Effect.catchAll(MongoError.mongoErrorDie<Array<Document>>(`${cursor._tag}.toArray error`))
   )
 
 export const toStream = (

@@ -1,6 +1,7 @@
 /**
  * @since 0.0.1
  */
+import * as Array from "effect/Array"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
@@ -117,17 +118,17 @@ export const insertOne: {
   ))
 
 export const insertMany: {
-  <A extends Document>(docs: Array<A>, options?: BulkWriteOptions): <I extends Document, R>(
+  <A extends Document>(docs: ReadonlyArray<A>, options?: BulkWriteOptions): <I extends Document, R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<InsertManyResult, MongoError.MongoError | ParseResult.ParseError, R>
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
-    docs: Array<A>,
+    docs: ReadonlyArray<A>,
     options?: BulkWriteOptions
   ): Effect.Effect<InsertManyResult, MongoError.MongoError | ParseResult.ParseError, R>
 } = F.dual((args) => isCollection(args[0]), <A extends Document, I extends Document, R>(
   collection: Collection<A, I, R>,
-  docs: Array<A>,
+  docs: ReadonlyArray<A>,
   options?: BulkWriteOptions
 ): Effect.Effect<InsertManyResult, MongoError.MongoError | ParseResult.ParseError, R> => {
   return F.pipe(
@@ -183,7 +184,7 @@ export const deleteMany: {
 export const updateMany: {
   <I extends Document>(
     filter: Filter<I>,
-    update: UpdateFilter<I> | Array<Document>,
+    update: UpdateFilter<I> | ReadonlyArray<Document>,
     options?: UpdateOptions
   ): <A extends Document, R>(
     collection: Collection<A, I, R>
@@ -191,7 +192,7 @@ export const updateMany: {
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
-    update: UpdateFilter<I> | Array<Document>,
+    update: UpdateFilter<I> | ReadonlyArray<Document>,
     options?: UpdateOptions
   ): Effect.Effect<UpdateResult, MongoError.MongoError, R>
 } = F.dual(
@@ -199,14 +200,16 @@ export const updateMany: {
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
-    update: UpdateFilter<I> | Array<Document>,
+    update: UpdateFilter<I> | ReadonlyArray<Document>,
     options?: UpdateOptions
   ): Effect.Effect<UpdateResult, MongoError.MongoError, R> =>
     Effect.promise(() =>
-      collection.collection.updateMany(filter, update as UpdateFilter<Document> | Array<Document>, options)
-    ).pipe(
-      Effect.catchAllDefect(MongoError.mongoErrorDie<UpdateResult>("updateMany error"))
-    )
+      collection.collection.updateMany(
+        filter,
+        Array.isArray(update) ? [...update] : update as UpdateFilter<Document>,
+        options
+      )
+    ).pipe(Effect.catchAllDefect(MongoError.mongoErrorDie<UpdateResult>("updateMany error")))
 )
 
 export const replaceOne: {
@@ -362,23 +365,26 @@ export const drop: {
 )
 
 export const createIndexes: {
-  (indexSpecs: Array<IndexDescription>, options?: CreateIndexesOptions): <A extends Document, I extends Document, R>(
+  (
+    indexSpecs: ReadonlyArray<IndexDescription>,
+    options?: CreateIndexesOptions
+  ): <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>
   ) => Effect.Effect<Array<string>, MongoError.MongoError, R>
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
-    indexSpecs: Array<IndexDescription>,
+    indexSpecs: ReadonlyArray<IndexDescription>,
     options?: CreateIndexesOptions
   ): Effect.Effect<Array<string>, MongoError.MongoError, R>
 } = F.dual(
   (args) => isCollection(args[0]),
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
-    indexSpecs: Array<IndexDescription>,
+    indexSpecs: ReadonlyArray<IndexDescription>,
     options?: CreateIndexesOptions
   ): Effect.Effect<Array<string>, MongoError.MongoError, R> =>
     F.pipe(
-      Effect.promise(() => collection.collection.createIndexes(indexSpecs, options)),
+      Effect.promise(() => collection.collection.createIndexes([...indexSpecs], options)),
       Effect.catchAllDefect(MongoError.mongoErrorDie<Array<string>>("createIndexes error"))
     )
 )
@@ -431,7 +437,7 @@ export const dropIndex: {
 
 export const aggregate: {
   <B extends Document, BI extends Document, BR>(
-    pipeline: Array<Document>,
+    pipeline: ReadonlyArray<Document>,
     schema: Schema.Schema<B, BI, BR>,
     options?: AggregateOptions
   ): <A extends Document, I extends Document, R>(
@@ -439,7 +445,7 @@ export const aggregate: {
   ) => AggregationCursor.AggregationCursor<B, BI, BR>
   <A extends Document, I extends Document, R, B extends Document, BI extends Document, BR>(
     collection: Collection<A, I, R>,
-    pipeline: Array<Document>,
+    pipeline: ReadonlyArray<Document>,
     schema: Schema.Schema<B, BI, BR>,
     options?: AggregateOptions
   ): AggregationCursor.AggregationCursor<B, BI, BR>
@@ -447,12 +453,12 @@ export const aggregate: {
   (args) => isCollection(args[0]),
   <A extends Document, I extends Document, R, B extends Document, BI extends Document, BR>(
     collection: Collection<A, I, R>,
-    pipeline: Array<Document>,
+    pipeline: ReadonlyArray<Document>,
     schema: Schema.Schema<B, BI, BR>,
     options?: AggregateOptions
   ): AggregationCursor.AggregationCursor<B, BI, BR> =>
     new AggregationCursor.AggregationCursor<B, BI, BR>({
-      cursor: collection.collection.aggregate(pipeline, options),
+      cursor: collection.collection.aggregate([...pipeline], options),
       schema
     })
 )

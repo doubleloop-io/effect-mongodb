@@ -1,6 +1,7 @@
 /**
  * @since 0.0.1
  */
+import * as Array from "effect/Array"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
@@ -110,19 +111,19 @@ export const insertOne: {
 
 export const insertMany: {
   (
-    docs: Array<OptionalUnlessRequiredId<Document>>,
+    docs: ReadonlyArray<OptionalUnlessRequiredId<Document>>,
     options?: BulkWriteOptions
   ): (
     collection: DocumentCollection
   ) => Effect.Effect<InsertOneResult, MongoError.MongoError>
   (
     collection: DocumentCollection,
-    docs: Array<OptionalUnlessRequiredId<Document>>,
+    docs: ReadonlyArray<OptionalUnlessRequiredId<Document>>,
     options?: BulkWriteOptions
   ): Effect.Effect<InsertOneResult, MongoError.MongoError>
 } = F.dual((args) => isDocumentCollection(args[0]), (
   collection: DocumentCollection,
-  docs: Array<OptionalUnlessRequiredId<Document>>,
+  docs: ReadonlyArray<OptionalUnlessRequiredId<Document>>,
   options?: BulkWriteOptions
 ): Effect.Effect<InsertManyResult, MongoError.MongoError> =>
   F.pipe(
@@ -177,7 +178,7 @@ export const deleteMany: {
 export const updateMany: {
   (
     filter: Filter<Document>,
-    update: UpdateFilter<Document> | Array<Document>,
+    update: UpdateFilter<Document> | ReadonlyArray<Document>,
     options?: UpdateOptions
   ): (
     collection: DocumentCollection
@@ -185,7 +186,7 @@ export const updateMany: {
   (
     collection: DocumentCollection,
     filter: Filter<Document>,
-    update: UpdateFilter<Document> | Array<Document>,
+    update: UpdateFilter<Document> | ReadonlyArray<Document>,
     options?: UpdateOptions
   ): Effect.Effect<UpdateResult, MongoError.MongoError>
 } = F.dual(
@@ -193,11 +194,13 @@ export const updateMany: {
   (
     collection: DocumentCollection,
     filter: Filter<Document>,
-    update: UpdateFilter<Document> | Array<Document>,
+    update: UpdateFilter<Document> | ReadonlyArray<Document>,
     options?: UpdateOptions
   ): Effect.Effect<UpdateResult, MongoError.MongoError> =>
     F.pipe(
-      Effect.promise(() => collection.collection.updateMany(filter, update, options)),
+      Effect.promise(() =>
+        collection.collection.updateMany(filter, Array.isArray(update) ? [...update] : update, options)
+      ),
       Effect.catchAllDefect(MongoError.mongoErrorDie<UpdateResult>("updateMany error"))
     )
 )
@@ -339,23 +342,23 @@ export const drop: {
 )
 
 export const createIndexes: {
-  (indexSpecs: Array<IndexDescription>, options?: CreateIndexesOptions): (
+  (indexSpecs: ReadonlyArray<IndexDescription>, options?: CreateIndexesOptions): (
     collection: DocumentCollection
   ) => Effect.Effect<Array<string>, MongoError.MongoError>
   (
     collection: DocumentCollection,
-    indexSpecs: Array<IndexDescription>,
+    indexSpecs: ReadonlyArray<IndexDescription>,
     options?: CreateIndexesOptions
   ): Effect.Effect<Array<string>, MongoError.MongoError>
 } = F.dual(
   (args) => isDocumentCollection(args[0]),
   (
     collection: DocumentCollection,
-    indexSpecs: Array<IndexDescription>,
+    indexSpecs: ReadonlyArray<IndexDescription>,
     options?: CreateIndexesOptions
   ): Effect.Effect<Array<string>, MongoError.MongoError> =>
     F.pipe(
-      Effect.promise(() => collection.collection.createIndexes(indexSpecs, options)),
+      Effect.promise(() => collection.collection.createIndexes([...indexSpecs], options)),
       Effect.catchAllDefect(MongoError.mongoErrorDie<Array<string>>("createIndexes error"))
     )
 )
@@ -407,23 +410,23 @@ export const dropIndex: {
 )
 
 export const aggregate: {
-  (pipeline?: Array<Document>, options?: AggregateOptions): (
+  (pipeline?: ReadonlyArray<Document>, options?: AggregateOptions): (
     collection: DocumentCollection
   ) => DocumentAggregationCursor.DocumentAggregationCursor
   (
     collection: DocumentCollection,
-    pipeline?: Array<Document>,
+    pipeline?: ReadonlyArray<Document>,
     options?: AggregateOptions
   ): DocumentAggregationCursor.DocumentAggregationCursor
 } = F.dual(
   (args) => isDocumentCollection(args[0]),
   (
     collection: DocumentCollection,
-    pipeline?: Array<Document>,
+    pipeline?: ReadonlyArray<Document>,
     options?: AggregateOptions
   ): DocumentAggregationCursor.DocumentAggregationCursor =>
     new DocumentAggregationCursor.DocumentAggregationCursor({
-      cursor: collection.collection.aggregate(pipeline, options)
+      cursor: collection.collection.aggregate(pipeline ? [...pipeline] : undefined, options)
     })
 )
 

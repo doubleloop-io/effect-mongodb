@@ -6,7 +6,7 @@ declare const cursor: ListCollectionsCursor.ListCollectionsCursor<ListCollection
 // toArray
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Effect<readonly CollectionInfo[], MongoError, never>
+// $ExpectType Effect<CollectionInfo[], MongoError, never>
 ListCollectionsCursor.toArray(cursor)
 
 // -------------------------------------------------------------------------------------

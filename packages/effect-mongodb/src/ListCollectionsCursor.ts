@@ -30,10 +30,10 @@ export type FullListCollectionsCursor = ListCollectionsCursor<MongoCollectionInf
 
 export const toArray = <T extends DefaultCollectionInfo>(
   cursor: ListCollectionsCursor<T>
-): Effect.Effect<ReadonlyArray<T>, MongoError.MongoError> =>
+): Effect.Effect<Array<T>, MongoError.MongoError> =>
   F.pipe(
     Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }),
-    Effect.catchAll(MongoError.mongoErrorDie<ReadonlyArray<T>>(`${cursor._tag}.toArray error`))
+    Effect.catchAll(MongoError.mongoErrorDie<Array<T>>(`${cursor._tag}.toArray error`))
   )
 
 export const toStream = <T extends DefaultCollectionInfo>(

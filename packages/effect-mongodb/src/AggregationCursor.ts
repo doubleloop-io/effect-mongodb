@@ -17,10 +17,10 @@ export class AggregationCursor<A, I = A, R = never> extends Data.TaggedClass("Ag
 
 export const toArray = <A, I, R>(
   cursor: AggregationCursor<A, I, R>
-): Effect.Effect<ReadonlyArray<A>, MongoError.MongoError | ParseResult.ParseError, R> => {
+): Effect.Effect<Array<A>, MongoError.MongoError | ParseResult.ParseError, R> => {
   const decode = Schema.decodeUnknown(cursor.schema)
   return Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }).pipe(
-    Effect.catchAll(MongoError.mongoErrorDie<ReadonlyArray<A>>("Unable to get array from mongodb aggregate cursor")),
+    Effect.catchAll(MongoError.mongoErrorDie<Array<A>>("Unable to get array from mongodb aggregate cursor")),
     Effect.flatMap(Effect.forEach((x) => decode(x)))
   )
 }
