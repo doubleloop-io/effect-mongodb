@@ -169,10 +169,10 @@ F.pipe(collection, Collection.createIndex({ birthday: 1 }))
 // dropIndex
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Effect<void, MongoError, never>
+// $ExpectType Effect<Document, MongoError, never>
 Collection.dropIndex(collection, "birthday_1")
 
-// $ExpectType Effect<void, MongoError, never>
+// $ExpectType Effect<Document, MongoError, never>
 F.pipe(collection, Collection.dropIndex("birthday_1"))
 
 // -------------------------------------------------------------------------------------

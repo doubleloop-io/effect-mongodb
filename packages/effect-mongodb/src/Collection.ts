@@ -412,26 +412,24 @@ export const createIndex: {
     )
 )
 
-// TODO: review return type. Should we return Document like mongodb driver?
 export const dropIndex: {
   (indexName: string, options?: DropIndexesOptions): <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>
-  ) => Effect.Effect<void, MongoError.MongoError, R>
+  ) => Effect.Effect<Document, MongoError.MongoError, R>
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     indexName: string,
     options?: DropIndexesOptions
-  ): Effect.Effect<void, MongoError.MongoError, R>
+  ): Effect.Effect<Document, MongoError.MongoError, R>
 } = F.dual(
   (args) => isCollection(args[0]),
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     indexName: string,
     options?: DropIndexesOptions
-  ): Effect.Effect<void, MongoError.MongoError, R> =>
+  ): Effect.Effect<Document, MongoError.MongoError, R> =>
     F.pipe(
       Effect.promise(() => collection.collection.dropIndex(indexName, options)),
-      Effect.asVoid,
       Effect.catchAllDefect(mongoErrorOrDie(makeSource(collection, "dropIndex")))
     )
 )
