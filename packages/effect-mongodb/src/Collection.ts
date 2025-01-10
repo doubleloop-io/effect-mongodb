@@ -121,17 +121,17 @@ export const insertOne: {
 export const insertMany: {
   <A extends Document>(docs: ReadonlyArray<A>, options?: BulkWriteOptions): <I extends Document, R>(
     collection: Collection<A, I, R>
-  ) => Effect.Effect<InsertManyResult, MongoError.MongoError | ParseResult.ParseError, R>
+  ) => Effect.Effect<InsertManyResult<I>, MongoError.MongoError | ParseResult.ParseError, R>
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     docs: ReadonlyArray<A>,
     options?: BulkWriteOptions
-  ): Effect.Effect<InsertManyResult, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<InsertManyResult<I>, MongoError.MongoError | ParseResult.ParseError, R>
 } = F.dual((args) => isCollection(args[0]), <A extends Document, I extends Document, R>(
   collection: Collection<A, I, R>,
   docs: ReadonlyArray<A>,
   options?: BulkWriteOptions
-): Effect.Effect<InsertManyResult, MongoError.MongoError | ParseResult.ParseError, R> => {
+): Effect.Effect<InsertManyResult<I>, MongoError.MongoError | ParseResult.ParseError, R> => {
   return F.pipe(
     docs,
     Effect.forEach((doc) => collection.encode(doc)),

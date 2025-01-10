@@ -51,10 +51,10 @@ F.pipe(collection, Collection.insertOne(myType))
 // insertMany
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Effect<InsertManyResult<Document>, MongoError | ParseError, never>
+// $ExpectType Effect<InsertManyResult<{ readonly birthday: string; }>, MongoError | ParseError, never>
 Collection.insertMany(collection, [myType])
 
-// $ExpectType Effect<InsertManyResult<Document>, MongoError | ParseError, never>
+// $ExpectType Effect<InsertManyResult<{ readonly birthday: string; }>, MongoError | ParseError, never>
 F.pipe(collection, Collection.insertMany([myType]))
 
 // -------------------------------------------------------------------------------------
