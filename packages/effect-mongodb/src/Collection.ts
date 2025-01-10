@@ -101,17 +101,17 @@ export const findOne: {
 export const insertOne: {
   <A extends Document>(doc: A, options?: InsertOneOptions): <I extends Document, R>(
     collection: Collection<A, I, R>
-  ) => Effect.Effect<InsertOneResult, MongoError.MongoError | ParseResult.ParseError, R>
+  ) => Effect.Effect<InsertOneResult<I>, MongoError.MongoError | ParseResult.ParseError, R>
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     doc: A,
     options?: InsertOneOptions
-  ): Effect.Effect<InsertOneResult, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<InsertOneResult<I>, MongoError.MongoError | ParseResult.ParseError, R>
 } = F.dual((args) => isCollection(args[0]), <A extends Document, I extends Document, R>(
   collection: Collection<A, I, R>,
   doc: A,
   options?: InsertOneOptions
-): Effect.Effect<InsertOneResult, MongoError.MongoError | ParseResult.ParseError, R> =>
+): Effect.Effect<InsertOneResult<I>, MongoError.MongoError | ParseResult.ParseError, R> =>
   F.pipe(
     collection.encode(doc),
     Effect.flatMap((doc) => Effect.promise(() => collection.collection.insertOne(doc, options))),

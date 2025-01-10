@@ -41,10 +41,10 @@ F.pipe(collection, Collection.findOne({ birthday: "2024-11-28" }))
 // insertOne
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Effect<InsertOneResult<Document>, MongoError | ParseError, never>
+// $ExpectType Effect<InsertOneResult<{ readonly birthday: string; }>, MongoError | ParseError, never>
 Collection.insertOne(collection, myType)
 
-// $ExpectType Effect<InsertOneResult<Document>, MongoError | ParseError, never>
+// $ExpectType Effect<InsertOneResult<{ readonly birthday: string; }>, MongoError | ParseError, never>
 F.pipe(collection, Collection.insertOne(myType))
 
 // -------------------------------------------------------------------------------------
