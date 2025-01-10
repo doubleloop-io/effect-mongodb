@@ -438,24 +438,24 @@ export const dropIndex: {
 
 export const aggregate: {
   <B extends Document, BI extends Document, BR>(
-    pipeline: ReadonlyArray<Document>,
     schema: Schema.Schema<B, BI, BR>,
+    pipeline: ReadonlyArray<Document>,
     options?: AggregateOptions
   ): <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>
   ) => AggregationCursor.AggregationCursor<B, BI, BR>
   <A extends Document, I extends Document, R, B extends Document, BI extends Document, BR>(
     collection: Collection<A, I, R>,
-    pipeline: ReadonlyArray<Document>,
     schema: Schema.Schema<B, BI, BR>,
+    pipeline: ReadonlyArray<Document>,
     options?: AggregateOptions
   ): AggregationCursor.AggregationCursor<B, BI, BR>
 } = F.dual(
   (args) => isCollection(args[0]),
   <A extends Document, I extends Document, R, B extends Document, BI extends Document, BR>(
     collection: Collection<A, I, R>,
-    pipeline: ReadonlyArray<Document>,
     schema: Schema.Schema<B, BI, BR>,
+    pipeline: ReadonlyArray<Document>,
     options?: AggregateOptions
   ): AggregationCursor.AggregationCursor<B, BI, BR> =>
     new AggregationCursor.AggregationCursor<B, BI, BR>({

@@ -33,7 +33,7 @@ const program = Effect.gen(function*(_) {
   ]))
 
   const items = yield* _(
-    Collection.aggregate(sourceCollection, [
+    Collection.aggregate(sourceCollection, MyTypeAggregation, [
       {
         $group: {
           _id: "$source",
@@ -43,7 +43,7 @@ const program = Effect.gen(function*(_) {
       {
         $sort: { _id: 1 }
       }
-    ], MyTypeAggregation),
+    ]),
     AggregationCursor.toArray
   )
 

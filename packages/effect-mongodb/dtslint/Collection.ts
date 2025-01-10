@@ -186,10 +186,10 @@ const MyAggregatedType = Schema.Struct({
 const groupByBirthday = [{ $group: { _id: "$birthday", birthdays: { $sum: 1 } } }]
 
 // $ExpectType AggregationCursor<{ readonly _id: Date; readonly birthdays: number; }, { readonly _id: string; readonly birthdays: number; }, never>
-Collection.aggregate(collection, groupByBirthday, MyAggregatedType)
+Collection.aggregate(collection, MyAggregatedType, groupByBirthday)
 
 // $ExpectType AggregationCursor<{ readonly _id: Date; readonly birthdays: number; }, { readonly _id: string; readonly birthdays: number; }, never>
-F.pipe(collection, Collection.aggregate(groupByBirthday, MyAggregatedType))
+F.pipe(collection, Collection.aggregate(MyAggregatedType, groupByBirthday))
 
 // -------------------------------------------------------------------------------------
 // estimatedDocumentCount

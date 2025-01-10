@@ -45,7 +45,7 @@ describeMongo("Collection", (ctx) => {
 
       const _1990 = "1990-01-01T00:00:00.000Z"
       return yield* _(
-        Collection.aggregate(collection, [
+        Collection.aggregate(collection, UserAggregation, [
           {
             $match: {
               birthday: { $lt: _1990 }
@@ -60,7 +60,7 @@ describeMongo("Collection", (ctx) => {
           {
             $sort: { _id: 1 }
           }
-        ], UserAggregation),
+        ]),
         AggregationCursor.toArray
       )
     })
