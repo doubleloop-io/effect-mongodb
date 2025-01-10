@@ -10,28 +10,22 @@ export const mongoErrorOrDie =
   (source: ErrorSource, message?: string) => (error: unknown): Effect.Effect<never, MongoError> =>
     F.pipe(
       Match.value(error),
-      Match.when(
-        Match.instanceOf(MongoError_),
-        (cause) => Effect.fail(makeMongoError(source, message, cause))
-      ),
-      Match.orElse((cause) => Effect.die(makeError(source, message, cause)))
+      Match.when(Match.instanceOf(MongoError_), F.flow(makeMongoError(source, message), Effect.fail)),
+      Match.orElse(F.flow(makeError(source, message), Effect.die))
     )
 
 export const mongoErrorOrDieStream =
   (source: ErrorSource, message?: string) => (error: unknown): Stream.Stream<never, MongoError> =>
     F.pipe(
       Match.value(error),
-      Match.when(
-        Match.instanceOf(MongoError_),
-        (cause) => Stream.fail(makeMongoError(source, message, cause))
-      ),
-      Match.orElse((cause) => Stream.die(makeError(source, message, cause)))
+      Match.when(Match.instanceOf(MongoError_), F.flow(makeMongoError(source, message), Stream.fail)),
+      Match.orElse(F.flow(makeError(source, message), Stream.die))
     )
 
-const makeMongoError = (source: ErrorSource, message: string | undefined, cause: MongoError_) =>
+const makeMongoError = (source: ErrorSource, message: string | undefined) => (cause: MongoError_) =>
   new MongoError({ message: messageFrom(source, message), cause, source })
 
-const makeError = (source: ErrorSource, message: string | undefined, cause: unknown) =>
+const makeError = (source: ErrorSource, message: string | undefined) => (cause: unknown) =>
   new Error(messageFrom(source, message), { cause })
 
 const messageFrom = (source: ErrorSource, message?: string) =>
