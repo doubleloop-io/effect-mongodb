@@ -39,7 +39,7 @@ describeMongo("DocumentCollection", (ctx) => {
     expect(Exit.isFailure(result)).toBeTruthy()
     if (Exit.isFailure(result)) {
       const error = Chunk.unsafeHead(Cause.failures(result.cause))
-      expect(error.innerError.errmsg).toEqual(
+      expect(error.cause.errmsg).toEqual(
         "BSON field 'insert.documents.0' is the wrong type 'array', expected type 'object'"
       )
     }

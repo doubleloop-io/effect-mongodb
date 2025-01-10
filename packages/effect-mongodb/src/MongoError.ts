@@ -25,7 +25,7 @@ export type ErrorSource = DbErrorSource | CollectionErrorSource
 
 export class MongoError extends Data.TaggedError("MongoError")<{
   message: string
-  innerError: MongoError_
+  cause: MongoError_
   source?: ErrorSource
 }> {}
 
@@ -35,7 +35,7 @@ export const mongoErrorDie: {
 } = F.dual(2, <A>(error: unknown, message: string): Effect.Effect<A, MongoError> =>
   F.pipe(
     Match.value(error),
-    Match.when(Match.instanceOf(MongoError_), (innerError) => Effect.fail(new MongoError({ message, innerError }))),
+    Match.when(Match.instanceOf(MongoError_), (cause) => Effect.fail(new MongoError({ message, cause }))),
     Match.orElse((cause) => Effect.die(new Error(message, { cause })))
   ))
 
@@ -45,6 +45,6 @@ export const mongoErrorStream: {
 } = F.dual(2, <A>(error: unknown, message: string): Stream.Stream<A, MongoError> =>
   F.pipe(
     Match.value(error),
-    Match.when(Match.instanceOf(MongoError_), (innerError) => Stream.fail(new MongoError({ message, innerError }))),
+    Match.when(Match.instanceOf(MongoError_), (cause) => Stream.fail(new MongoError({ message, cause }))),
     Match.orElse((cause) => Stream.die(new Error(message, { cause })))
   ))

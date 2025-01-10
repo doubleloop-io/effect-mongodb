@@ -12,7 +12,7 @@ export const mongoErrorOrDie =
       Match.value(error),
       Match.when(
         Match.instanceOf(MongoError_),
-        (innerError) => Effect.fail(makeMongoError(source, message, innerError))
+        (cause) => Effect.fail(makeMongoError(source, message, cause))
       ),
       Match.orElse((cause) => Effect.die(makeError(source, message, cause)))
     )
@@ -23,13 +23,13 @@ export const mongoErrorOrDieStream =
       Match.value(error),
       Match.when(
         Match.instanceOf(MongoError_),
-        (innerError) => Stream.fail(makeMongoError(source, message, innerError))
+        (cause) => Stream.fail(makeMongoError(source, message, cause))
       ),
       Match.orElse((cause) => Stream.die(makeError(source, message, cause)))
     )
 
-const makeMongoError = (source: ErrorSource, message: string | undefined, innerError: MongoError_) =>
-  new MongoError({ message: messageFrom(source, message), innerError, source })
+const makeMongoError = (source: ErrorSource, message: string | undefined, cause: MongoError_) =>
+  new MongoError({ message: messageFrom(source, message), cause, source })
 
 const makeError = (source: ErrorSource, message: string | undefined, cause: unknown) =>
   new Error(messageFrom(source, message), { cause })
