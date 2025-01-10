@@ -14,43 +14,67 @@ import { expect, test } from "vitest"
 import { describeMongo } from "./support/describe-mongo.js"
 
 describeMongo("FindCursor", (ctx) => {
-  test("decode documents with schema", async () => {
-    const anyTestEntities = FastCheck.sample(UserArbitrary, 3)
+  test("acceptance test", async () => {
+    const beforeJuly = "2024-07-01T00:00:00.000Z"
 
-    const program = Effect.gen(function*(_) {
-      const db = yield* _(ctx.database)
-      const collection = Db.collection(db, "decode-documents-with-schema", User)
-
-      yield* _(Collection.insertMany(collection, anyTestEntities))
-
-      return yield* _(Collection.find(collection), FindCursor.toArray)
+    const User = Schema.Struct({
+      id: Schema.Number,
+      createdOn: Schema.Date
+    })
+    const UserProjection = Schema.Struct({
+      id: User.fields.id
     })
 
-    const result = await Effect.runPromise(program)
-
-    expect(result).toEqual(anyTestEntities)
-  })
-
-  test("project", async () => {
-    const anyUsers = FastCheck.sample(UserArbitrary, 3)
-
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
-      const collection = Db.collection(db, "project", User)
+      const collection = Db.collection(db, "acceptance-test", User)
 
-      yield* _(Collection.insertMany(collection, anyUsers))
+      yield* _(
+        Collection.insertMany(collection, [
+          { id: 2, createdOn: new Date("2024-06-26T21:15:00.000Z") },
+          { id: 3, createdOn: new Date("2024-07-26T09:30:00.000Z") },
+          { id: 1, createdOn: new Date("2024-04-19T17:45:00.000Z") },
+          { id: 5, createdOn: new Date("2024-05-26T09:30:00.000Z") },
+          { id: 4, createdOn: new Date("2024-07-05T15:00:00.000Z") }
+        ])
+      )
 
       return yield* _(
         Collection.find(collection),
-        FindCursor.project(UserStats, { id: 1, nameLength: { $strLenCP: "$name" } }),
+        FindCursor.filter({ createdOn: { $lt: beforeJuly } }),
+        FindCursor.sort("createdOn", "ascending"),
+        FindCursor.project(UserProjection, { _id: 0, id: 1 }),
+        FindCursor.limit(2),
         FindCursor.toArray
       )
     })
 
     const result = await Effect.runPromise(program)
 
-    const users = anyUsers.map((x) => UserStats.make({ id: x.id, nameLength: x.name.length }))
-    expect(result).toEqual(users)
+    expect(result).toEqual([{ id: 1 }, { id: 5 }])
+  })
+
+  test("array with partitioned errors", async () => {
+    const program = Effect.gen(function*(_) {
+      const db = yield* _(ctx.database)
+      const documentCollection = Db.documentCollection(db, "array-with-partitioned-errors")
+      const collection = DocumentCollection.typed(documentCollection, User)
+
+      yield* _(Collection.insertMany(collection, FastCheck.sample(UserArbitrary, 6)))
+      yield* _(DocumentCollection.insertOne(documentCollection, { id: 999, surname: "foo" }))
+      yield* _(Collection.insertMany(collection, FastCheck.sample(UserArbitrary, 3)))
+
+      return yield* _(Collection.find(collection), FindCursor.toArrayEither)
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(Array.getRights(result)).toHaveLength(9)
+    expect(Array.getLefts(result)).toEqual(
+      [
+        [expect.objectContaining({ id: 999, surname: "foo" }), expect.any(ParseResult.ParseError)] as const
+      ]
+    )
   })
 
   test("stream", async () => {
@@ -109,8 +133,3 @@ const User = Schema.Struct({
   name: Schema.String
 })
 const UserArbitrary = Arbitrary.make(User)
-
-const UserStats = Schema.Struct({
-  id: User.fields.id,
-  nameLength: Schema.Number
-})
