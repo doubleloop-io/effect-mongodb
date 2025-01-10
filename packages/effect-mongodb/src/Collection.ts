@@ -221,13 +221,13 @@ export const replaceOne: {
     options?: ReplaceOptions
   ): <R>(
     collection: Collection<A, I, R>
-  ) => Effect.Effect<UpdateResult | Document, MongoError.MongoError | ParseResult.ParseError, R>
+  ) => Effect.Effect<UpdateResult<I> | Document, MongoError.MongoError | ParseResult.ParseError, R>
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
     replacement: A,
     options?: ReplaceOptions
-  ): Effect.Effect<UpdateResult | Document, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<UpdateResult<I> | Document, MongoError.MongoError | ParseResult.ParseError, R>
 } = F.dual(
   (args) => isCollection(args[0]),
   <A extends Document, I extends Document, R>(
@@ -236,7 +236,7 @@ export const replaceOne: {
     replacement: A,
     options?: ReplaceOptions
   ): Effect.Effect<
-    UpdateResult | Document,
+    UpdateResult<I> | Document,
     MongoError.MongoError | ParseResult.ParseError,
     R
   > =>

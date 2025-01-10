@@ -91,10 +91,10 @@ F.pipe(collection, Collection.updateMany({ birthday: "2024-11-28" }, { $set: { b
 // replaceOne
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Effect<Document | UpdateResult<Document>, MongoError | ParseError, never>
+// $ExpectType Effect<Document | UpdateResult<{ readonly birthday: string; }>, MongoError | ParseError, never>
 Collection.replaceOne(collection, { birthday: "2024-11-28" }, myType)
 
-// $ExpectType Effect<Document | UpdateResult<Document>, MongoError | ParseError, never>
+// $ExpectType Effect<Document | UpdateResult<{ readonly birthday: string; }>, MongoError | ParseError, never>
 F.pipe(collection, Collection.replaceOne({ birthday: "2024-11-28" }, myType))
 
 // -------------------------------------------------------------------------------------
