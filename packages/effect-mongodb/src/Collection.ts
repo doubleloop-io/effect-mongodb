@@ -38,6 +38,7 @@ import * as AggregationCursor from "./AggregationCursor.js"
 import * as FindCursor from "./FindCursor.js"
 import type { Filter } from "./internal/filter.js"
 import type { ModifyResult } from "./internal/modify-result.js"
+import { mongoErrorOrDie } from "./internal/mongo-error.js"
 import * as SchemaExt from "./internal/schema.js"
 import * as MongoError from "./MongoError.js"
 
@@ -93,7 +94,7 @@ export const findOne: {
       const value = yield* _(Effect.promise(() => collection.collection.findOne(filter, options)))
       return yield* _(SchemaExt.decodeNullableDocument(collection.schema, value))
     }).pipe(
-      Effect.catchAllDefect(MongoError.mongoErrorDie<O.Option<A>>("findOne error"))
+      Effect.catchAllDefect(mongoErrorOrDie(makeSource(collection, "findOne")))
     )
 )
 
@@ -114,7 +115,7 @@ export const insertOne: {
   F.pipe(
     collection.encode(doc),
     Effect.flatMap((doc) => Effect.promise(() => collection.collection.insertOne(doc, options))),
-    Effect.catchAllDefect(MongoError.mongoErrorDie<InsertOneResult>("insertOne error"))
+    Effect.catchAllDefect(mongoErrorOrDie(makeSource(collection, "insertOne")))
   ))
 
 export const insertMany: {
@@ -135,7 +136,7 @@ export const insertMany: {
     docs,
     Effect.forEach((doc) => collection.encode(doc)),
     Effect.flatMap((docs) => Effect.promise(() => collection.collection.insertMany(docs, options))),
-    Effect.catchAllDefect(MongoError.mongoErrorDie<InsertManyResult>("insertMany error"))
+    Effect.catchAllDefect(mongoErrorOrDie(makeSource(collection, "insertMany")))
   )
 })
 
@@ -156,7 +157,7 @@ export const deleteOne: {
     options?: DeleteOptions
   ): Effect.Effect<DeleteResult, MongoError.MongoError, R> =>
     Effect.promise(() => collection.collection.deleteOne(filter, options)).pipe(
-      Effect.catchAllDefect(MongoError.mongoErrorDie<DeleteResult>("deleteOne error"))
+      Effect.catchAllDefect(mongoErrorOrDie(makeSource(collection, "deleteOne")))
     )
 )
 
@@ -177,7 +178,7 @@ export const deleteMany: {
     options?: DeleteOptions
   ): Effect.Effect<DeleteResult, MongoError.MongoError, R> =>
     Effect.promise(() => collection.collection.deleteMany(filter, options)).pipe(
-      Effect.catchAllDefect(MongoError.mongoErrorDie<DeleteResult>("deleteMany error"))
+      Effect.catchAllDefect(mongoErrorOrDie(makeSource(collection, "deleteMany")))
     )
 )
 
@@ -209,7 +210,7 @@ export const updateMany: {
         Array.isArray(update) ? [...update] : update as UpdateFilter<Document>,
         options
       )
-    ).pipe(Effect.catchAllDefect(MongoError.mongoErrorDie<UpdateResult>("updateMany error")))
+    ).pipe(Effect.catchAllDefect(mongoErrorOrDie(makeSource(collection, "updateMany"))))
 )
 
 export const replaceOne: {
@@ -244,7 +245,7 @@ export const replaceOne: {
       Effect.flatMap((replacement) =>
         Effect.promise(() => collection.collection.replaceOne(filter, replacement, options))
       ),
-      Effect.catchAllDefect(MongoError.mongoErrorDie<UpdateResult | Document>("replaceOne error"))
+      Effect.catchAllDefect(mongoErrorOrDie(makeSource(collection, "replaceOne")))
     )
 )
 
@@ -316,7 +317,7 @@ export const findOneAndReplace: {
         })
       ),
       Effect.catchAllDefect(
-        MongoError.mongoErrorDie<O.Option<A> | ModifyResult<A>>("findOneAndReplace error")
+        mongoErrorOrDie(makeSource(collection, "findOneAndReplace"))
       )
     )
 )
@@ -340,7 +341,7 @@ export const rename: {
     F.pipe(
       Effect.promise(() => collection.collection.rename(newName, options)),
       Effect.map((newCollection) => new Collection<A, I, R>({ collection: newCollection, schema: collection.schema })),
-      Effect.catchAllDefect(MongoError.mongoErrorDie<Collection<A, I, R>>("rename error"))
+      Effect.catchAllDefect(mongoErrorOrDie(makeSource(collection, "rename")))
     )
 )
 
@@ -360,7 +361,7 @@ export const drop: {
   ): Effect.Effect<boolean, MongoError.MongoError, R> =>
     F.pipe(
       Effect.promise(() => collection.collection.drop(options)),
-      Effect.catchAllDefect(MongoError.mongoErrorDie<boolean>("drop error"))
+      Effect.catchAllDefect(mongoErrorOrDie(makeSource(collection, "drop")))
     )
 )
 
@@ -385,7 +386,7 @@ export const createIndexes: {
   ): Effect.Effect<Array<string>, MongoError.MongoError, R> =>
     F.pipe(
       Effect.promise(() => collection.collection.createIndexes([...indexSpecs], options)),
-      Effect.catchAllDefect(MongoError.mongoErrorDie<Array<string>>("createIndexes error"))
+      Effect.catchAllDefect(mongoErrorOrDie(makeSource(collection, "createIndexes")))
     )
 )
 
@@ -407,7 +408,7 @@ export const createIndex: {
   ): Effect.Effect<string, MongoError.MongoError, R> =>
     F.pipe(
       Effect.promise(() => collection.collection.createIndex(indexSpec, options)),
-      Effect.catchAllDefect(MongoError.mongoErrorDie<string>("createIndex error"))
+      Effect.catchAllDefect(mongoErrorOrDie(makeSource(collection, "createIndex")))
     )
 )
 
@@ -431,7 +432,7 @@ export const dropIndex: {
     F.pipe(
       Effect.promise(() => collection.collection.dropIndex(indexName, options)),
       Effect.asVoid,
-      Effect.catchAllDefect(MongoError.mongoErrorDie<void>("dropIndex error"))
+      Effect.catchAllDefect(mongoErrorOrDie(makeSource(collection, "dropIndex")))
     )
 )
 
@@ -479,7 +480,7 @@ export const estimatedDocumentCount: {
   ): Effect.Effect<number, MongoError.MongoError, R> =>
     F.pipe(
       Effect.promise(() => collection.collection.estimatedDocumentCount(options)),
-      Effect.catchAllDefect(MongoError.mongoErrorDie<number>("estimatedDocumentCount error"))
+      Effect.catchAllDefect(mongoErrorOrDie(makeSource(collection, "estimatedDocumentCount")))
     )
 )
 
@@ -501,8 +502,19 @@ export const countDocuments: {
   ): Effect.Effect<number, MongoError.MongoError, R> =>
     F.pipe(
       Effect.promise(() => collection.collection.countDocuments(filter, options)),
-      Effect.catchAllDefect(MongoError.mongoErrorDie<number>("countDocuments error"))
+      Effect.catchAllDefect(mongoErrorOrDie(makeSource(collection, "countDocuments")))
     )
 )
 
 const isCollection = (x: unknown) => x instanceof Collection
+
+const makeSource = <A extends Document, I extends Document = A, R = never>(
+  collection: Collection<A, I, R>,
+  functionName: string
+) =>
+  new MongoError.CollectionErrorSource({
+    module: Collection.name,
+    functionName,
+    db: collection.collection.dbName,
+    collection: collection.collection.collectionName
+  })
