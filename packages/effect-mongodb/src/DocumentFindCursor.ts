@@ -8,6 +8,7 @@ import type * as Schema from "effect/Schema"
 import * as Stream from "effect/Stream"
 import type { Document, Filter, FindCursor as MongoFindCursor, Sort, SortDirection } from "mongodb"
 import * as FindCursor from "./FindCursor.js"
+import { mongoErrorOrDie } from "./internal/mongo-error.js"
 import * as MongoError from "./MongoError.js"
 
 export class DocumentFindCursor extends Data.TaggedClass("DocumentFindCursor")<{
@@ -54,7 +55,7 @@ export const limit: {
 export const toArray = (cursor: DocumentFindCursor): Effect.Effect<Array<Document>, MongoError.MongoError> =>
   F.pipe(
     Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }),
-    Effect.catchAll(MongoError.mongoErrorDie<Array<Document>>("toArray error"))
+    Effect.catchAll(mongoErrorOrDie(errorSource(cursor, "toArray")))
   )
 
 export const toStream = (
@@ -62,7 +63,7 @@ export const toStream = (
 ): Stream.Stream<Document, MongoError.MongoError> =>
   F.pipe(
     Stream.fromAsyncIterable(cursor.cursor, F.identity),
-    Stream.catchAll(MongoError.mongoErrorStream<Document>("Unable to read from mongodb cursor"))
+    Stream.catchAll(mongoErrorOrDie(errorSource(cursor, "toStream")))
   )
 
 export const typed: {
@@ -74,3 +75,11 @@ export const typed: {
 ): FindCursor.FindCursor<A, I, R> => new FindCursor.FindCursor<A, I, R>({ cursor: cursor.cursor, schema }))
 
 const isDocumentFindCursor = (x: unknown) => x instanceof DocumentFindCursor
+
+const errorSource = (cursor: DocumentFindCursor, functionName: string) =>
+  new MongoError.CollectionErrorSource({
+    module: DocumentFindCursor.name,
+    functionName,
+    db: cursor.cursor.namespace.db,
+    collection: cursor.cursor.namespace.collection ?? "NO_COLLECTION_NAME"
+  })
