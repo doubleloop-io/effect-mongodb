@@ -6,6 +6,7 @@ import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import * as Stream from "effect/Stream"
 import type { AggregationCursor as MongoAggregationCursor, Document } from "mongodb"
+import { mongoErrorOrDie } from "./internal/mongo-error.js"
 import * as MongoError from "./MongoError.js"
 
 export class DocumentAggregationCursor
@@ -18,7 +19,7 @@ export const toArray = (
 ): Effect.Effect<Array<Document>, MongoError.MongoError> =>
   F.pipe(
     Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }),
-    Effect.catchAll(MongoError.mongoErrorDie<Array<Document>>(`${cursor._tag}.toArray error`))
+    Effect.catchAll(mongoErrorOrDie(errorSource(cursor, "toArray")))
   )
 
 export const toStream = (
@@ -26,5 +27,13 @@ export const toStream = (
 ): Stream.Stream<Document, MongoError.MongoError> =>
   F.pipe(
     Stream.fromAsyncIterable(cursor.cursor, F.identity),
-    Stream.catchAll(MongoError.mongoErrorStream<Document>(`${cursor._tag}.toStream error`))
+    Stream.catchAll(mongoErrorOrDie(errorSource(cursor, "toStream")))
   )
+
+const errorSource = (cursor: DocumentAggregationCursor, functionName: string) =>
+  new MongoError.CollectionErrorSource({
+    module: DocumentAggregationCursor.name,
+    functionName,
+    db: cursor.cursor.namespace.db,
+    collection: cursor.cursor.namespace.collection ?? "NO_COLLECTION_NAME"
+  })
