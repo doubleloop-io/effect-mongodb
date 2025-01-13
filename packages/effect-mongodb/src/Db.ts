@@ -87,8 +87,4 @@ export const dropCollection: {
 const isDb = (x: unknown) => x instanceof Db
 
 const errorSource = (db: Db, functionName: string) =>
-  new MongoError.DbErrorSource({
-    module: "Db",
-    functionName,
-    db: db.databaseName
-  })
+  new MongoError.DbErrorSource({ module: "Db", functionName, db: db.databaseName })

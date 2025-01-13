@@ -50,8 +50,4 @@ export const db: {
 const isMongoClient = (x: unknown) => x instanceof MongoClient_
 
 const errorSource = (hosts: Array<string>, functionName: string) =>
-  new MongoError.ClientErrorSource({
-    module: "MongoClient",
-    functionName,
-    hosts
-  })
+  new MongoError.ClientErrorSource({ module: "MongoClient", functionName, hosts })
