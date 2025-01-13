@@ -21,7 +21,7 @@ export const toArray = <A, I, R>(
 ): Effect.Effect<Array<A>, MongoError.MongoError | ParseResult.ParseError, R> => {
   const decode = Schema.decodeUnknown(cursor.schema)
   return Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }).pipe(
-    Effect.catchAll(mongoErrorOrDie(makeSource(cursor, "toArray"))),
+    Effect.catchAll(mongoErrorOrDie(errorSource(cursor, "toArray"))),
     Effect.flatMap(Effect.forEach((x) => decode(x)))
   )
 }
@@ -32,12 +32,12 @@ export const toStream = <A, I, R>(
   const decode = Schema.decodeUnknown(cursor.schema)
   return F.pipe(
     Stream.fromAsyncIterable(cursor.cursor, F.identity),
-    Stream.catchAll(mongoErrorOrDieStream(makeSource(cursor, "toStream"))),
+    Stream.catchAll(mongoErrorOrDieStream(errorSource(cursor, "toStream"))),
     Stream.mapEffect((x) => decode(x))
   )
 }
 
-const makeSource = <A, I, R>(cursor: AggregationCursor<A, I, R>, functionName: string) =>
+const errorSource = <A, I, R>(cursor: AggregationCursor<A, I, R>, functionName: string) =>
   new MongoError.CollectionErrorSource({
     module: AggregationCursor.name,
     functionName,
