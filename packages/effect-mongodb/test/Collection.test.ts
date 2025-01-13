@@ -9,7 +9,7 @@ import { describeMongo } from "./support/describe-mongo.js"
 
 describeMongo("Collection", (ctx) => {
   test("find one", async () => {
-    const user = { name: "john", birthday: new Date(1977, 11, 27) }
+    const user = User.make({ name: "john", birthday: new Date(1977, 11, 27) })
 
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
@@ -25,6 +25,73 @@ describeMongo("Collection", (ctx) => {
     const result = await Effect.runPromise(program)
 
     expect(result).toEqual(O.some(user))
+  })
+
+  test("find one - no result", async () => {
+    const program = Effect.gen(function*(_) {
+      const db = yield* _(ctx.database)
+      const collection = Db.collection(db, "find-one-no-result", User)
+
+      const users = [
+        User.make({ name: "any1", birthday: new Date(1994, 1, 1) }),
+        User.make({ name: "any2", birthday: new Date(1977, 11, 27) }),
+        User.make({ name: "any3", birthday: new Date(1989, 5, 11) })
+      ]
+      yield* _(Collection.insertMany(collection, users))
+
+      return yield* _(Collection.findOne(collection, { name: "john" }))
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result).toEqual(O.none())
+  })
+
+  test("find one and replace", async () => {
+    const program = Effect.gen(function*(_) {
+      const db = yield* _(ctx.database)
+      const collection = Db.collection(db, "find-one-and-replace", UserWithVersion)
+
+      yield* _(Collection.insertOne(collection, { name: "john", version: "v1" }))
+
+      return yield* _(
+        Collection.findOneAndReplace(
+          collection,
+          { name: "john", version: "v1" },
+          { name: "john", version: "v2" },
+          { returnDocument: "after" }
+        )
+      )
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result).toEqual(O.some({ name: "john", version: "v2" }))
+  })
+
+  test("find one and replace - include result metadata", async () => {
+    const program = Effect.gen(function*(_) {
+      const db = yield* _(ctx.database)
+      const collection = Db.collection(db, "find-one-and-replace-include-result-metadata", UserWithVersion)
+
+      yield* _(Collection.insertOne(collection, { name: "john", version: "v1" }))
+
+      return yield* _(
+        Collection.findOneAndReplace(
+          collection,
+          { name: "john", version: "v1" },
+          { name: "john", version: "v2" },
+          { returnDocument: "after", includeResultMetadata: true }
+        )
+      )
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result).toMatchObject({
+      ok: 1,
+      value: O.some({ name: "john", version: "v2" })
+    })
   })
 
   test("aggregate", async () => {
@@ -87,6 +154,11 @@ describeMongo("Collection", (ctx) => {
 const User = Schema.Struct({
   name: Schema.String,
   birthday: Schema.Date
+})
+
+const UserWithVersion = Schema.Struct({
+  name: Schema.String,
+  version: Schema.String
 })
 
 const UserAggregation = Schema.Struct({
