@@ -8,6 +8,7 @@ import type { Document, DropCollectionOptions, ListCollectionsOptions } from "mo
 import { Db } from "mongodb"
 import type * as Collection from "./Collection.js"
 import * as DocumentCollection from "./DocumentCollection.js"
+import { mongoErrorOrDie } from "./internal/mongo-error.js"
 import * as ListCollectionsCursor from "./ListCollectionsCursor.js"
 import * as MongoError from "./MongoError.js"
 
@@ -79,8 +80,15 @@ export const dropCollection: {
   (db: Db, name: string, options?: DropCollectionOptions): Effect.Effect<boolean, MongoError.MongoError> =>
     F.pipe(
       Effect.promise(() => db.dropCollection(name, options)),
-      Effect.catchAllDefect(MongoError.mongoErrorDie<boolean>("dropCollection error"))
+      Effect.catchAllDefect(mongoErrorOrDie(errorSource(db, "dropCollection")))
     )
 )
 
 const isDb = (x: unknown) => x instanceof Db
+
+const errorSource = (db: Db, functionName: string) =>
+  new MongoError.DbErrorSource({
+    module: "Db",
+    functionName,
+    db: db.databaseName
+  })
