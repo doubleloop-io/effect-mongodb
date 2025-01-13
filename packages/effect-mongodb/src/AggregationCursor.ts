@@ -8,7 +8,7 @@ import type * as ParseResult from "effect/ParseResult"
 import * as Schema from "effect/Schema"
 import * as Stream from "effect/Stream"
 import type { AggregationCursor as MongoAggregationCursor } from "mongodb"
-import { mongoErrorOrDie, mongoErrorOrDieStream } from "./internal/mongo-error.js"
+import { mongoErrorOrDie } from "./internal/mongo-error.js"
 import * as MongoError from "./MongoError.js"
 
 export class AggregationCursor<A, I = A, R = never> extends Data.TaggedClass("AggregationCursor")<
@@ -32,7 +32,7 @@ export const toStream = <A, I, R>(
   const decode = Schema.decodeUnknown(cursor.schema)
   return F.pipe(
     Stream.fromAsyncIterable(cursor.cursor, F.identity),
-    Stream.catchAll(mongoErrorOrDieStream(errorSource(cursor, "toStream"))),
+    Stream.catchAll(mongoErrorOrDie(errorSource(cursor, "toStream"))),
     Stream.mapEffect((x) => decode(x))
   )
 }
