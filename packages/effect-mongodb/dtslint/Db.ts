@@ -1,9 +1,9 @@
-import * as DBX from "effect-mongodb/Db"
+import * as Db from "effect-mongodb/Db"
 import * as F from "effect/Function"
 import * as Schema from "effect/Schema"
-import type { Db } from "mongodb"
+import type { Db as MongoDb } from "mongodb"
 
-declare const database: Db
+declare const database: MongoDb
 
 const User = Schema.Struct({
   id: Schema.NumberFromString
@@ -14,56 +14,56 @@ const User = Schema.Struct({
 // -------------------------------------------------------------------------------------
 
 // $ExpectType DocumentCollection
-DBX.documentCollection(database, "users")
+Db.documentCollection(database, "users")
 
 // $ExpectType DocumentCollection
-F.pipe(database, DBX.documentCollection("users"))
+F.pipe(database, Db.documentCollection("users"))
 
 // -------------------------------------------------------------------------------------
 // collection
 // -------------------------------------------------------------------------------------
 
 // $ExpectType Collection<{ readonly id: number; }, { readonly id: string; }, never>
-DBX.collection(database, "users", User)
+Db.collection(database, "users", User)
 
 // $ExpectType Collection<{ readonly id: number; }, { readonly id: string; }, never>
-F.pipe(database, DBX.collection("users", User))
+F.pipe(database, Db.collection("users", User))
 
 // -------------------------------------------------------------------------------------
 // listCollections
 // -------------------------------------------------------------------------------------
 
 // $ExpectType ListCollectionsCursor<DefaultCollectionInfo>
-DBX.listCollections(database)
+Db.listCollections(database)
 
 // TODO: this currently returns `(db: Db) => ListCollectionsCursor<DefaultCollectionInfo>`, why?
 // //$ExpectType ListCollectionsCursor<DefaultCollectionInfo>
-// F.pipe(database, DBX.listCollections)
+// F.pipe(database, Db.listCollections)
 
 // $ExpectType ListCollectionsCursor<DefaultCollectionInfo>
-DBX.listCollections(database, { foo: "bar" })
+Db.listCollections(database, { foo: "bar" })
 
 // $ExpectType ListCollectionsCursor<DefaultCollectionInfo>
-F.pipe(database, DBX.listCollections({ foo: "bar" }))
+F.pipe(database, Db.listCollections({ foo: "bar" }))
 
 // $ExpectType NameOnlyListCollectionsCursor
-DBX.listCollections(database, { foo: "bar" }, { nameOnly: true })
+Db.listCollections(database, { foo: "bar" }, { nameOnly: true })
 
 // $ExpectType NameOnlyListCollectionsCursor
-F.pipe(database, DBX.listCollections({ foo: "bar" }, { nameOnly: true }))
+F.pipe(database, Db.listCollections({ foo: "bar" }, { nameOnly: true }))
 
 // $ExpectType FullListCollectionsCursor
-DBX.listCollections(database, { foo: "bar" }, { nameOnly: false })
+Db.listCollections(database, { foo: "bar" }, { nameOnly: false })
 
 // $ExpectType FullListCollectionsCursor
-F.pipe(database, DBX.listCollections({ foo: "bar" }, { nameOnly: false }))
+F.pipe(database, Db.listCollections({ foo: "bar" }, { nameOnly: false }))
 
 // -------------------------------------------------------------------------------------
 // dropCollection
 // -------------------------------------------------------------------------------------
 
 // $ExpectType Effect<boolean, MongoError, never>
-DBX.dropCollection(database, "users")
+Db.dropCollection(database, "users")
 
 // $ExpectType Effect<boolean, MongoError, never>
-F.pipe(database, DBX.dropCollection("users"))
+F.pipe(database, Db.dropCollection("users"))

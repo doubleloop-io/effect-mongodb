@@ -4,13 +4,10 @@ import * as FindCursor from "effect-mongodb/FindCursor"
 import * as F from "effect/Function"
 import * as Schema from "effect/Schema"
 
-// TODO: try to use class Schema to improve test assertions
 const MyType = Schema.Struct({
   birthday: Schema.Date
 })
 type MyType = typeof MyType.Type
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type MyTypeEncoded = typeof MyType.Encoded
 
 declare const myType: MyType
 

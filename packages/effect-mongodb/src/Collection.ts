@@ -216,7 +216,6 @@ export const updateMany: {
 export const replaceOne: {
   <A extends Document, I extends Document>(
     filter: Filter<I>,
-    // TODO: should we put WithoutId<A> here like the driver signature?
     replacement: A,
     options?: ReplaceOptions
   ): <R>(
