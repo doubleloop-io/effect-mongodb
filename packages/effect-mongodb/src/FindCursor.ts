@@ -11,6 +11,7 @@ import * as Stream from "effect/Stream"
 import * as Tuple from "effect/Tuple"
 import type { Document, FindCursor as FindCursor_, Sort, SortDirection } from "mongodb"
 import type { Filter } from "./internal/filter.js"
+import { mongoErrorOrDie } from "./internal/mongo-error.js"
 import * as MongoError from "./MongoError.js"
 
 export class FindCursor<A, I = A, R = never> extends Data.TaggedClass("FindCursor")<{
@@ -79,7 +80,7 @@ export const toArray = <A, I, R>(
 ): Effect.Effect<Array<A>, MongoError.MongoError | ParseResult.ParseError, R> => {
   const decode = Schema.decodeUnknown(cursor.schema)
   return Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }).pipe(
-    Effect.catchAll(MongoError.mongoErrorDie<Array<A>>("Unable to get array from mongodb cursor")),
+    Effect.catchAll(mongoErrorOrDie(errorSource(cursor, "toArray"))),
     Effect.flatMap(Effect.forEach((x) => decode(x)))
   )
 }
@@ -93,7 +94,7 @@ export const toArrayEither = <A, I, R>(
 > => {
   const decode = Schema.decodeUnknown(cursor.schema)
   return Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }).pipe(
-    Effect.catchAll(MongoError.mongoErrorDie<Array<unknown>>("Unable to get array from mongodb cursor")),
+    Effect.catchAll(mongoErrorOrDie(errorSource(cursor, "toArrayEither"))),
     Effect.flatMap(Effect.forEach((x) =>
       F.pipe(
         decode(x),
@@ -110,7 +111,7 @@ export const toStream = <A, I, R>(
   const decode = Schema.decodeUnknown(cursor.schema)
   return F.pipe(
     Stream.fromAsyncIterable(cursor.cursor, F.identity),
-    Stream.catchAll(MongoError.mongoErrorStream<A>("Unable to get stream from mongodb cursor")),
+    Stream.catchAll(mongoErrorOrDie(errorSource(cursor, "toStream"))),
     Stream.mapEffect((x) => decode(x))
   )
 }
@@ -121,7 +122,7 @@ export const toStreamEither = <A, I, R>(
   const decode = Schema.decodeUnknown(cursor.schema)
   return F.pipe(
     Stream.fromAsyncIterable(cursor.cursor, F.identity),
-    Stream.catchAll(MongoError.mongoErrorStream<A>("Unable to get stream either from mongodb cursor")),
+    Stream.catchAll(mongoErrorOrDie(errorSource(cursor, "toStreamEither"))),
     Stream.mapEffect((x) =>
       F.pipe(
         // keep new line
@@ -134,3 +135,11 @@ export const toStreamEither = <A, I, R>(
 }
 
 const isFindCursor = (x: unknown): x is FindCursor<unknown> => x instanceof FindCursor
+
+const errorSource = <A, I, R>(cursor: FindCursor<A, I, R>, functionName: string) =>
+  new MongoError.CollectionErrorSource({
+    module: FindCursor.name,
+    functionName,
+    db: cursor.cursor.namespace.db,
+    collection: cursor.cursor.namespace.collection ?? "NO_COLLECTION_NAME"
+  })
