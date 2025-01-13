@@ -15,8 +15,8 @@ export const connect = (
   url: string,
   options?: MongoClientOptions
 ): Effect.Effect<MongoClient, MongoError.MongoError> =>
-  Effect.tryPromise({ try: () => MongoClient_.connect(url, options), catch: F.identity }).pipe(
-    Effect.catchAll(mongoErrorOrDie(errorSource([new URL(url).host], "connect")))
+  Effect.promise(() => MongoClient_.connect(url, options)).pipe(
+    Effect.catchAllDefect(mongoErrorOrDie(errorSource([new URL(url).host], "connect")))
   )
 
 export const close: {
@@ -25,8 +25,8 @@ export const close: {
 } = F.dual(
   (args) => isMongoClient(args[0]),
   (client: MongoClient, force?: boolean): Effect.Effect<void, MongoError.MongoError> =>
-    Effect.tryPromise({ try: () => client.close(force), catch: F.identity }).pipe(
-      Effect.catchAll(mongoErrorOrDie(errorSource(client.options.hosts.map((x) => x.host ?? "NO_HOST"), "close")))
+    Effect.promise(() => client.close(force)).pipe(
+      Effect.catchAllDefect(mongoErrorOrDie(errorSource(client.options.hosts.map((x) => x.host ?? "NO_HOST"), "close")))
     )
 )
 

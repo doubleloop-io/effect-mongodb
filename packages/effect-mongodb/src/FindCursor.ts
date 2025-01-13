@@ -79,8 +79,8 @@ export const toArray = <A, I, R>(
   cursor: FindCursor<A, I, R>
 ): Effect.Effect<Array<A>, MongoError.MongoError | ParseResult.ParseError, R> => {
   const decode = Schema.decodeUnknown(cursor.schema)
-  return Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }).pipe(
-    Effect.catchAll(mongoErrorOrDie(errorSource(cursor, "toArray"))),
+  return Effect.promise(() => cursor.cursor.toArray()).pipe(
+    Effect.catchAllDefect(mongoErrorOrDie(errorSource(cursor, "toArray"))),
     Effect.flatMap(Effect.forEach((x) => decode(x)))
   )
 }
@@ -93,8 +93,8 @@ export const toArrayEither = <A, I, R>(
   R
 > => {
   const decode = Schema.decodeUnknown(cursor.schema)
-  return Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }).pipe(
-    Effect.catchAll(mongoErrorOrDie(errorSource(cursor, "toArrayEither"))),
+  return Effect.promise(() => cursor.cursor.toArray()).pipe(
+    Effect.catchAllDefect(mongoErrorOrDie(errorSource(cursor, "toArrayEither"))),
     Effect.flatMap(Effect.forEach((x) =>
       F.pipe(
         decode(x),

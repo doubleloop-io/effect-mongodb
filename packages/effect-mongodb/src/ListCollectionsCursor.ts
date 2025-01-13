@@ -33,8 +33,8 @@ export const toArray = <T extends DefaultCollectionInfo>(
   cursor: ListCollectionsCursor<T>
 ): Effect.Effect<Array<T>, MongoError.MongoError> =>
   F.pipe(
-    Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }),
-    Effect.catchAll(mongoErrorOrDie(errorSource(cursor, "toArray")))
+    Effect.promise(() => cursor.cursor.toArray()),
+    Effect.catchAllDefect(mongoErrorOrDie(errorSource(cursor, "toArray")))
   )
 
 export const toStream = <T extends DefaultCollectionInfo>(

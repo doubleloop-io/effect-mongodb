@@ -54,8 +54,8 @@ export const limit: {
 
 export const toArray = (cursor: DocumentFindCursor): Effect.Effect<Array<Document>, MongoError.MongoError> =>
   F.pipe(
-    Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }),
-    Effect.catchAll(mongoErrorOrDie(errorSource(cursor, "toArray")))
+    Effect.promise(() => cursor.cursor.toArray()),
+    Effect.catchAllDefect(mongoErrorOrDie(errorSource(cursor, "toArray")))
   )
 
 export const toStream = (
