@@ -34,8 +34,10 @@ const messageFrom = (source: ErrorSource, message?: string) =>
 const messageFromSource = (source: ErrorSource) =>
   F.pipe(
     Match.value(source),
-    Match.tag("DbErrorSource", ({ db, functionName, module }) => `Error in ${module}.${functionName} - ${db}`),
-    Match.tag("CollectionErrorSource", ({ collection, db, functionName, module }) =>
-      `Error in ${module}.${functionName} - ${db}.${collection}`),
+    Match.tag("ClientErrorSource", (s) => `${baseMessage(s)} - host ${s.host}`),
+    Match.tag("DbErrorSource", (s) => `${baseMessage(s)} - ${s.db}`),
+    Match.tag("CollectionErrorSource", (s) => `${baseMessage(s)} - ${s.db}.${s.collection}`),
     Match.exhaustive
   )
+
+const baseMessage = (s: { module: string; functionName: string }) => `Error in ${s.module}.${s.functionName}`

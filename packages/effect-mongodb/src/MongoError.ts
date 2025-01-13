@@ -8,6 +8,12 @@ import * as Match from "effect/Match"
 import * as Stream from "effect/Stream"
 import { MongoError as MongoError_ } from "mongodb"
 
+export class ClientErrorSource extends Data.TaggedClass("ClientErrorSource")<{
+  module: string
+  functionName: string
+  host: string
+}> {}
+
 export class DbErrorSource extends Data.TaggedClass("DbErrorSource")<{
   module: string
   functionName: string
@@ -21,7 +27,7 @@ export class CollectionErrorSource extends Data.TaggedClass("CollectionErrorSour
   collection: string
 }> {}
 
-export type ErrorSource = DbErrorSource | CollectionErrorSource
+export type ErrorSource = ClientErrorSource | DbErrorSource | CollectionErrorSource
 
 export class MongoError extends Data.TaggedError("MongoError")<{
   message: string
