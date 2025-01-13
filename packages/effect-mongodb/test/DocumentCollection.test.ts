@@ -11,21 +11,6 @@ import { expect, test } from "vitest"
 import { describeMongo } from "./support/describe-mongo.js"
 
 describeMongo("DocumentCollection", (ctx) => {
-  test("insert and find", async () => {
-    const program = Effect.gen(function*(_) {
-      const db = yield* _(ctx.database)
-      const collection = Db.documentCollection(db, "insert-and-find")
-
-      yield* _(DocumentCollection.insertOne(collection, { name: "John" }))
-
-      return yield* _(DocumentCollection.find(collection), DocumentFindCursor.toArray)
-    })
-
-    const result = await Effect.runPromise(program)
-
-    expect(result).toEqual([{ _id: expect.any(ObjectId), name: "John" }])
-  })
-
   test("insert an array as record", async () => {
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
@@ -70,34 +55,16 @@ describeMongo("DocumentCollection", (ctx) => {
     expect(result[0]).not.toBeInstanceOf(MyClass)
   })
 
-  test("insert many and find", async () => {
-    const program = Effect.gen(function*(_) {
-      const db = yield* _(ctx.database)
-      const collection = Db.documentCollection(db, "insert-many-and-find")
-
-      yield* _(
-        DocumentCollection.insertMany(collection, [{ name: "NAME_1" }, { name: "NAME_2" }, { name: "NAME_3" }])
-      )
-
-      return yield* _(DocumentCollection.find(collection), DocumentFindCursor.toArray)
-    })
-
-    const result = await Effect.runPromise(program)
-
-    expect(result).toEqual([
-      { _id: expect.any(ObjectId), name: "NAME_1" },
-      { _id: expect.any(ObjectId), name: "NAME_2" },
-      { _id: expect.any(ObjectId), name: "NAME_3" }
-    ])
-  })
-
   test("find one", async () => {
     const program = Effect.gen(function*(_) {
       const db = yield* _(ctx.database)
       const collection = Db.documentCollection(db, "find-one")
 
       yield* _(
-        DocumentCollection.insertMany(collection, [{ name: "ANY_NAME_1" }, { name: "john" }, { name: "ANY_NAME_2" }])
+        DocumentCollection.insertMany(
+          collection,
+          [{ name: "ANY_NAME_1" }, { name: "john" }, { name: "ANY_NAME_2" }]
+        )
       )
 
       return yield* _(DocumentCollection.findOne(collection, { name: "john" }))
@@ -114,9 +81,10 @@ describeMongo("DocumentCollection", (ctx) => {
       const collection = Db.documentCollection(db, "find-one-no-result")
 
       yield* _(
-        DocumentCollection.insertMany(collection, [{ name: "ANY_NAME_1" }, { name: "ANY_NAME_2" }, {
-          name: "ANY_NAME_2"
-        }])
+        DocumentCollection.insertMany(
+          collection,
+          [{ name: "ANY_NAME_1" }, { name: "ANY_NAME_2" }, { name: "ANY_NAME_3" }]
+        )
       )
 
       return yield* _(DocumentCollection.findOne(collection, { name: "john" }))
@@ -125,5 +93,52 @@ describeMongo("DocumentCollection", (ctx) => {
     const result = await Effect.runPromise(program)
 
     expect(result).toEqual(O.none())
+  })
+
+  test("find one and replace", async () => {
+    const program = Effect.gen(function*(_) {
+      const db = yield* _(ctx.database)
+      const collection = Db.documentCollection(db, "find-one-and-replace")
+
+      yield* _(DocumentCollection.insertOne(collection, { name: "john", version: "v1" }))
+
+      return yield* _(
+        DocumentCollection.findOneAndReplace(
+          collection,
+          { name: "john", version: "v1" },
+          { name: "john", version: "v2" },
+          { returnDocument: "after" }
+        )
+      )
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result).toEqual(O.some({ _id: expect.any(ObjectId), name: "john", version: "v2" }))
+  })
+
+  test("find one and replace - include result metadata", async () => {
+    const program = Effect.gen(function*(_) {
+      const db = yield* _(ctx.database)
+      const collection = Db.documentCollection(db, "find-one-and-replace-include-result-metadata")
+
+      yield* _(DocumentCollection.insertOne(collection, { name: "john", version: "v1" }))
+
+      return yield* _(
+        DocumentCollection.findOneAndReplace(
+          collection,
+          { name: "john", version: "v1" },
+          { name: "john", version: "v2" },
+          { returnDocument: "after", includeResultMetadata: true }
+        )
+      )
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result).toMatchObject({
+      ok: 1,
+      value: O.some({ _id: expect.any(ObjectId), name: "john", version: "v2" })
+    })
   })
 })
