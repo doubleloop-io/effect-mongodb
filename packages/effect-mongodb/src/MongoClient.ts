@@ -6,6 +6,7 @@ import * as F from "effect/Function"
 import type * as Scope from "effect/Scope"
 import type { Db, DbOptions, MongoClientOptions } from "mongodb"
 import { MongoClient as MongoClient_ } from "mongodb"
+import { mongoErrorOrDie } from "./internal/mongo-error.js"
 import * as MongoError from "./MongoError.js"
 
 export type MongoClient = MongoClient_
@@ -14,8 +15,8 @@ export const connect = (
   url: string,
   options?: MongoClientOptions
 ): Effect.Effect<MongoClient, MongoError.MongoError> =>
-  Effect.promise(() => MongoClient_.connect(url, options)).pipe(
-    Effect.catchAll(MongoError.mongoErrorDie<MongoClient_>("connect error"))
+  Effect.tryPromise({ try: () => MongoClient_.connect(url, options), catch: F.identity }).pipe(
+    Effect.catchAll(mongoErrorOrDie(errorSource([new URL(url).host], "connect")))
   )
 
 export const close: {
@@ -24,8 +25,8 @@ export const close: {
 } = F.dual(
   (args) => isMongoClient(args[0]),
   (client: MongoClient, force?: boolean): Effect.Effect<void, MongoError.MongoError> =>
-    Effect.promise(() => client.close(force)).pipe(
-      Effect.catchAll(MongoError.mongoErrorDie<void>("close error"))
+    Effect.tryPromise({ try: () => client.close(force), catch: F.identity }).pipe(
+      Effect.catchAll(mongoErrorOrDie(errorSource(client.options.hosts.map((x) => x.host ?? "NO_HOST"), "close")))
     )
 )
 
@@ -47,3 +48,10 @@ export const db: {
 )
 
 const isMongoClient = (x: unknown) => x instanceof MongoClient_
+
+const errorSource = (hosts: Array<string>, functionName: string) =>
+  new MongoError.ClientErrorSource({
+    module: "MongoClient",
+    functionName,
+    hosts
+  })
