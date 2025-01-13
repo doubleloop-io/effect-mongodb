@@ -9,6 +9,7 @@ import type {
   CollectionInfo as MongoCollectionInfo,
   ListCollectionsCursor as MongoListCollectionsCursor
 } from "mongodb"
+import { mongoErrorOrDie } from "./internal/mongo-error.js"
 import * as MongoError from "./MongoError.js"
 
 export type NameOnlyCollectionInfo = Pick<MongoCollectionInfo, "name" | "type">
@@ -33,7 +34,7 @@ export const toArray = <T extends DefaultCollectionInfo>(
 ): Effect.Effect<Array<T>, MongoError.MongoError> =>
   F.pipe(
     Effect.tryPromise({ try: () => cursor.cursor.toArray(), catch: F.identity }),
-    Effect.catchAll(MongoError.mongoErrorDie<Array<T>>(`${cursor._tag}.toArray error`))
+    Effect.catchAll(mongoErrorOrDie(errorSource(cursor, "toArray")))
   )
 
 export const toStream = <T extends DefaultCollectionInfo>(
@@ -41,5 +42,13 @@ export const toStream = <T extends DefaultCollectionInfo>(
 ): Stream.Stream<T, MongoError.MongoError> =>
   F.pipe(
     Stream.fromAsyncIterable(cursor.cursor, F.identity),
-    Stream.catchAll(MongoError.mongoErrorStream<T>(`${cursor._tag}.toStream error`))
+    Stream.catchAll(mongoErrorOrDie(errorSource(cursor, "toStream")))
   )
+
+const errorSource = (cursor: ListCollectionsCursor, functionName: string) =>
+  new MongoError.CollectionErrorSource({
+    module: ListCollectionsCursor.name,
+    functionName,
+    db: cursor.cursor.namespace.db,
+    collection: cursor.cursor.namespace.collection ?? "NO_COLLECTION_NAME"
+  })
