@@ -187,15 +187,15 @@ export const updateMany: {
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options?: UpdateOptions
-  ): <A extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<UpdateResult, MongoError.MongoError, R>
+  ): <A extends Document, I2 extends I, R>(
+    collection: Collection<A, I2, R>
+  ) => Effect.Effect<UpdateResult<I2>, MongoError.MongoError, R>
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options?: UpdateOptions
-  ): Effect.Effect<UpdateResult, MongoError.MongoError, R>
+  ): Effect.Effect<UpdateResult<I>, MongoError.MongoError, R>
 } = F.dual(
   (args) => isCollection(args[0]),
   <A extends Document, I extends Document, R>(
@@ -203,7 +203,7 @@ export const updateMany: {
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options?: UpdateOptions
-  ): Effect.Effect<UpdateResult, MongoError.MongoError, R> =>
+  ): Effect.Effect<UpdateResult<I>, MongoError.MongoError, R> =>
     Effect.promise(() =>
       collection.collection.updateMany(
         filter,
