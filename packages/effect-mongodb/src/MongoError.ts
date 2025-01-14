@@ -7,7 +7,7 @@ import type { MongoError as MongoError_ } from "mongodb"
 export class ClientErrorSource extends Data.TaggedClass("ClientErrorSource")<{
   module: string
   functionName: string
-  hosts: string[]
+  hosts: Array<string>
 }> {}
 
 export class DbErrorSource extends Data.TaggedClass("DbErrorSource")<{
