@@ -1,5 +1,7 @@
 # effect-mongodb
 
+![NPM Version](https://img.shields.io/npm/v/effect-mongodb)
+
 A [MongoDB](https://github.com/mongodb/node-mongodb-native) toolkit for [Effect](https://github.com/Effect-TS/effect/).
 
 ## Install
