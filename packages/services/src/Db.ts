@@ -24,14 +24,10 @@ export const fromEffect = <DbK extends string, MongoClientK extends string, E = 
 ) =>
   Layer.effect(
     dbTag,
-    Effect.gen(function*(_) {
-      const { client } = yield* _(clientTag)
-      const dbName_ = yield* _(dbName)
-      const db = yield* _(
-        client,
-        Effect.map((client) => MongoClient.db(client, dbName_)),
-        Effect.cached
-      )
+    Effect.gen(function*() {
+      const { client } = yield* clientTag
+      const dbName_ = yield* dbName
+      const db = yield* client.pipe(Effect.map((client) => MongoClient.db(client, dbName_)), Effect.cached)
       return dbTag.of({ db } as DbService<DbK>) // TODO fix cast using branded ctor
     })
   )
