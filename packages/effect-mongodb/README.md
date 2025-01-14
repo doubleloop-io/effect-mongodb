@@ -1,6 +1,6 @@
 # effect-mongodb
 
-![NPM Version](https://img.shields.io/npm/v/effect-mongodb)
+![NPM Version](https://img.shields.io/npm/v/effect-mongodb?link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2Feffect-mongodb)
 
 A [MongoDB](https://github.com/mongodb/node-mongodb-native) toolkit for [Effect](https://github.com/Effect-TS/effect/).
 
