@@ -111,7 +111,7 @@ export const findOne: {
   ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R> =>
     Effect.gen(function*() {
       const value = yield* Effect.promise(() => collection.collection.findOne(filter, options))
-      return yield* SchemaExt.decodeNullableDocument(collection.schema, value);
+      return yield* SchemaExt.decodeNullableDocument(collection.schema, value)
     }).pipe(
       Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "findOne")))
     )
@@ -331,7 +331,7 @@ export const findOneAndReplace: {
             const maybeValue = yield* SchemaExt.decodeNullableDocument(collection.schema, result.value)
             return { ...result, value: maybeValue }
           }
-          return yield* SchemaExt.decodeNullableDocument(collection.schema, value);
+          return yield* SchemaExt.decodeNullableDocument(collection.schema, value)
         })
       ),
       Effect.catchAllDefect(

@@ -17,7 +17,7 @@ describeMongo("Collection", (ctx) => {
 
       yield* Collection.insertOne(collection, user)
 
-      return yield* Collection.findOne(collection, { name: "john" });
+      return yield* Collection.findOne(collection, { name: "john" })
     })
 
     const result = await Effect.runPromise(program)
@@ -37,7 +37,7 @@ describeMongo("Collection", (ctx) => {
       ]
       yield* Collection.insertMany(collection, users)
 
-      return yield* Collection.findOne(collection, { name: "john" });
+      return yield* Collection.findOne(collection, { name: "john" })
     })
 
     const result = await Effect.runPromise(program)
@@ -57,7 +57,7 @@ describeMongo("Collection", (ctx) => {
         { name: "john", version: "v1" },
         { name: "john", version: "v2" },
         { returnDocument: "after" }
-      );
+      )
     })
 
     const result = await Effect.runPromise(program)
@@ -77,7 +77,7 @@ describeMongo("Collection", (ctx) => {
         { name: "john", version: "v1" },
         { name: "john", version: "v2" },
         { returnDocument: "after", includeResultMetadata: true }
-      );
+      )
     })
 
     const result = await Effect.runPromise(program)
@@ -118,7 +118,7 @@ describeMongo("Collection", (ctx) => {
         {
           $sort: { _id: 1 }
         }
-      ]).pipe(AggregationCursor.toArray);
+      ]).pipe(AggregationCursor.toArray)
     })
 
     const result = await Effect.runPromise(program)

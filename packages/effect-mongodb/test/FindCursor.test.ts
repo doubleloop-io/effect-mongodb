@@ -43,7 +43,7 @@ describeMongo("FindCursor", (ctx) => {
         FindCursor.project(UserProjection, { _id: 0, id: 1 }),
         FindCursor.limit(2),
         FindCursor.toArray
-      );
+      )
     })
 
     const result = await Effect.runPromise(program)
@@ -61,7 +61,7 @@ describeMongo("FindCursor", (ctx) => {
       yield* DocumentCollection.insertOne(documentCollection, { id: 999, surname: "foo" })
       yield* Collection.insertMany(collection, FastCheck.sample(UserArbitrary, 3))
 
-      return yield* Collection.find(collection).pipe(FindCursor.toArrayEither);
+      return yield* Collection.find(collection).pipe(FindCursor.toArrayEither)
     })
 
     const result = await Effect.runPromise(program)
@@ -83,7 +83,11 @@ describeMongo("FindCursor", (ctx) => {
 
       yield* Collection.insertMany(collection, anyUsers)
 
-      return yield* Collection.find(collection).pipe(FindCursor.toStream, Stream.runCollect, Effect.map(Chunk.toReadonlyArray));
+      return yield* Collection.find(collection).pipe(
+        FindCursor.toStream,
+        Stream.runCollect,
+        Effect.map(Chunk.toReadonlyArray)
+      )
     })
 
     const result = await Effect.runPromise(program)
@@ -105,7 +109,7 @@ describeMongo("FindCursor", (ctx) => {
         FindCursor.toStreamEither,
         Stream.runCollect,
         Effect.map(Chunk.toReadonlyArray)
-      );
+      )
     })
 
     const result = await Effect.runPromise(program)

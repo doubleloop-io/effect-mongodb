@@ -24,7 +24,10 @@ const program = Effect.gen(function*() {
     { name: "User 3", age: 4, birthday: "2020-11-03T00:00:00Z" }
   ])
 
-  const sourceItems = yield* DocumentCollection.find(sourceCollection).pipe(DocumentFindCursor.typed(MyType), FindCursor.toArray)
+  const sourceItems = yield* DocumentCollection.find(sourceCollection).pipe(
+    DocumentFindCursor.typed(MyType),
+    FindCursor.toArray
+  )
 
   const destinationInstance = yield* MongoClient.connectScoped("mongodb://localhost:27017")
   const destinationDb = MongoClient.db(destinationInstance, "destination")

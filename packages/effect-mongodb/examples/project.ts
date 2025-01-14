@@ -27,11 +27,14 @@ const program = Effect.gen(function*() {
     { id: 3, values: [1, 5, 33, 96] }
   ])
 
-  const items = yield* Collection.find(sourceCollection).pipe(FindCursor.project(MyTypeProjection, {
-    id: 1,
-    valuesCount: { $size: "$values" },
-    valuesMax: { $max: "$values" }
-  }), FindCursor.toArray)
+  const items = yield* Collection.find(sourceCollection).pipe(
+    FindCursor.project(MyTypeProjection, {
+      id: 1,
+      valuesCount: { $size: "$values" },
+      valuesMax: { $max: "$values" }
+    }),
+    FindCursor.toArray
+  )
 
   yield* Console.log(items)
 })

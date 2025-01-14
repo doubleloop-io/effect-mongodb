@@ -45,7 +45,7 @@ describeMongo("DocumentCollection", (ctx) => {
 
       yield* DocumentCollection.insertOne(collection, new MyClass("John"))
 
-      return yield* DocumentCollection.find(collection).pipe(DocumentFindCursor.toArray);
+      return yield* DocumentCollection.find(collection).pipe(DocumentFindCursor.toArray)
     })
 
     const result = await Effect.runPromise(program)
@@ -65,7 +65,7 @@ describeMongo("DocumentCollection", (ctx) => {
         [{ name: "ANY_NAME_1" }, { name: "john" }, { name: "ANY_NAME_2" }]
       )
 
-      return yield* DocumentCollection.findOne(collection, { name: "john" });
+      return yield* DocumentCollection.findOne(collection, { name: "john" })
     })
 
     const result = await Effect.runPromise(program)
@@ -83,7 +83,7 @@ describeMongo("DocumentCollection", (ctx) => {
         [{ name: "ANY_NAME_1" }, { name: "ANY_NAME_2" }, { name: "ANY_NAME_3" }]
       )
 
-      return yield* DocumentCollection.findOne(collection, { name: "john" });
+      return yield* DocumentCollection.findOne(collection, { name: "john" })
     })
 
     const result = await Effect.runPromise(program)
@@ -103,7 +103,7 @@ describeMongo("DocumentCollection", (ctx) => {
         { name: "john", version: "v1" },
         { name: "john", version: "v2" },
         { returnDocument: "after" }
-      );
+      )
     })
 
     const result = await Effect.runPromise(program)
@@ -123,7 +123,7 @@ describeMongo("DocumentCollection", (ctx) => {
         { name: "john", version: "v1" },
         { name: "john", version: "v2" },
         { returnDocument: "after", includeResultMetadata: true }
-      );
+      )
     })
 
     const result = await Effect.runPromise(program)

@@ -22,7 +22,11 @@ const program = Effect.gen(function*() {
   const myTypes = FastCheck.sample(anyMyType, 100)
   yield* Collection.insertMany(sourceCollection, myTypes)
 
-  const items = yield* Collection.find(sourceCollection).pipe(FindCursor.sort({ value: -1 }), FindCursor.limit(50), FindCursor.toArray)
+  const items = yield* Collection.find(sourceCollection).pipe(
+    FindCursor.sort({ value: -1 }),
+    FindCursor.limit(50),
+    FindCursor.toArray
+  )
 
   yield* Console.log(items)
 })

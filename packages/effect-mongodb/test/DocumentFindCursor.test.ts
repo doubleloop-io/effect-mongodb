@@ -29,7 +29,7 @@ describeMongo("DocumentFindCursor", (ctx) => {
         DocumentFindCursor.project({ _id: 0, id: 1 }),
         DocumentFindCursor.limit(2),
         DocumentFindCursor.toArray
-      );
+      )
     })
 
     const result = await Effect.runPromise(program)
@@ -54,7 +54,7 @@ describeMongo("DocumentFindCursor", (ctx) => {
         DocumentFindCursor.toStream,
         Stream.runCollect,
         Effect.map(Chunk.toReadonlyArray)
-      );
+      )
     })
 
     const result = await Effect.runPromise(program)
