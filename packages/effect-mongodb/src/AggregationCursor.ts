@@ -13,9 +13,20 @@ import type { AggregationCursor as MongoAggregationCursor } from "mongodb"
 import { mongoErrorOrDie } from "./internal/mongo-error.js"
 import * as MongoError from "./MongoError.js"
 
-export class AggregationCursor<A, I = A, R = never> extends Data.TaggedClass("AggregationCursor")<
-  { cursor: MongoAggregationCursor<unknown>; schema: Schema.Schema<A, I, R> }
-> implements Pipeable {
+interface AggregationCursorFields<A, I = A, R = never> {
+  cursor: MongoAggregationCursor<unknown>
+  schema: Schema.Schema<A, I, R>
+}
+
+export interface AggregationCursor<A, I = A, R = never> extends AggregationCursorFields<A, I, R>, Pipeable {
+  _tag: "AggregationCursor"
+}
+
+/** @internal */
+export class AggregationCursorImpl<A, I = A, R = never>
+  extends Data.TaggedClass("AggregationCursor")<AggregationCursorFields<A, I, R>>
+  implements AggregationCursor<A, I, R>
+{
   pipe() {
     return pipeArguments(this, arguments)
   }
@@ -44,7 +55,7 @@ export const toStream = <A, I, R>(
 
 const errorSource = <A, I, R>(cursor: AggregationCursor<A, I, R>, functionName: string) =>
   new MongoError.CollectionErrorSource({
-    module: AggregationCursor.name,
+    module: AggregationCursorImpl.name,
     functionName,
     db: cursor.cursor.namespace.db,
     collection: cursor.cursor.namespace.collection ?? "NO_COLLECTION_NAME"

@@ -45,9 +45,18 @@ import type { ModifyResult } from "./internal/modify-result.js"
 import { mongoErrorOrDie } from "./internal/mongo-error.js"
 import * as MongoError from "./MongoError.js"
 
-export class DocumentCollection extends Data.TaggedClass("DocumentCollection")<{
+type DocumentCollectionFields = {
   collection: MongoCollection
-}> implements Pipeable {
+}
+
+export interface DocumentCollection extends DocumentCollectionFields, Pipeable {
+  _tag: "DocumentCollection"
+}
+
+/** @internal */
+export class DocumentCollectionImpl extends Data.TaggedClass("DocumentCollection")<DocumentCollectionFields>
+  implements DocumentCollection
+{
   pipe() {
     return pipeArguments(this, arguments)
   }
@@ -66,7 +75,7 @@ export const find: {
 } = F.dual(
   (args) => isDocumentCollection(args[0]),
   (collection: DocumentCollection, filter?: Filter<Document>, options?: FindOptions) =>
-    new DocumentFindCursor.DocumentFindCursor(
+    new DocumentFindCursor.DocumentFindCursorImpl(
       {
         cursor: collection.collection.find(filter ?? {}, options)
       }
@@ -332,7 +341,7 @@ export const rename: {
   ): Effect.Effect<DocumentCollection, MongoError.MongoError> =>
     F.pipe(
       Effect.promise(() => collection.collection.rename(newName, options)),
-      Effect.map((collection) => new DocumentCollection({ collection })),
+      Effect.map((collection) => new DocumentCollectionImpl({ collection })),
       Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "rename")))
     )
 )
@@ -436,7 +445,7 @@ export const aggregate: {
     pipeline?: ReadonlyArray<Document>,
     options?: AggregateOptions
   ): DocumentAggregationCursor.DocumentAggregationCursor =>
-    new DocumentAggregationCursor.DocumentAggregationCursor({
+    new DocumentAggregationCursor.DocumentAggregationCursorImpl({
       cursor: collection.collection.aggregate(pipeline ? [...pipeline] : undefined, options)
     })
 )
@@ -494,16 +503,17 @@ export const typed: {
 } = F.dual((args) => isDocumentCollection(args[0]), <A extends Document, I extends Document = A, R = never>(
   collection: DocumentCollection,
   schema: Schema.Schema<A, I, R>
-): Collection.Collection<A, I, R> => new Collection.Collection<A, I, R>({ collection: collection.collection, schema }))
+): Collection.Collection<A, I, R> =>
+  new Collection.CollectionImpl<A, I, R>({ collection: collection.collection, schema }))
 
-const isDocumentCollection = (x: unknown) => x instanceof DocumentCollection
+const isDocumentCollection = (x: unknown) => x instanceof DocumentCollectionImpl
 
 const errorSource = (
   collection: DocumentCollection,
   functionName: string
 ) =>
   new MongoError.CollectionErrorSource({
-    module: DocumentCollection.name,
+    module: DocumentCollectionImpl.name,
     functionName,
     db: collection.collection.dbName,
     collection: collection.collection.collectionName

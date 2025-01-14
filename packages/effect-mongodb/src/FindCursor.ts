@@ -16,10 +16,19 @@ import type { Filter } from "./internal/filter.js"
 import { mongoErrorOrDie } from "./internal/mongo-error.js"
 import * as MongoError from "./MongoError.js"
 
-export class FindCursor<A, I = A, R = never> extends Data.TaggedClass("FindCursor")<{
+type FindCursorFields<A, I = A, R = never> = {
   cursor: FindCursor_<unknown>
   schema: Schema.Schema<A, I, R>
-}> implements Pipeable {
+}
+
+export interface FindCursor<A, I = A, R = never> extends FindCursorFields<A, I, R>, Pipeable {
+  _tag: "FindCursor"
+}
+
+/** @internal */
+export class FindCursorImpl<A, I = A, R = never> extends Data.TaggedClass("FindCursor")<FindCursorFields<A, I, R>>
+  implements FindCursor<A, I, R>
+{
   pipe() {
     return pipeArguments(this, arguments)
   }
@@ -33,7 +42,7 @@ export const filter: {
   <A, I extends Document, R>(
     cursor: FindCursor<A, I, R>,
     filter: Filter<I>
-  ): FindCursor<A, I, R> => new FindCursor({ cursor: cursor.cursor.filter(filter), schema: cursor.schema })
+  ): FindCursor<A, I, R> => new FindCursorImpl({ cursor: cursor.cursor.filter(filter), schema: cursor.schema })
 )
 
 export const project: {
@@ -52,7 +61,7 @@ export const project: {
     cursor: FindCursor<A, I, R>,
     newSchema: Schema.Schema<B, BI, BR>,
     value: T
-  ): FindCursor<B, BI, BR> => new FindCursor({ cursor: cursor.cursor.project(value), schema: newSchema })
+  ): FindCursor<B, BI, BR> => new FindCursorImpl({ cursor: cursor.cursor.project(value), schema: newSchema })
 )
 
 export const sort: {
@@ -68,7 +77,7 @@ export const sort: {
     cursor: FindCursor<A, I, R>,
     sort: Sort | string,
     direction?: SortDirection
-  ): FindCursor<A, I, R> => new FindCursor({ cursor: cursor.cursor.sort(sort, direction), schema: cursor.schema })
+  ): FindCursor<A, I, R> => new FindCursorImpl({ cursor: cursor.cursor.sort(sort, direction), schema: cursor.schema })
 )
 
 export const limit: {
@@ -77,7 +86,7 @@ export const limit: {
 } = F.dual(
   (args) => isFindCursor(args[0]),
   <A, I, R>(cursor: FindCursor<A, I, R>, value: number): FindCursor<A, I, R> =>
-    new FindCursor({ cursor: cursor.cursor.limit(value), schema: cursor.schema })
+    new FindCursorImpl({ cursor: cursor.cursor.limit(value), schema: cursor.schema })
 )
 
 export const toArray = <A, I, R>(
@@ -139,11 +148,11 @@ export const toStreamEither = <A, I, R>(
   )
 }
 
-const isFindCursor = (x: unknown): x is FindCursor<unknown> => x instanceof FindCursor
+const isFindCursor = (x: unknown): x is FindCursor<unknown> => x instanceof FindCursorImpl
 
 const errorSource = <A, I, R>(cursor: FindCursor<A, I, R>, functionName: string) =>
   new MongoError.CollectionErrorSource({
-    module: FindCursor.name,
+    module: FindCursorImpl.name,
     functionName,
     db: cursor.cursor.namespace.db,
     collection: cursor.cursor.namespace.collection ?? "NO_COLLECTION_NAME"

@@ -18,7 +18,7 @@ export const documentCollection: {
 } = F.dual(
   (args) => isDb(args[0]),
   (db: Db, name: string): DocumentCollection.DocumentCollection =>
-    new DocumentCollection.DocumentCollection({
+    new DocumentCollection.DocumentCollectionImpl({
       collection: db.collection(name)
     })
 )
@@ -67,7 +67,7 @@ export const listCollections: {
 } = F.dual(
   (args) => isDb(args[0]),
   (db: Db, filter?: Document, options?: ListCollectionsOptions): ListCollectionsCursor.ListCollectionsCursor =>
-    new ListCollectionsCursor.ListCollectionsCursor({ cursor: db.listCollections(filter, options) })
+    new ListCollectionsCursor.ListCollectionsCursorImpl({ cursor: db.listCollections(filter, options) })
 )
 
 export const dropCollection: {

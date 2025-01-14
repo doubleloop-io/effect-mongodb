@@ -13,9 +13,18 @@ import * as FindCursor from "./FindCursor.js"
 import { mongoErrorOrDie } from "./internal/mongo-error.js"
 import * as MongoError from "./MongoError.js"
 
-export class DocumentFindCursor extends Data.TaggedClass("DocumentFindCursor")<{
+type DocumentFindCursorFields = {
   cursor: MongoFindCursor<Document>
-}> implements Pipeable {
+}
+
+export interface DocumentFindCursor extends DocumentFindCursorFields, Pipeable {
+  _tag: "DocumentFindCursor"
+}
+
+/** @internal */
+export class DocumentFindCursorImpl extends Data.TaggedClass("DocumentFindCursor")<DocumentFindCursorFields>
+  implements DocumentFindCursor
+{
   pipe() {
     return pipeArguments(this, arguments)
   }
@@ -27,7 +36,7 @@ export const filter: {
 } = F.dual(
   (args) => isDocumentFindCursor(args[0]),
   (cursor: DocumentFindCursor, filter: Filter<Document>): DocumentFindCursor =>
-    new DocumentFindCursor({ cursor: cursor.cursor.filter(filter) })
+    new DocumentFindCursorImpl({ cursor: cursor.cursor.filter(filter) })
 )
 
 export const project: {
@@ -36,7 +45,7 @@ export const project: {
 } = F.dual(
   (args) => isDocumentFindCursor(args[0]),
   (cursor: DocumentFindCursor, value: Document): DocumentFindCursor =>
-    new DocumentFindCursor({ cursor: cursor.cursor.project(value) })
+    new DocumentFindCursorImpl({ cursor: cursor.cursor.project(value) })
 )
 
 export const sort: {
@@ -45,7 +54,7 @@ export const sort: {
 } = F.dual(
   (args) => isDocumentFindCursor(args[0]),
   (cursor: DocumentFindCursor, sort: Sort | string, direction?: SortDirection): DocumentFindCursor =>
-    new DocumentFindCursor({ cursor: cursor.cursor.sort(sort, direction) })
+    new DocumentFindCursorImpl({ cursor: cursor.cursor.sort(sort, direction) })
 )
 
 export const limit: {
@@ -54,7 +63,7 @@ export const limit: {
 } = F.dual(
   (args) => isDocumentFindCursor(args[0]),
   (cursor: DocumentFindCursor, value: number): DocumentFindCursor =>
-    new DocumentFindCursor({ cursor: cursor.cursor.limit(value) })
+    new DocumentFindCursorImpl({ cursor: cursor.cursor.limit(value) })
 )
 
 export const toArray = (cursor: DocumentFindCursor): Effect.Effect<Array<Document>, MongoError.MongoError> =>
@@ -77,13 +86,13 @@ export const typed: {
 } = F.dual((args) => isDocumentFindCursor(args[0]), <A, I = A, R = never>(
   cursor: DocumentFindCursor,
   schema: Schema.Schema<A, I, R>
-): FindCursor.FindCursor<A, I, R> => new FindCursor.FindCursor<A, I, R>({ cursor: cursor.cursor, schema }))
+): FindCursor.FindCursor<A, I, R> => new FindCursor.FindCursorImpl<A, I, R>({ cursor: cursor.cursor, schema }))
 
-const isDocumentFindCursor = (x: unknown) => x instanceof DocumentFindCursor
+const isDocumentFindCursor = (x: unknown) => x instanceof DocumentFindCursorImpl
 
 const errorSource = (cursor: DocumentFindCursor, functionName: string) =>
   new MongoError.CollectionErrorSource({
-    module: DocumentFindCursor.name,
+    module: DocumentFindCursorImpl.name,
     functionName,
     db: cursor.cursor.namespace.db,
     collection: cursor.cursor.namespace.collection ?? "NO_COLLECTION_NAME"

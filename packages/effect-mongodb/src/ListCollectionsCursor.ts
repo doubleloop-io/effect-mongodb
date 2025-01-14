@@ -19,11 +19,20 @@ export type FullCollectionInfo = MongoCollectionInfo
 
 type DefaultCollectionInfo = NameOnlyCollectionInfo | FullCollectionInfo
 
-export class ListCollectionsCursor<
-  T extends DefaultCollectionInfo = DefaultCollectionInfo
-> extends Data.TaggedClass("ListCollectionsCursor")<{
+type ListCollectionsCursorFields<T extends DefaultCollectionInfo = DefaultCollectionInfo> = {
   cursor: MongoListCollectionsCursor<T>
-}> implements Pipeable {
+}
+
+export interface ListCollectionsCursor<T extends DefaultCollectionInfo = DefaultCollectionInfo>
+  extends ListCollectionsCursorFields<T>, Pipeable
+{
+  _tag: "ListCollectionsCursor"
+}
+
+/** @internal */
+export class ListCollectionsCursorImpl<
+  T extends DefaultCollectionInfo = DefaultCollectionInfo
+> extends Data.TaggedClass("ListCollectionsCursor")<ListCollectionsCursorFields<T>> implements Pipeable {
   pipe() {
     return pipeArguments(this, arguments)
   }
@@ -53,7 +62,7 @@ export const toStream = <T extends DefaultCollectionInfo>(
 
 const errorSource = (cursor: ListCollectionsCursor, functionName: string) =>
   new MongoError.CollectionErrorSource({
-    module: ListCollectionsCursor.name,
+    module: ListCollectionsCursorImpl.name,
     functionName,
     db: cursor.cursor.namespace.db,
     collection: cursor.cursor.namespace.collection ?? "NO_COLLECTION_NAME"

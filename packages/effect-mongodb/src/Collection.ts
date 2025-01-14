@@ -44,10 +44,24 @@ import { mongoErrorOrDie } from "./internal/mongo-error.js"
 import * as SchemaExt from "./internal/schema.js"
 import * as MongoError from "./MongoError.js"
 
-export class Collection<A extends Document, I extends Document = A, R = never> extends Data.TaggedClass("Collection")<{
+type CollectionFields<A extends Document, I extends Document = A, R = never> = {
   collection: MongoCollection
   schema: Schema.Schema<A, I, R>
-}> implements Pipeable {
+}
+
+export interface Collection<A extends Document, I extends Document = A, R = never>
+  extends CollectionFields<A, I, R>, Pipeable
+{
+  _tag: "Collection"
+  /** @internal */
+  encode: ReturnType<typeof Schema.encode<A, I, R>>
+}
+
+/** @internal */
+export class CollectionImpl<A extends Document, I extends Document = A, R = never>
+  extends Data.TaggedClass("Collection")<CollectionFields<A, I, R>>
+  implements Collection<A, I, R>
+{
   readonly encode = Schema.encode(this.schema)
   pipe() {
     return pipeArguments(this, arguments)
@@ -73,7 +87,7 @@ export const find: {
     filter?: Filter<I>,
     options?: FindOptions
   ): FindCursor.FindCursor<A, I, R> =>
-    new FindCursor.FindCursor<A, I, R>({
+    new FindCursor.FindCursorImpl<A, I, R>({
       cursor: collection.collection.find(filter ?? {}, options),
       schema: collection.schema
     })
@@ -344,7 +358,9 @@ export const rename: {
   ): Effect.Effect<Collection<A, I, R>, MongoError.MongoError, R> =>
     F.pipe(
       Effect.promise(() => collection.collection.rename(newName, options)),
-      Effect.map((newCollection) => new Collection<A, I, R>({ collection: newCollection, schema: collection.schema })),
+      Effect.map((newCollection) =>
+        new CollectionImpl<A, I, R>({ collection: newCollection, schema: collection.schema })
+      ),
       Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "rename")))
     )
 )
@@ -460,7 +476,7 @@ export const aggregate: {
     pipeline: ReadonlyArray<Document>,
     options?: AggregateOptions
   ): AggregationCursor.AggregationCursor<B, BI, BR> =>
-    new AggregationCursor.AggregationCursor<B, BI, BR>({
+    new AggregationCursor.AggregationCursorImpl<B, BI, BR>({
       cursor: collection.collection.aggregate([...pipeline], options),
       schema
     })
@@ -508,14 +524,14 @@ export const countDocuments: {
     )
 )
 
-const isCollection = (x: unknown) => x instanceof Collection
+const isCollection = (x: unknown) => x instanceof CollectionImpl
 
 const errorSource = <A extends Document, I extends Document = A, R = never>(
   collection: Collection<A, I, R>,
   functionName: string
 ) =>
   new MongoError.CollectionErrorSource({
-    module: Collection.name,
+    module: CollectionImpl.name,
     functionName,
     db: collection.collection.dbName,
     collection: collection.collection.collectionName
