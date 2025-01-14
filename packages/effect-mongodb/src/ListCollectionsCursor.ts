@@ -4,6 +4,8 @@
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
+import type { Pipeable } from "effect/Pipeable"
+import { pipeArguments } from "effect/Pipeable"
 import * as Stream from "effect/Stream"
 import type {
   CollectionInfo as MongoCollectionInfo,
@@ -21,7 +23,11 @@ export class ListCollectionsCursor<
   T extends DefaultCollectionInfo = DefaultCollectionInfo
 > extends Data.TaggedClass("ListCollectionsCursor")<{
   cursor: MongoListCollectionsCursor<T>
-}> {}
+}> implements Pipeable {
+  pipe() {
+    return pipeArguments(this, arguments)
+  }
+}
 
 export type NameOnlyListCollectionsCursor = ListCollectionsCursor<
   Pick<MongoCollectionInfo, "name" | "type">

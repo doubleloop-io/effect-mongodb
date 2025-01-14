@@ -7,6 +7,8 @@ import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import type * as O from "effect/Option"
 import type * as ParseResult from "effect/ParseResult"
+import type { Pipeable } from "effect/Pipeable"
+import { pipeArguments } from "effect/Pipeable"
 import * as Schema from "effect/Schema"
 import type {
   AggregateOptions,
@@ -45,8 +47,11 @@ import * as MongoError from "./MongoError.js"
 export class Collection<A extends Document, I extends Document = A, R = never> extends Data.TaggedClass("Collection")<{
   collection: MongoCollection
   schema: Schema.Schema<A, I, R>
-}> {
+}> implements Pipeable {
   readonly encode = Schema.encode(this.schema)
+  pipe() {
+    return pipeArguments(this, arguments)
+  }
 }
 
 export type FindOptions = Omit<MongoFindOptions, "projection">

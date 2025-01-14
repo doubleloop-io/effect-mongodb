@@ -4,6 +4,8 @@
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
+import type { Pipeable } from "effect/Pipeable"
+import { pipeArguments } from "effect/Pipeable"
 import * as Stream from "effect/Stream"
 import type { AggregationCursor as MongoAggregationCursor, Document } from "mongodb"
 import { mongoErrorOrDie } from "./internal/mongo-error.js"
@@ -11,7 +13,11 @@ import * as MongoError from "./MongoError.js"
 
 export class DocumentAggregationCursor
   extends Data.TaggedClass("DocumentAggregationCursor")<{ cursor: MongoAggregationCursor<Document> }>
+  implements Pipeable
 {
+  pipe() {
+    return pipeArguments(this, arguments)
+  }
 }
 
 export const toArray = (

@@ -6,6 +6,8 @@ import * as Effect from "effect/Effect"
 import type * as E from "effect/Either"
 import * as F from "effect/Function"
 import type * as ParseResult from "effect/ParseResult"
+import type { Pipeable } from "effect/Pipeable"
+import { pipeArguments } from "effect/Pipeable"
 import * as Schema from "effect/Schema"
 import * as Stream from "effect/Stream"
 import * as Tuple from "effect/Tuple"
@@ -17,7 +19,10 @@ import * as MongoError from "./MongoError.js"
 export class FindCursor<A, I = A, R = never> extends Data.TaggedClass("FindCursor")<{
   cursor: FindCursor_<unknown>
   schema: Schema.Schema<A, I, R>
-}> {
+}> implements Pipeable {
+  pipe() {
+    return pipeArguments(this, arguments)
+  }
 }
 
 export const filter: {

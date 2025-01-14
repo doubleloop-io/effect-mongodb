@@ -4,6 +4,8 @@
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
+import type { Pipeable } from "effect/Pipeable"
+import { pipeArguments } from "effect/Pipeable"
 import type * as Schema from "effect/Schema"
 import * as Stream from "effect/Stream"
 import type { Document, Filter, FindCursor as MongoFindCursor, Sort, SortDirection } from "mongodb"
@@ -13,7 +15,10 @@ import * as MongoError from "./MongoError.js"
 
 export class DocumentFindCursor extends Data.TaggedClass("DocumentFindCursor")<{
   cursor: MongoFindCursor<Document>
-}> {
+}> implements Pipeable {
+  pipe() {
+    return pipeArguments(this, arguments)
+  }
 }
 
 export const filter: {

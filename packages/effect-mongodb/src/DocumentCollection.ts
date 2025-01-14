@@ -6,6 +6,8 @@ import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import * as O from "effect/Option"
+import type { Pipeable } from "effect/Pipeable"
+import { pipeArguments } from "effect/Pipeable"
 import type * as Schema from "effect/Schema"
 import type {
   AggregateOptions,
@@ -45,7 +47,10 @@ import * as MongoError from "./MongoError.js"
 
 export class DocumentCollection extends Data.TaggedClass("DocumentCollection")<{
   collection: MongoCollection
-}> {
+}> implements Pipeable {
+  pipe() {
+    return pipeArguments(this, arguments)
+  }
 }
 
 export const find: {
