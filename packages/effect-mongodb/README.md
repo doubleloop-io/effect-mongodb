@@ -30,15 +30,15 @@ const Person = Schema.Struct({
    birthday: Schema.Date
 })
 
-const program = Effect.gen(function*(_) {
-   const client = yield* _(MongoClient.connectScoped("mongodb://localhost:27017"))
+const program = Effect.gen(function*() {
+   const client = yield* MongoClient.connectScoped("mongodb://localhost:27017")
    const db = MongoClient.db(client, "source-db")
    const sourceCollection = Db.collection(db, "source", Person)
    const destinationCollection = Db.collection(db, "destination", Person)
 
-   const items = yield* _(Collection.find(sourceCollection), FindCursor.toArray)
+   const items = yield* Collection.find(sourceCollection).pipe(FindCursor.toArray)
 
-   yield* _(Collection.insertMany(destinationCollection, items))
+   yield* Collection.insertMany(destinationCollection, items)
 })
 
 await program.pipe(Effect.scoped, Effect.runPromise)

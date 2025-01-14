@@ -15,19 +15,16 @@ type MyType = typeof MyType.Type
 
 const anyMyType = Arbitrary.make(MyType)
 
-const program = Effect.gen(function*(_) {
-  const sourceInstance = yield* _(MongoClient.connectScoped("mongodb://localhost:27017"))
+const program = Effect.gen(function*() {
+  const sourceInstance = yield* MongoClient.connectScoped("mongodb://localhost:27017")
   const sourceDb = MongoClient.db(sourceInstance, "find-without-cursor-builder")
   const sourceCollection = Db.collection(sourceDb, "records", MyType)
   const myTypes = FastCheck.sample(anyMyType, 100)
-  yield* _(Collection.insertMany(sourceCollection, myTypes))
+  yield* Collection.insertMany(sourceCollection, myTypes)
 
-  const items = yield* _(
-    Collection.find(sourceCollection, {}, { sort: { value: -1 }, limit: 50 }),
-    FindCursor.toArray
-  )
+  const items = yield* Collection.find(sourceCollection, {}, { sort: { value: -1 }, limit: 50 }).pipe(FindCursor.toArray)
 
-  yield* _(Console.log(items))
+  yield* Console.log(items)
 })
 
 await program.pipe(Effect.scoped, Effect.runPromise)

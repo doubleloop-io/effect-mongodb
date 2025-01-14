@@ -16,21 +16,20 @@ const MyType = Schema.Struct({
 })
 type MyType = typeof MyType.Type
 
-const program = Effect.gen(function*(_) {
-  const sourceInstance = yield* _(MongoClient.connectScoped("mongodb://localhost:27017"))
+const program = Effect.gen(function*() {
+  const sourceInstance = yield* MongoClient.connectScoped("mongodb://localhost:27017")
   const sourceDb = MongoClient.db(sourceInstance, "elaborate-stream-with-partitioned-errors")
   const sourceCollection = Db.documentCollection(sourceDb, "records")
-  yield* _(DocumentCollection.insertMany(sourceCollection, [
+  yield* DocumentCollection.insertMany(sourceCollection, [
     { name: "User 1", age: 30, birthday: "1994-03-10T00:00:00Z" },
     { name: "User 2", age: "24", birthday: "2000-04-25T00:00:00Z" },
     { name: "User 3", age: 29, birthday: "802828800000" },
     { name: "User 4", age: 80, birthday: "1944-07-21T00:00:00Z" },
     { name: "User 5", age: 4, birthday: "2020-11-03T00:00:00Z" },
     { name: "User 6", age: 30, birthday: "19940310T000000Z" }
-  ]))
+  ])
 
-  yield* _(
-    DocumentCollection.find(sourceCollection),
+  yield* DocumentCollection.find(sourceCollection).pipe(
     DocumentFindCursor.typed(MyType),
     FindCursor.toStreamEither,
     Stream.mapEffect(

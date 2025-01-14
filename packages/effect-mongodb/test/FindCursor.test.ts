@@ -25,28 +25,25 @@ describeMongo("FindCursor", (ctx) => {
       id: User.fields.id
     })
 
-    const program = Effect.gen(function*(_) {
-      const db = yield* _(ctx.database)
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
       const collection = Db.collection(db, "acceptance-test", User)
 
-      yield* _(
-        Collection.insertMany(collection, [
-          { id: 2, createdOn: new Date("2024-06-26T21:15:00.000Z") },
-          { id: 3, createdOn: new Date("2024-07-26T09:30:00.000Z") },
-          { id: 1, createdOn: new Date("2024-04-19T17:45:00.000Z") },
-          { id: 5, createdOn: new Date("2024-05-26T09:30:00.000Z") },
-          { id: 4, createdOn: new Date("2024-07-05T15:00:00.000Z") }
-        ])
-      )
+      yield* Collection.insertMany(collection, [
+        { id: 2, createdOn: new Date("2024-06-26T21:15:00.000Z") },
+        { id: 3, createdOn: new Date("2024-07-26T09:30:00.000Z") },
+        { id: 1, createdOn: new Date("2024-04-19T17:45:00.000Z") },
+        { id: 5, createdOn: new Date("2024-05-26T09:30:00.000Z") },
+        { id: 4, createdOn: new Date("2024-07-05T15:00:00.000Z") }
+      ])
 
-      return yield* _(
-        Collection.find(collection),
+      return yield* Collection.find(collection).pipe(
         FindCursor.filter({ createdOn: { $lt: beforeJuly } }),
         FindCursor.sort("createdOn", "ascending"),
         FindCursor.project(UserProjection, { _id: 0, id: 1 }),
         FindCursor.limit(2),
         FindCursor.toArray
-      )
+      );
     })
 
     const result = await Effect.runPromise(program)
@@ -55,16 +52,16 @@ describeMongo("FindCursor", (ctx) => {
   })
 
   test("array with partitioned errors", async () => {
-    const program = Effect.gen(function*(_) {
-      const db = yield* _(ctx.database)
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
       const documentCollection = Db.documentCollection(db, "array-with-partitioned-errors")
       const collection = DocumentCollection.typed(documentCollection, User)
 
-      yield* _(Collection.insertMany(collection, FastCheck.sample(UserArbitrary, 6)))
-      yield* _(DocumentCollection.insertOne(documentCollection, { id: 999, surname: "foo" }))
-      yield* _(Collection.insertMany(collection, FastCheck.sample(UserArbitrary, 3)))
+      yield* Collection.insertMany(collection, FastCheck.sample(UserArbitrary, 6))
+      yield* DocumentCollection.insertOne(documentCollection, { id: 999, surname: "foo" })
+      yield* Collection.insertMany(collection, FastCheck.sample(UserArbitrary, 3))
 
-      return yield* _(Collection.find(collection), FindCursor.toArrayEither)
+      return yield* Collection.find(collection).pipe(FindCursor.toArrayEither);
     })
 
     const result = await Effect.runPromise(program)
@@ -80,18 +77,13 @@ describeMongo("FindCursor", (ctx) => {
   test("stream", async () => {
     const anyUsers = FastCheck.sample(UserArbitrary, 6)
 
-    const program = Effect.gen(function*(_) {
-      const db = yield* _(ctx.database)
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
       const collection = Db.collection(db, "stream", User)
 
-      yield* _(Collection.insertMany(collection, anyUsers))
+      yield* Collection.insertMany(collection, anyUsers)
 
-      return yield* _(
-        Collection.find(collection),
-        FindCursor.toStream,
-        Stream.runCollect,
-        Effect.map(Chunk.toReadonlyArray)
-      )
+      return yield* Collection.find(collection).pipe(FindCursor.toStream, Stream.runCollect, Effect.map(Chunk.toReadonlyArray));
     })
 
     const result = await Effect.runPromise(program)
@@ -100,21 +92,20 @@ describeMongo("FindCursor", (ctx) => {
   })
 
   test("stream with partitioned errors", async () => {
-    const program = Effect.gen(function*(_) {
-      const db = yield* _(ctx.database)
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
       const documentCollection = Db.documentCollection(db, "stream-with-partitioned-errors")
       const collection = DocumentCollection.typed(documentCollection, User)
 
-      yield* _(Collection.insertMany(collection, FastCheck.sample(UserArbitrary, 6)))
-      yield* _(DocumentCollection.insertOne(documentCollection, { id: 999, surname: "foo" }))
-      yield* _(Collection.insertMany(collection, FastCheck.sample(UserArbitrary, 3)))
+      yield* Collection.insertMany(collection, FastCheck.sample(UserArbitrary, 6))
+      yield* DocumentCollection.insertOne(documentCollection, { id: 999, surname: "foo" })
+      yield* Collection.insertMany(collection, FastCheck.sample(UserArbitrary, 3))
 
-      return yield* _(
-        Collection.find(collection),
+      return yield* Collection.find(collection).pipe(
         FindCursor.toStreamEither,
         Stream.runCollect,
         Effect.map(Chunk.toReadonlyArray)
-      )
+      );
     })
 
     const result = await Effect.runPromise(program)

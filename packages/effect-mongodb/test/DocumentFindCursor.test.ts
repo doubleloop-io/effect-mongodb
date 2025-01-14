@@ -11,28 +11,25 @@ describeMongo("DocumentFindCursor", (ctx) => {
   test("acceptance test", async () => {
     const beforeJuly = "2024-07-01T00:00:00.000Z"
 
-    const program = Effect.gen(function*(_) {
-      const db = yield* _(ctx.database)
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
       const collection = Db.documentCollection(db, "acceptance-test")
 
-      yield* _(
-        DocumentCollection.insertMany(collection, [
-          { id: 2, type: "Admin", createdOn: "2024-06-26T21:15:00.000Z" },
-          { id: 3, type: "User", createdOn: "2024-07-26T09:30:00.000Z" },
-          { id: 1, type: "User", createdOn: "2024-04-19T17:45:00.000Z" },
-          { id: 5, type: "User", createdOn: "2024-05-26T09:30:00.000Z" },
-          { id: 4, type: "User", createdOn: "2024-07-05T15:00:00.000Z" }
-        ])
-      )
+      yield* DocumentCollection.insertMany(collection, [
+        { id: 2, type: "Admin", createdOn: "2024-06-26T21:15:00.000Z" },
+        { id: 3, type: "User", createdOn: "2024-07-26T09:30:00.000Z" },
+        { id: 1, type: "User", createdOn: "2024-04-19T17:45:00.000Z" },
+        { id: 5, type: "User", createdOn: "2024-05-26T09:30:00.000Z" },
+        { id: 4, type: "User", createdOn: "2024-07-05T15:00:00.000Z" }
+      ])
 
-      return yield* _(
-        DocumentCollection.find(collection),
+      return yield* DocumentCollection.find(collection).pipe(
         DocumentFindCursor.filter({ createdOn: { $lt: beforeJuly } }),
         DocumentFindCursor.sort("createdOn", "ascending"),
         DocumentFindCursor.project({ _id: 0, id: 1 }),
         DocumentFindCursor.limit(2),
         DocumentFindCursor.toArray
-      )
+      );
     })
 
     const result = await Effect.runPromise(program)
@@ -47,18 +44,17 @@ describeMongo("DocumentFindCursor", (ctx) => {
       { id: 3, type: "User" },
       { id: 4, type: "Admin" }
     ]
-    const program = Effect.gen(function*(_) {
-      const db = yield* _(ctx.database)
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
 
       const collection = Db.documentCollection(db, "stream")
-      yield* _(DocumentCollection.insertMany(collection, users))
+      yield* DocumentCollection.insertMany(collection, users)
 
-      return yield* _(
-        DocumentCollection.find(collection),
+      return yield* DocumentCollection.find(collection).pipe(
         DocumentFindCursor.toStream,
         Stream.runCollect,
         Effect.map(Chunk.toReadonlyArray)
-      )
+      );
     })
 
     const result = await Effect.runPromise(program)

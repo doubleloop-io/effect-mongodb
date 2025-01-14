@@ -18,11 +18,11 @@ const MyTypeAggregation = Schema.Struct({
   elements: Schema.Array(Schema.Int)
 })
 
-const program = Effect.gen(function*(_) {
-  const sourceInstance = yield* _(MongoClient.connectScoped("mongodb://localhost:27017"))
+const program = Effect.gen(function*() {
+  const sourceInstance = yield* MongoClient.connectScoped("mongodb://localhost:27017")
   const sourceDb = MongoClient.db(sourceInstance, "aggregate")
   const sourceCollection = Db.collection(sourceDb, "records", MyType)
-  yield* _(Collection.insertMany(sourceCollection, [
+  yield* Collection.insertMany(sourceCollection, [
     MyType.make({ id: 1, source: "A" }),
     MyType.make({ id: 2, source: "B" }),
     MyType.make({ id: 3, source: "B" }),
@@ -30,24 +30,21 @@ const program = Effect.gen(function*(_) {
     MyType.make({ id: 5, source: "B" }),
     MyType.make({ id: 6, source: "C" }),
     MyType.make({ id: 7, source: "A" })
-  ]))
+  ])
 
-  const items = yield* _(
-    Collection.aggregate(sourceCollection, MyTypeAggregation, [
-      {
-        $group: {
-          _id: "$source",
-          elements: { $addToSet: "$id" }
-        }
-      },
-      {
-        $sort: { _id: 1 }
+  const items = yield* Collection.aggregate(sourceCollection, MyTypeAggregation, [
+    {
+      $group: {
+        _id: "$source",
+        elements: { $addToSet: "$id" }
       }
-    ]),
-    AggregationCursor.toArray
-  )
+    },
+    {
+      $sort: { _id: 1 }
+    }
+  ]).pipe(AggregationCursor.toArray)
 
-  yield* _(Console.log(items))
+  yield* Console.log(items)
 })
 
 await program.pipe(Effect.scoped, Effect.runPromise)

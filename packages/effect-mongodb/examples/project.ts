@@ -17,27 +17,23 @@ const MyTypeProjection = Schema.Struct({
   valuesMax: Schema.Int
 })
 
-const program = Effect.gen(function*(_) {
-  const sourceInstance = yield* _(MongoClient.connectScoped("mongodb://localhost:27017"))
+const program = Effect.gen(function*() {
+  const sourceInstance = yield* MongoClient.connectScoped("mongodb://localhost:27017")
   const sourceDb = MongoClient.db(sourceInstance, "project")
   const sourceCollection = Db.collection(sourceDb, "records", MyType)
-  yield* _(Collection.insertMany(sourceCollection, [
+  yield* Collection.insertMany(sourceCollection, [
     { id: 1, values: [1, 20, 13] },
     { id: 2, values: [4, 5] },
     { id: 3, values: [1, 5, 33, 96] }
-  ]))
+  ])
 
-  const items = yield* _(
-    Collection.find(sourceCollection),
-    FindCursor.project(MyTypeProjection, {
-      id: 1,
-      valuesCount: { $size: "$values" },
-      valuesMax: { $max: "$values" }
-    }),
-    FindCursor.toArray
-  )
+  const items = yield* Collection.find(sourceCollection).pipe(FindCursor.project(MyTypeProjection, {
+    id: 1,
+    valuesCount: { $size: "$values" },
+    valuesMax: { $max: "$values" }
+  }), FindCursor.toArray)
 
-  yield* _(Console.log(items))
+  yield* Console.log(items)
 })
 
 await program.pipe(Effect.scoped, Effect.runPromise)

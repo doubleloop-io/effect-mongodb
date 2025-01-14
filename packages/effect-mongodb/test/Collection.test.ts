@@ -11,15 +11,13 @@ describeMongo("Collection", (ctx) => {
   test("find one", async () => {
     const user = User.make({ name: "john", birthday: new Date(1977, 11, 27) })
 
-    const program = Effect.gen(function*(_) {
-      const db = yield* _(ctx.database)
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
       const collection = Db.collection(db, "find-one", User)
 
-      yield* _(
-        Collection.insertOne(collection, user)
-      )
+      yield* Collection.insertOne(collection, user)
 
-      return yield* _(Collection.findOne(collection, { name: "john" }))
+      return yield* Collection.findOne(collection, { name: "john" });
     })
 
     const result = await Effect.runPromise(program)
@@ -28,8 +26,8 @@ describeMongo("Collection", (ctx) => {
   })
 
   test("find one - no result", async () => {
-    const program = Effect.gen(function*(_) {
-      const db = yield* _(ctx.database)
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
       const collection = Db.collection(db, "find-one-no-result", User)
 
       const users = [
@@ -37,9 +35,9 @@ describeMongo("Collection", (ctx) => {
         User.make({ name: "any2", birthday: new Date(1977, 11, 27) }),
         User.make({ name: "any3", birthday: new Date(1989, 5, 11) })
       ]
-      yield* _(Collection.insertMany(collection, users))
+      yield* Collection.insertMany(collection, users)
 
-      return yield* _(Collection.findOne(collection, { name: "john" }))
+      return yield* Collection.findOne(collection, { name: "john" });
     })
 
     const result = await Effect.runPromise(program)
@@ -48,20 +46,18 @@ describeMongo("Collection", (ctx) => {
   })
 
   test("find one and replace", async () => {
-    const program = Effect.gen(function*(_) {
-      const db = yield* _(ctx.database)
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
       const collection = Db.collection(db, "find-one-and-replace", UserWithVersion)
 
-      yield* _(Collection.insertOne(collection, { name: "john", version: "v1" }))
+      yield* Collection.insertOne(collection, { name: "john", version: "v1" })
 
-      return yield* _(
-        Collection.findOneAndReplace(
-          collection,
-          { name: "john", version: "v1" },
-          { name: "john", version: "v2" },
-          { returnDocument: "after" }
-        )
-      )
+      return yield* Collection.findOneAndReplace(
+        collection,
+        { name: "john", version: "v1" },
+        { name: "john", version: "v2" },
+        { returnDocument: "after" }
+      );
     })
 
     const result = await Effect.runPromise(program)
@@ -70,20 +66,18 @@ describeMongo("Collection", (ctx) => {
   })
 
   test("find one and replace - include result metadata", async () => {
-    const program = Effect.gen(function*(_) {
-      const db = yield* _(ctx.database)
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
       const collection = Db.collection(db, "find-one-and-replace-include-result-metadata", UserWithVersion)
 
-      yield* _(Collection.insertOne(collection, { name: "john", version: "v1" }))
+      yield* Collection.insertOne(collection, { name: "john", version: "v1" })
 
-      return yield* _(
-        Collection.findOneAndReplace(
-          collection,
-          { name: "john", version: "v1" },
-          { name: "john", version: "v2" },
-          { returnDocument: "after", includeResultMetadata: true }
-        )
-      )
+      return yield* Collection.findOneAndReplace(
+        collection,
+        { name: "john", version: "v1" },
+        { name: "john", version: "v2" },
+        { returnDocument: "after", includeResultMetadata: true }
+      );
     })
 
     const result = await Effect.runPromise(program)
@@ -102,34 +96,29 @@ describeMongo("Collection", (ctx) => {
     const user5 = User.make({ name: "user5", birthday: new Date(1995, 3, 21) })
     const user6 = User.make({ name: "user6", birthday: new Date(2000, 5, 30) })
 
-    const program = Effect.gen(function*(_) {
-      const db = yield* _(ctx.database)
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
       const collection = Db.collection(db, "aggregate", User)
 
-      yield* _(
-        Collection.insertMany(collection, [user1, user2, user3, user4, user5, user6])
-      )
+      yield* Collection.insertMany(collection, [user1, user2, user3, user4, user5, user6])
 
       const _1990 = "1990-01-01T00:00:00.000Z"
-      return yield* _(
-        Collection.aggregate(collection, UserAggregation, [
-          {
-            $match: {
-              birthday: { $lt: _1990 }
-            }
-          },
-          {
-            $group: {
-              _id: "$birthday",
-              names: { $addToSet: "$name" }
-            }
-          },
-          {
-            $sort: { _id: 1 }
+      return yield* Collection.aggregate(collection, UserAggregation, [
+        {
+          $match: {
+            birthday: { $lt: _1990 }
           }
-        ]),
-        AggregationCursor.toArray
-      )
+        },
+        {
+          $group: {
+            _id: "$birthday",
+            names: { $addToSet: "$name" }
+          }
+        },
+        {
+          $sort: { _id: 1 }
+        }
+      ]).pipe(AggregationCursor.toArray);
     })
 
     const result = await Effect.runPromise(program)
