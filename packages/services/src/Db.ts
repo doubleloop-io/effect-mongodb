@@ -19,18 +19,21 @@ export const layerEffect = <DbK extends string, MongoClientK extends string, E =
   clientTag: MongoClientService.TagType<MongoClientK>,
   dbName: Effect.Effect<string, E, R>
 ) =>
-  Layer.effect(
-    dbTag,
-    Effect.gen(function*() {
-      const client = yield* clientTag
-      const dbName_ = yield* dbName
-      const db = MongoClient.db(client, dbName_)
-      return dbTag.of(db as DbService<DbK>) // TODO fix cast using branded ctor
-    })
-  )
+  Effect.gen(function*(_) {
+    const dbname_ = yield* dbName
+    return layer(dbTag, clientTag, dbname_)
+  }).pipe(Layer.unwrapEffect)
 
 export const layer = <DbK extends string, MongoClientK extends string>(
   dbTag: TagType<DbK>,
   clientTag: MongoClientService.TagType<MongoClientK>,
   dbName: string
-) => layerEffect(dbTag, clientTag, Effect.succeed(dbName))
+) =>
+  Layer.effect(
+    dbTag,
+    Effect.gen(function*() {
+      const client = yield* clientTag
+      const db = MongoClient.db(client, dbName)
+      return dbTag.of(db as DbService<DbK>) // TODO fix cast using branded ctor
+    })
+  )
