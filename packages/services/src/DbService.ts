@@ -19,7 +19,7 @@ export const layerEffect = <DbK extends string, MongoClientK extends string, E =
   clientTag: MongoClientService.TagType<MongoClientK>,
   dbName: Effect.Effect<string, E, R>
 ) =>
-  Effect.gen(function*(_) {
+  Effect.gen(function*() {
     const dbname_ = yield* dbName
     return layer(dbTag, clientTag, dbname_)
   }).pipe(Layer.unwrapEffect)

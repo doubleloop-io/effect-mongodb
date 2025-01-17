@@ -131,15 +131,13 @@ import { describeMongo } from "./support/describe-mongo.js"
 
 describeMongo("My tests", (ctx) => {
   test("find one", async () => {
-    const program = Effect.gen(function* (_) {
-      const db = yield* _(ctx.database)
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
       const collection = Db.documentCollection(db, "find-one")
 
-      yield* _(
-        DocumentCollection.insertMany(collection, [{ name: "john" }, { name: "alfred" }])
-      )
+      yield* DocumentCollection.insertMany(collection, [{ name: "john" }, { name: "alfred" }])
 
-      return yield* _(DocumentCollection.findOne(collection, { name: "john" }))
+      return yield* DocumentCollection.findOne(collection, { name: "john" })
     })
 
     const result = await Effect.runPromise(program)

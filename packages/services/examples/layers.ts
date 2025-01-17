@@ -15,7 +15,7 @@ const Todo = Schema.Struct({
 
 const MyDb = DbService.Tag("MyDb")
 
-const program = Effect.gen(function*(_) {
+const program = Effect.gen(function*() {
   const db = yield* MyDb
   const sourceCollection = Db.collection(db, "source", Todo)
   const destinationCollection = Db.collection(db, "destination", Todo)

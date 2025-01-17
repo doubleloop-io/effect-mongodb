@@ -16,7 +16,7 @@ export const layerEffect = <MongoClientK extends string, E = never, R = never>(
   clientTag: TagType<MongoClientK>,
   url: Effect.Effect<string, E, R>
 ) =>
-  Effect.gen(function*(_) {
+  Effect.gen(function*() {
     const url_ = yield* url
     return layer(clientTag, url_)
   }).pipe(Layer.unwrapEffect)

@@ -16,7 +16,7 @@ const Todo = Schema.Struct({
 const MainDb = DbService.Tag("MainDb")
 const ReplicaDb = DbService.Tag("ReplicaDb")
 
-const program = Effect.gen(function*(_) {
+const program = Effect.gen(function*() {
   const mainDb = yield* MainDb
   const newDb = yield* ReplicaDb
 
