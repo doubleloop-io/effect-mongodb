@@ -7,7 +7,7 @@ import * as Context from "effect/Context"
 import * as Effect from "effect/Effect"
 import * as Layer from "effect/Layer"
 import type { Db } from "mongodb"
-import type * as MongoClientService from "./MongoClient.js"
+import type * as MongoClientService from "./MongoClientService.js"
 
 export type DbService<K extends string> = Db & Brand.Brand<K>
 

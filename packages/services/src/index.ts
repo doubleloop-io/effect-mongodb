@@ -1,9 +1,9 @@
 /**
  * @since 0.0.1
  */
-export * as Db from "./Db.js"
+export * as DbService from "./DbService.js"
 
 /**
  * @since 0.0.1
  */
-export * as MongoClient from "./MongoClient.js"
+export * as MongoClientService from "./MongoClientService.js"

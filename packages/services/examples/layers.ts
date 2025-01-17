@@ -1,5 +1,5 @@
-import * as DbService from "@effect-mongodb/services/Db"
-import * as MongoClientService from "@effect-mongodb/services/MongoClient"
+import * as DbService from "@effect-mongodb/services/DbService"
+import * as MongoClientService from "@effect-mongodb/services/MongoClientService"
 import * as Collection from "effect-mongodb/Collection"
 import * as Db from "effect-mongodb/Db"
 import * as FindCursor from "effect-mongodb/FindCursor"
