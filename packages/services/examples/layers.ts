@@ -6,18 +6,19 @@ import * as FindCursor from "effect-mongodb/FindCursor"
 import * as Effect from "effect/Effect"
 import * as Schema from "effect/Schema"
 
-const Person = Schema.Struct({
-  name: Schema.String,
-  age: Schema.Number,
-  birthday: Schema.Date
+const Todo = Schema.Struct({
+  userId: Schema.Number,
+  id: Schema.Number,
+  title: Schema.String,
+  completed: Schema.Boolean
 })
 
 const MyDb = DbService.Tag("MyDb")
 
 const program = Effect.gen(function*(_) {
   const db = yield* MyDb
-  const sourceCollection = Db.collection(db, "source", Person)
-  const destinationCollection = Db.collection(db, "destination", Person)
+  const sourceCollection = Db.collection(db, "source", Todo)
+  const destinationCollection = Db.collection(db, "destination", Todo)
 
   const items = yield* Collection.find(sourceCollection).pipe(FindCursor.toArray)
 
