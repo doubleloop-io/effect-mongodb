@@ -14,7 +14,7 @@ export type DbService<K extends string> = Db & Brand.Brand<K>
 export const Tag = <K extends string>(key: K) => Context.GenericTag<DbService<K>>(key)
 export type TagType<K extends string> = ReturnType<typeof Tag<K>>
 
-export const fromEffect = <DbK extends string, MongoClientK extends string, E = never, R = never>(
+export const layerEffect = <DbK extends string, MongoClientK extends string, E = never, R = never>(
   dbTag: TagType<DbK>,
   clientTag: MongoClientService.TagType<MongoClientK>,
   dbName: Effect.Effect<string, E, R>
@@ -29,8 +29,8 @@ export const fromEffect = <DbK extends string, MongoClientK extends string, E = 
     })
   )
 
-export const fromConst = <DbK extends string, MongoClientK extends string>(
+export const layer = <DbK extends string, MongoClientK extends string>(
   dbTag: TagType<DbK>,
   clientTag: MongoClientService.TagType<MongoClientK>,
   dbName: string
-) => fromEffect(dbTag, clientTag, Effect.succeed(dbName))
+) => layerEffect(dbTag, clientTag, Effect.succeed(dbName))
