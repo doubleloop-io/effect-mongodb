@@ -1,53 +1,37 @@
-/*
+import * as DbService from "@effect-mongodb/services/Db"
+import * as MongoClientService from "@effect-mongodb/services/MongoClient"
+import * as Collection from "effect-mongodb/Collection"
+import * as Db from "effect-mongodb/Db"
+import * as FindCursor from "effect-mongodb/FindCursor"
+import * as Effect from "effect/Effect"
+import * as Schema from "effect/Schema"
 
-type MongoClientService<T> = {
-  client: Effect.Effect<MongoClient, MongoError>
-} & Brand<T>
+const Person = Schema.Struct({
+  name: Schema.String,
+  age: Schema.Number,
+  birthday: Schema.Date
+})
 
-const FooClient = MongoClient.Tag("FooClient")
+const MyDb = DbService.Tag("MyDb")
 
-const { clientEffect } = yield* _(FooClient)
-const client = yield* _(clientEffect)
-const db = yield* _(MongoClient.db(client, "source"))
-const sourceCollection = yield* _(Db.collection(db, "records"))
-....
+const program = Effect.gen(function*(_) {
+  const db = yield* MyDb
+  const sourceCollection = Db.collection(db, "source", Person)
+  const destinationCollection = Db.collection(db, "destination", Person)
 
-Layer.effect(
-  FooClient,
-  Effect.gen(function() {
-    const client = yield *(MongoClient.connect("mongodb://localhost:27017"))
-    return FooClient.of({ client })
-  })
+  const items = yield* Collection.find(sourceCollection).pipe(FindCursor.toArray)
+
+  yield* Collection.insertMany(destinationCollection, items)
+})
+
+/*** main.ts ***/
+
+const MyMongoClient = MongoClientService.Tag("MyMongoClient")
+const MyDbLive = DbService.layer(MyDb, MyMongoClient, "mydb")
+const MyMongoClientLive = MongoClientService.layer(MyMongoClient, "mongodb://localhost:27017")
+
+await program.pipe(
+  Effect.provide(MyDbLive),
+  Effect.provide(MyMongoClientLive),
+  Effect.runPromise
 )
-
-type DbService<T> = {
-  db: Effect.Effect<Db, MongoError>
-} & Brand<T>
-
-const FooDb = Db.Tag("FooDb")
-
-const { dbFactory } = yield* _(FooDb)
-const db = yield* _(dbFactory)
-const sourceCollection = yield* _(Db.collection(db, "records"))
-....
-
-**** Db.ts ****
-const ServiceLive = (dbTag, clientTag, dbName: Effect<string>) => Layer.effect(
-  dbTag,
-  Effect.gen(function() {
-    const { clientEffect } = yield* _(clientTag)
-    const dbEffect = F.pipe(
-      Effect.all([clientEffect, dbName]),
-      Effect.map(([client, dbName]) => MongoClient.db(client, dbName)),
-      Effect.cached
-    )
-
-    return dbTag.of({ db: dbEffect })
-  })
-)
-
-
-**** MongoClient.ts ****
-const MongoClientLiveFromConfig
-
-*/
