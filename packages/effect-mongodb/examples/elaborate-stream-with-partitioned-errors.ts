@@ -9,13 +9,13 @@ import * as ParseResult from "effect/ParseResult"
 import * as Schema from "effect/Schema"
 import * as Stream from "effect/Stream"
 
-const MyType = Schema.Struct({
-  name: Schema.String,
-  age: Schema.Number,
-  birthday: Schema.Date
-})
-type MyType = typeof MyType.Type
-
+/**
+ * Elaborate stream with partitioned errors
+ *
+ * Highlights:
+ * Use `toStreamEither` or `toArrayEither` to prevent the Stream/Effect from short-circuiting when the first error occur.
+ * In this example, we log the error and continue processing the remaining documents.
+ */
 const program = Effect.gen(function*() {
   const sourceInstance = yield* MongoClient.connectScoped("mongodb://localhost:27017")
   const sourceDb = MongoClient.db(sourceInstance, "elaborate-stream-with-partitioned-errors")
@@ -44,5 +44,12 @@ const program = Effect.gen(function*() {
     Stream.runDrain
   )
 })
+
+const MyType = Schema.Struct({
+  name: Schema.String,
+  age: Schema.Number,
+  birthday: Schema.Date
+})
+type MyType = typeof MyType.Type
 
 await program.pipe(Effect.scoped, Effect.runPromise)

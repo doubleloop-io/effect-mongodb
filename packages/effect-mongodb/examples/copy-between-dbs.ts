@@ -7,13 +7,12 @@ import * as MongoClient from "effect-mongodb/MongoClient"
 import * as Effect from "effect/Effect"
 import * as Schema from "effect/Schema"
 
-const MyType = Schema.Struct({
-  name: Schema.String,
-  age: Schema.Number,
-  birthday: Schema.Date
-})
-type MyType = typeof MyType.Type
-
+/**
+ * Copy between dbs
+ *
+ * Highlights:
+ * At line 27, convert a Document-based collection into a Schema-based collection to validate its documents.
+ */
 const program = Effect.gen(function*() {
   const sourceInstance = yield* MongoClient.connectScoped("mongodb://localhost:27017")
   const sourceDb = MongoClient.db(sourceInstance, "source")
@@ -35,5 +34,12 @@ const program = Effect.gen(function*() {
 
   yield* Collection.insertMany(destinationCollection, sourceItems)
 })
+
+const MyType = Schema.Struct({
+  name: Schema.String,
+  age: Schema.Number,
+  birthday: Schema.Date
+})
+type MyType = typeof MyType.Type
 
 await program.pipe(Effect.scoped, Effect.runPromise)

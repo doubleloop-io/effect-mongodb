@@ -8,13 +8,12 @@ import * as Effect from "effect/Effect"
 import * as FastCheck from "effect/FastCheck"
 import * as Schema from "effect/Schema"
 
-const MyType = Schema.Struct({
-  value: Schema.Int
-})
-type MyType = typeof MyType.Type
-
-const anyMyType = Arbitrary.make(MyType)
-
+/**
+ * Find with cursor builder
+ *
+ * Highlights:
+ * At line 25, just like the MongoDB driver's `FindCursor`, you can use builder functions to customize the cursor options.
+ */
 const program = Effect.gen(function*() {
   const sourceInstance = yield* MongoClient.connectScoped("mongodb://localhost:27017")
   const sourceDb = MongoClient.db(sourceInstance, "find-with-cursor-builder")
@@ -30,5 +29,12 @@ const program = Effect.gen(function*() {
 
   yield* Console.log(items)
 })
+
+const MyType = Schema.Struct({
+  value: Schema.Int
+})
+type MyType = typeof MyType.Type
+
+const anyMyType = Arbitrary.make(MyType)
 
 await program.pipe(Effect.scoped, Effect.runPromise)
