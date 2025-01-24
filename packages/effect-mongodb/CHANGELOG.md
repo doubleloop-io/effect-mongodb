@@ -1,5 +1,11 @@
 # effect-mongodb
 
+## 0.1.4
+
+### Patch Changes
+
+- [`9b50f17`](https://github.com/doubleloop-io/effect-mongodb/commit/9b50f179f2c209ba24b8fbcd4753ce1708522f8f) Thanks [@VenomAV](https://github.com/VenomAV)! - Make cursor and collection classes pipeable
+
 ## 0.1.3
 
 ### Patch Changes
