@@ -1,9 +1,42 @@
 # effect-mongodb
 
+[![CI status](https://github.com/doubleloop-io/effect-mongodb/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/doubleloop-io/effect-mongodb/actions/workflows/ci.yml)
+![effect-mongodb npm version](https://img.shields.io/npm/v/effect-mongodb?label=effect-mongodb%20npm&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2Feffect-mongodb)
+
 A [MongoDB](https://github.com/mongodb/node-mongodb-native) toolkit for [Effect](https://github.com/Effect-TS/effect/).
 
-[effect-mongodb](packages/effect-mongodb/README.md) is the core package that provides effectful APIs to work
-with MongoDB.
+```typescript
+import * as Collection from "effect-mongodb/Collection"
+import * as Db from "effect-mongodb/Db"
+import * as FindCursor from "effect-mongodb/FindCursor"
+import * as MongoClient from "effect-mongodb/MongoClient"
+import * as Effect from "effect/Effect"
+import * as Schema from "effect/Schema"
+
+const Person = Schema.Struct({
+  name: Schema.String,
+  age: Schema.Number,
+  birthday: Schema.Date
+})
+
+const program = Effect.gen(function* () {
+  const client = yield* MongoClient.connectScoped("mongodb://localhost:27017")
+  const db = MongoClient.db(client, "source-db")
+  const sourceCollection = Db.collection(db, "source", Person)
+  const destinationCollection = Db.collection(db, "destination", Person)
+
+  const items = yield* Collection.find(sourceCollection).pipe(FindCursor.toArray)
+
+  yield* Collection.insertMany(destinationCollection, items)
+})
+
+await program.pipe(Effect.scoped, Effect.runPromise)
+```
+
+## Documentation
+
+[effect-mongodb](packages/effect-mongodb/README.md) is the **core package** that provides effectful APIs to work with
+MongoDB.
 
 ## MongoDB driver compatibility
 
