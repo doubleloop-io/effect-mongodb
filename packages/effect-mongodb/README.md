@@ -20,12 +20,8 @@ Note that `effect`, and `mongodb` are requested as peer dependencies.
 Here is a simple example of how to use this package:
 
 ```typescript
-import * as Collection from "effect-mongodb/Collection"
-import * as Db from "effect-mongodb/Db"
-import * as FindCursor from "effect-mongodb/FindCursor"
-import * as MongoClient from "effect-mongodb/MongoClient"
-import * as Effect from "effect/Effect"
-import * as Schema from "effect/Schema"
+import { Effect, Schema } from "effect"
+import { Collection, Db, FindCursor, MongoClient } from "effect-mongodb"
 
 const Person = Schema.Struct({
    name: Schema.String,

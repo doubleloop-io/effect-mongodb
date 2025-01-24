@@ -6,12 +6,8 @@
 A [MongoDB](https://github.com/mongodb/node-mongodb-native) toolkit for [Effect](https://github.com/Effect-TS/effect/).
 
 ```typescript
-import * as Collection from "effect-mongodb/Collection"
-import * as Db from "effect-mongodb/Db"
-import * as FindCursor from "effect-mongodb/FindCursor"
-import * as MongoClient from "effect-mongodb/MongoClient"
-import * as Effect from "effect/Effect"
-import * as Schema from "effect/Schema"
+import { Effect, Schema } from "effect"
+import { Collection, Db, FindCursor, MongoClient } from "effect-mongodb"
 
 const Person = Schema.Struct({
   name: Schema.String,
@@ -19,7 +15,7 @@ const Person = Schema.Struct({
   birthday: Schema.Date
 })
 
-const program = Effect.gen(function* () {
+const program = Effect.gen(function*() {
   const client = yield* MongoClient.connectScoped("mongodb://localhost:27017")
   const db = MongoClient.db(client, "source-db")
   const sourceCollection = Db.collection(db, "source", Person)
