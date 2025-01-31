@@ -1,5 +1,11 @@
 # effect-mongodb
 
+## 0.1.5
+
+### Patch Changes
+
+- [`7faa2c5`](https://github.com/doubleloop-io/effect-mongodb/commit/7faa2c5732f6297b7515787529bfac58c97d6082) Thanks [@devmatteini](https://github.com/devmatteini)! - Export `MongoClient.connectScoped` options type `MongoClientScopedOptions`
+
 ## 0.1.4
 
 ### Patch Changes
