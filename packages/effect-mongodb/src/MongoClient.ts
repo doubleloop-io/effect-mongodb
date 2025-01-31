@@ -30,9 +30,11 @@ export const close: {
     )
 )
 
+export type MongoClientScopedOptions = MongoClientOptions & { forceClose?: boolean }
+
 export const connectScoped = (
   url: string,
-  options?: MongoClientOptions & { forceClose?: boolean }
+  options?: MongoClientScopedOptions
 ): Effect.Effect<MongoClient, MongoError.MongoError, Scope.Scope> =>
   Effect.acquireRelease(
     connect(url, options),
