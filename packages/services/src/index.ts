@@ -1,6 +1,11 @@
 /**
  * @since 0.0.1
  */
+export * as DbInstance from "./DbInstance.js"
+
+/**
+ * @since 0.0.1
+ */
 export * as DbService from "./DbService.js"
 
 /**
