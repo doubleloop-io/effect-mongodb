@@ -1,9 +1,8 @@
 import * as Db from "effect-mongodb/Db"
 import * as F from "effect/Function"
 import * as Schema from "effect/Schema"
-import type { Db as MongoDb } from "mongodb"
 
-declare const database: MongoDb
+declare const database: Db.Db
 
 const User = Schema.Struct({
   id: Schema.NumberFromString
