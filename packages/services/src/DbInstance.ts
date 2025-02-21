@@ -1,7 +1,7 @@
 /**
  * @since 0.0.1
  */
-import type * as MongoClient from "effect-mongodb/MongoClient"
+import * as MongoClient from "effect-mongodb/MongoClient"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import * as Layer from "effect/Layer"
@@ -35,5 +35,20 @@ export const layer = <DbK extends string>(
   const defaultClientLayer = MongoClientService.layer(DefaultMongoClient, clientUrl, clientOptions)
   return dbLayer.pipe(Layer.provide(defaultClientLayer))
 }
+
+type DbInstanceOptionsWithClient = Pick<DbInstanceOptions, "database"> & { client: MongoClient.MongoClient }
+
+export const fromMongoClient = <DbK extends string, E = never, R = never>(
+  dbTag: DbService.TagType<DbK>,
+  options: Effect.Effect<DbInstanceOptionsWithClient, E, R>
+) =>
+  Layer.effect(
+    dbTag,
+    Effect.gen(function*() {
+      const { client, database: { name, ...dbOptions } } = yield* options
+      const db = MongoClient.db(client, name, dbOptions)
+      return dbTag.of(db as DbService.DbService<DbK>)
+    })
+  )
 
 const DefaultMongoClient = MongoClientService.Tag("@effect-mongodb/services/DefaultMongoClient")

@@ -31,3 +31,12 @@ export const layer = <MongoClientK extends string>(
     const client = yield* MongoClient.connectScoped(url, options)
     return Context.make(clientTag, client as MongoClientService<MongoClientK>)
   }))
+
+export const fromMongoClient = <MongoClientK extends string, E = never, R = never>(
+  clientTag: TagType<MongoClientK>,
+  mongoClient: Effect.Effect<MongoClient.MongoClient, E, R>
+) =>
+  Layer.effect(
+    clientTag,
+    Effect.map(mongoClient, (client) => client as MongoClientService<MongoClientK>)
+  )
