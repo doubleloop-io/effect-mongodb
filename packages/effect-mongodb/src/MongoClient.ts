@@ -1,6 +1,7 @@
 /**
  * @since 0.0.1
  */
+import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import type * as Scope from "effect/Scope"
@@ -10,13 +11,14 @@ import * as Db from "./Db.js"
 import { mongoErrorOrDie } from "./internal/mongo-error.js"
 import * as MongoError from "./MongoError.js"
 
-export type MongoClient = MongoClient_
+export class MongoClient extends Data.TaggedClass("MongoClient")<{ client: MongoClient_ }> {}
 
 export const connect = (
   url: string,
   options?: MongoClientOptions
 ): Effect.Effect<MongoClient, MongoError.MongoError> =>
   Effect.promise(() => MongoClient_.connect(url, options)).pipe(
+    Effect.map((client) => new MongoClient({ client })),
     Effect.catchAllDefect(mongoErrorOrDie(errorSource([new URL(url).host], "connect")))
   )
 
@@ -25,7 +27,7 @@ export const close: {
   (client: MongoClient, force?: boolean): Effect.Effect<void, MongoError.MongoError>
 } = F.dual(
   (args) => isMongoClient(args[0]),
-  (client: MongoClient, force?: boolean): Effect.Effect<void, MongoError.MongoError> =>
+  ({ client }: MongoClient, force?: boolean): Effect.Effect<void, MongoError.MongoError> =>
     Effect.promise(() => client.close(force)).pipe(
       Effect.catchAllDefect(mongoErrorOrDie(errorSource(client.options.hosts.map((x) => x.host ?? "NO_HOST"), "close")))
     )
@@ -47,7 +49,8 @@ export const db: {
   (client: MongoClient, dbName?: string, options?: DbOptions): Db.Db
 } = F.dual(
   (args) => isMongoClient(args[0]),
-  (client: MongoClient, dbName?: string, options?: DbOptions): Db.Db => new Db.Db({ db: client.db(dbName, options) })
+  ({ client }: MongoClient, dbName?: string, options?: DbOptions): Db.Db =>
+    new Db.Db({ db: client.db(dbName, options) })
 )
 
 const isMongoClient = (x: unknown) => x instanceof MongoClient_
