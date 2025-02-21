@@ -4,8 +4,9 @@
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import type * as Scope from "effect/Scope"
-import type { Db, DbOptions, MongoClientOptions } from "mongodb"
+import type { DbOptions, MongoClientOptions } from "mongodb"
 import { MongoClient as MongoClient_ } from "mongodb"
+import * as Db from "./Db.js"
 import { mongoErrorOrDie } from "./internal/mongo-error.js"
 import * as MongoError from "./MongoError.js"
 
@@ -42,11 +43,11 @@ export const connectScoped = (
   )
 
 export const db: {
-  (dbName?: string, options?: DbOptions): (client: MongoClient) => Db
-  (client: MongoClient, dbName?: string, options?: DbOptions): Db
+  (dbName?: string, options?: DbOptions): (client: MongoClient) => Db.Db
+  (client: MongoClient, dbName?: string, options?: DbOptions): Db.Db
 } = F.dual(
   (args) => isMongoClient(args[0]),
-  (client: MongoClient, dbName?: string, options?: DbOptions): Db => client.db(dbName, options)
+  (client: MongoClient, dbName?: string, options?: DbOptions): Db.Db => new Db.Db({ db: client.db(dbName, options) })
 )
 
 const isMongoClient = (x: unknown) => x instanceof MongoClient_

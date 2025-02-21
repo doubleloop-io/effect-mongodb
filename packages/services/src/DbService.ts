@@ -1,15 +1,16 @@
 /**
  * @since 0.0.1
  */
+import type * as Db from "effect-mongodb/Db"
 import * as MongoClient from "effect-mongodb/MongoClient"
 import type * as Brand from "effect/Brand"
 import * as Context from "effect/Context"
 import * as Effect from "effect/Effect"
 import * as Layer from "effect/Layer"
-import type { Db, DbOptions } from "mongodb"
+import type { DbOptions } from "mongodb"
 import type * as MongoClientService from "./MongoClientService.js"
 
-export type DbService<K extends string> = Db & Brand.Brand<K>
+export type DbService<K extends string> = Db.Db & Brand.Brand<K>
 
 export const Tag = <K extends string>(key: K) => Context.GenericTag<DbService<K>>(key)
 export type TagType<K extends string> = ReturnType<typeof Tag<K>>

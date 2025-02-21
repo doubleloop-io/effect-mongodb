@@ -1,13 +1,14 @@
+import * as Db from "effect-mongodb/Db"
 import * as Effect from "effect/Effect"
-import type { Db } from "mongodb"
+import type { Db as Db_ } from "mongodb"
 import { MongoClient } from "mongodb"
 import { afterAll, beforeAll, describe, inject } from "vitest"
 
 type MongoContext = {
   client: Effect.Effect<MongoClient>
-  database: Effect.Effect<Db>
+  database: Effect.Effect<Db.Db>
   _client: () => MongoClient
-  _database: () => Db
+  _database: () => Db_
 }
 
 export const describeMongo = (
@@ -16,7 +17,7 @@ export const describeMongo = (
 ) => {
   describe(suiteName, () => {
     let client: MongoClient
-    let database: Db
+    let database: Db_
     let databaseName: string
 
     beforeAll(async () => {
@@ -41,7 +42,7 @@ export const describeMongo = (
       _client: () => client,
       _database: () => database,
       client: Effect.sync(() => client),
-      database: Effect.sync(() => database)
+      database: Effect.sync(() => new Db.Db({ db: database }))
     })
   })
 }

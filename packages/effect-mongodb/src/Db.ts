@@ -1,16 +1,19 @@
 /**
  * @since 0.0.1
  */
+import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import type * as Schema from "effect/Schema"
 import type { Document, DropCollectionOptions, ListCollectionsOptions } from "mongodb"
-import { Db } from "mongodb"
+import { Db as Db_ } from "mongodb"
 import type * as Collection from "./Collection.js"
 import * as DocumentCollection from "./DocumentCollection.js"
 import { mongoErrorOrDie } from "./internal/mongo-error.js"
 import * as ListCollectionsCursor from "./ListCollectionsCursor.js"
 import * as MongoError from "./MongoError.js"
+
+export class Db extends Data.TaggedClass("Db")<{ db: Db_ }> {}
 
 export const documentCollection: {
   (name: string): (db: Db) => DocumentCollection.DocumentCollection
@@ -19,7 +22,7 @@ export const documentCollection: {
   (args) => isDb(args[0]),
   (db: Db, name: string): DocumentCollection.DocumentCollection =>
     new DocumentCollection.DocumentCollectionImpl({
-      collection: db.collection(name)
+      collection: db.db.collection(name)
     })
 )
 
@@ -67,7 +70,7 @@ export const listCollections: {
 } = F.dual(
   (args) => isDb(args[0]),
   (db: Db, filter?: Document, options?: ListCollectionsOptions): ListCollectionsCursor.ListCollectionsCursor =>
-    new ListCollectionsCursor.ListCollectionsCursorImpl({ cursor: db.listCollections(filter, options) })
+    new ListCollectionsCursor.ListCollectionsCursorImpl({ cursor: db.db.listCollections(filter, options) })
 )
 
 export const dropCollection: {
@@ -79,12 +82,12 @@ export const dropCollection: {
   (args) => isDb(args[0]),
   (db: Db, name: string, options?: DropCollectionOptions): Effect.Effect<boolean, MongoError.MongoError> =>
     F.pipe(
-      Effect.promise(() => db.dropCollection(name, options)),
+      Effect.promise(() => db.db.dropCollection(name, options)),
       Effect.catchAllDefect(mongoErrorOrDie(errorSource(db, "dropCollection")))
     )
 )
 
-const isDb = (x: unknown) => x instanceof Db
+const isDb = (x: unknown) => x instanceof Db_
 
 const errorSource = (db: Db, functionName: string) =>
-  new MongoError.DbErrorSource({ module: "Db", functionName, db: db.databaseName })
+  new MongoError.DbErrorSource({ module: "Db", functionName, db: db.db.databaseName })
