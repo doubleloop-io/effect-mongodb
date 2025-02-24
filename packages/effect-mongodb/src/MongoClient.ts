@@ -53,7 +53,7 @@ export const db: {
     new Db.Db({ db: client.db(dbName, options) })
 )
 
-const isMongoClient = (x: unknown) => x instanceof MongoClient_
+const isMongoClient = (x: unknown) => x instanceof MongoClient
 
 const errorSource = (hosts: Array<string>, functionName: string) =>
   new MongoError.ClientErrorSource({ module: "MongoClient", functionName, hosts })

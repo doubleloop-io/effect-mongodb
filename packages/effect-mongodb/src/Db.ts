@@ -5,8 +5,7 @@ import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import type * as Schema from "effect/Schema"
-import type { Document, DropCollectionOptions, ListCollectionsOptions } from "mongodb"
-import { Db as Db_ } from "mongodb"
+import type { Db as Db_, Document, DropCollectionOptions, ListCollectionsOptions } from "mongodb"
 import type * as Collection from "./Collection.js"
 import * as DocumentCollection from "./DocumentCollection.js"
 import { mongoErrorOrDie } from "./internal/mongo-error.js"
@@ -87,7 +86,7 @@ export const dropCollection: {
     )
 )
 
-const isDb = (x: unknown) => x instanceof Db_
+const isDb = (x: unknown) => x instanceof Db
 
 const errorSource = (db: Db, functionName: string) =>
   new MongoError.DbErrorSource({ module: "Db", functionName, db: db.db.databaseName })
