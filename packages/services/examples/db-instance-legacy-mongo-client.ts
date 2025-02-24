@@ -28,6 +28,23 @@ const program = Effect.gen(function*() {
 
 /*** main.ts ***/
 
+class LegacyConnectionPool {
+  private static instance: MongoClient | null = null
+
+  static async mongoClient(url: string) {
+    if (!this.instance) {
+      this.instance = new MongoClient(url)
+      await this.instance.connect()
+    }
+    return this.instance
+  }
+
+  static async close() {
+    if (!this.instance) return
+    await this.instance.close()
+  }
+}
+
 const MyDbLive = DbInstance.fromMongoClient(
   MyDb,
   Effect.gen(function*() {
@@ -39,16 +56,4 @@ const MyDbLive = DbInstance.fromMongoClient(
 await program.pipe(
   Effect.provide(MyDbLive),
   Effect.runPromise
-)
-
-class LegacyConnectionPool {
-  private static instance: MongoClient | null = null
-
-  static async mongoClient(url: string) {
-    if (!this.instance) {
-      this.instance = new MongoClient(url)
-      await this.instance.connect()
-    }
-    return this.instance
-  }
-}
+).then(() => LegacyConnectionPool.close())
