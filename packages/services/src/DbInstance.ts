@@ -15,7 +15,7 @@ type DbInstanceOptions = {
 }
 
 export const layerEffect = <DbK extends string, E = never, R = never>(
-  dbTag: DbService.TagType<DbK>,
+  dbTag: DbService.Tag<DbK>,
   options: Effect.Effect<DbInstanceOptions, E, R>
 ) =>
   F.pipe(
@@ -25,7 +25,7 @@ export const layerEffect = <DbK extends string, E = never, R = never>(
   )
 
 export const layer = <DbK extends string>(
-  dbTag: DbService.TagType<DbK>,
+  dbTag: DbService.Tag<DbK>,
   options: DbInstanceOptions
 ) => {
   const { name: databaseName, ...databaseOptions } = options.database
@@ -39,7 +39,7 @@ export const layer = <DbK extends string>(
 type DbInstanceOptionsWithClient = Pick<DbInstanceOptions, "database"> & { client: MongoClient_ }
 
 export const fromMongoClient = <DbK extends string, E = never, R = never>(
-  dbTag: DbService.TagType<DbK>,
+  dbTag: DbService.Tag<DbK>,
   options: Effect.Effect<DbInstanceOptionsWithClient, E, R>
 ) =>
   Layer.effect(

@@ -12,11 +12,11 @@ import type * as MongoClientService from "./MongoClientService.js"
 
 export type DbService<K extends string> = Db.Db & Brand.Brand<K>
 
-export const Tag = <K extends string>(key: K) => Context.GenericTag<DbService<K>>(key)
-export type TagType<K extends string> = ReturnType<typeof Tag<K>>
+export type Tag<K extends string> = Context.Tag<DbService<K>, DbService<K>>
+export const Tag = <K extends string>(key: K): Tag<K> => Context.GenericTag<DbService<K>>(key)
 
 export const layerEffect = <DbK extends string, MongoClientK extends string, E = never, R = never>(
-  dbTag: TagType<DbK>,
+  dbTag: Tag<DbK>,
   clientTag: MongoClientService.TagType<MongoClientK>,
   dbName: Effect.Effect<string, E, R>,
   options?: DbOptions
@@ -27,7 +27,7 @@ export const layerEffect = <DbK extends string, MongoClientK extends string, E =
   }).pipe(Layer.unwrapEffect)
 
 export const layer = <DbK extends string, MongoClientK extends string>(
-  dbTag: TagType<DbK>,
+  dbTag: Tag<DbK>,
   clientTag: MongoClientService.TagType<MongoClientK>,
   dbName: string,
   options?: DbOptions
