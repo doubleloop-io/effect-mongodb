@@ -1,6 +1,5 @@
 {
   "name": "@effect-mongodb/services",
-  "private": true,
   "author": "doubleloop.io",
   "version": "0.1.0",
   "type": "module",
