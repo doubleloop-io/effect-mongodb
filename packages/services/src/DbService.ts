@@ -1,5 +1,5 @@
 /**
- * @since 0.1.0
+ * @since 0.0.1
  */
 import type * as Db from "effect-mongodb/Db"
 import * as MongoClient from "effect-mongodb/MongoClient"
