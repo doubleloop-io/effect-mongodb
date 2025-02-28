@@ -1,5 +1,11 @@
 # @effect-mongodb/services
 
+## 0.1.1
+
+### Patch Changes
+
+- [`be876d2`](https://github.com/doubleloop-io/effect-mongodb/commit/be876d2f90a93afbc19b99138f7f0aec3abcda82) Thanks [@devmatteini](https://github.com/devmatteini)! - First public release of `@effect-mongodb/services`.
+
 ## 0.1.0
 
 ### Minor Changes
