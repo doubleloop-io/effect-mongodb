@@ -9,11 +9,11 @@ import * as Layer from "effect/Layer"
 
 export type MongoClientService<K extends string> = MongoClient.MongoClient & Brand.Brand<K>
 
-export const Tag = <K extends string>(key: K) => Context.GenericTag<MongoClientService<K>>(key)
-export type TagType<K extends string> = ReturnType<typeof Tag<K>>
+export type Tag<K extends string> = Context.Tag<MongoClientService<K>, MongoClientService<K>>
+export const Tag = <K extends string>(key: K): Tag<K> => Context.GenericTag<MongoClientService<K>>(key)
 
 export const layerEffect = <MongoClientK extends string, E = never, R = never>(
-  clientTag: TagType<MongoClientK>,
+  clientTag: Tag<MongoClientK>,
   url: Effect.Effect<string, E, R>,
   options?: MongoClient.MongoClientScopedOptions
 ) =>
@@ -23,7 +23,7 @@ export const layerEffect = <MongoClientK extends string, E = never, R = never>(
   }).pipe(Layer.unwrapEffect)
 
 export const layer = <MongoClientK extends string>(
-  clientTag: TagType<MongoClientK>,
+  clientTag: Tag<MongoClientK>,
   url: string,
   options?: MongoClient.MongoClientScopedOptions
 ) =>
@@ -33,7 +33,7 @@ export const layer = <MongoClientK extends string>(
   }))
 
 export const fromMongoClient = <MongoClientK extends string, E = never, R = never>(
-  clientTag: TagType<MongoClientK>,
+  clientTag: Tag<MongoClientK>,
   mongoClient: Effect.Effect<MongoClient.MongoClient, E, R>
 ) =>
   Layer.effect(

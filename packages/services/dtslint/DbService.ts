@@ -4,7 +4,7 @@ import * as Config from "effect/Config"
 import type * as Context from "effect/Context"
 import * as Effect from "effect/Effect"
 
-declare const mongoClient: MongoClientService.TagType<"MyMongoClient">
+declare const mongoClient: MongoClientService.Tag<"MyMongoClient">
 declare const usersDb: DbService.Tag<"MyDb">
 
 type SomeService = { name: string }
@@ -28,7 +28,7 @@ DbService.layerEffect(usersDb, mongoClient, Effect.succeed("mydb"))
 DbService.layerEffect(usersDb, mongoClient, Config.string("DATABASE_NAME"))
 
 const withRequirements = SomeService.pipe(Effect.flatMap(({ name }) => Config.string(name)))
-// $ExpectType Layer<DbService<"MyDb">, ConfigError, MongoClientService<"MyMongoClient"> | SomeService>
+// $ExpectType Layer<DbService<"MyDb">, ConfigError, SomeService | MongoClientService<"MyMongoClient">>
 DbService.layerEffect(usersDb, mongoClient, withRequirements)
 
 // -------------------------------------------------------------------------------------

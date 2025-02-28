@@ -17,7 +17,7 @@ export const Tag = <K extends string>(key: K): Tag<K> => Context.GenericTag<DbSe
 
 export const layerEffect = <DbK extends string, MongoClientK extends string, E = never, R = never>(
   dbTag: Tag<DbK>,
-  clientTag: MongoClientService.TagType<MongoClientK>,
+  clientTag: MongoClientService.Tag<MongoClientK>,
   dbName: Effect.Effect<string, E, R>,
   options?: DbOptions
 ): Layer.Layer<DbService<DbK>, E, MongoClientService.MongoClientService<MongoClientK> | R> =>
@@ -28,7 +28,7 @@ export const layerEffect = <DbK extends string, MongoClientK extends string, E =
 
 export const layer = <DbK extends string, MongoClientK extends string>(
   dbTag: Tag<DbK>,
-  clientTag: MongoClientService.TagType<MongoClientK>,
+  clientTag: MongoClientService.Tag<MongoClientK>,
   dbName: string,
   options?: DbOptions
 ): Layer.Layer<DbService<DbK>, never, MongoClientService.MongoClientService<MongoClientK>> =>
