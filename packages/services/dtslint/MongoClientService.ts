@@ -23,11 +23,11 @@ MongoClientService.Tag("MyMongoClient")
 // $ExpectType Layer<MongoClientService<"MyMongoClient">, MongoError, never>
 MongoClientService.layerEffect(mongoClient, Effect.succeed("mongodb://localhost:27017"))
 
-// $ExpectType Layer<MongoClientService<"MyMongoClient">, ConfigError | MongoError, never>
+// $ExpectType Layer<MongoClientService<"MyMongoClient">, MongoError | ConfigError, never>
 MongoClientService.layerEffect(mongoClient, Config.string("DATABASE_NAME"))
 
 const withRequirements = SomeService.pipe(Effect.flatMap(({ url }) => Config.string(url)))
-// $ExpectType Layer<MongoClientService<"MyMongoClient">, ConfigError | MongoError, SomeService>
+// $ExpectType Layer<MongoClientService<"MyMongoClient">, MongoError | ConfigError, SomeService>
 MongoClientService.layerEffect(mongoClient, withRequirements)
 
 // -------------------------------------------------------------------------------------

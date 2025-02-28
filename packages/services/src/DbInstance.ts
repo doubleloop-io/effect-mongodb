@@ -2,6 +2,7 @@
  * @since 0.0.1
  */
 import * as MongoClient from "effect-mongodb/MongoClient"
+import type * as MongoError from "effect-mongodb/MongoError"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import * as Layer from "effect/Layer"
@@ -17,7 +18,7 @@ type DbInstanceOptions = {
 export const layerEffect = <DbK extends string, E = never, R = never>(
   dbTag: DbService.Tag<DbK>,
   options: Effect.Effect<DbInstanceOptions, E, R>
-) =>
+): Layer.Layer<DbService.DbService<DbK>, MongoError.MongoError | E, R> =>
   F.pipe(
     options,
     Effect.map((options) => layer(dbTag, options)),
@@ -27,7 +28,7 @@ export const layerEffect = <DbK extends string, E = never, R = never>(
 export const layer = <DbK extends string>(
   dbTag: DbService.Tag<DbK>,
   options: DbInstanceOptions
-) => {
+): Layer.Layer<DbService.DbService<DbK>, MongoError.MongoError> => {
   const { name: databaseName, ...databaseOptions } = options.database
   const { url: clientUrl, ...clientOptions } = options.client
 
@@ -41,7 +42,7 @@ type DbInstanceOptionsWithClient = Pick<DbInstanceOptions, "database"> & { clien
 export const fromMongoClient = <DbK extends string, E = never, R = never>(
   dbTag: DbService.Tag<DbK>,
   options: Effect.Effect<DbInstanceOptionsWithClient, E, R>
-) =>
+): Layer.Layer<DbService.DbService<DbK>, E, R> =>
   Layer.effect(
     dbTag,
     Effect.gen(function*() {
