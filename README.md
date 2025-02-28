@@ -34,17 +34,14 @@ await program.pipe(Effect.scoped, Effect.runPromise)
 [effect-mongodb](packages/effect-mongodb/README.md) is the **core package** that provides effectful APIs to work with
 MongoDB.
 
+[@effect-mongodb/services](packages/services/README.md) is the package that provides Effect **services** for effect-mongodb.
+
 ## MongoDB driver compatibility
 
 We adhere to the [MongoDB driver compatibility](https://www.mongodb.com/docs/drivers/node/current/compatibility/)
 guidelines, so minor releases might break compatibility with older MongoDB servers.
 
 For example, upgrading the Node.js driver from 6.8 to 6.10 will make it incompatible with MongoDB server 3.6.
-
-## Roadmap
-
-- [ ] [@effect-mongodb/services](packages/services/README.md) package to provide Effect services/layers to use with
-  `effect-mongodb`
 
 ## Contributing
 
