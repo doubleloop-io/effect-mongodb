@@ -20,7 +20,7 @@ export const layerEffect = <DbK extends string, MongoClientK extends string, E =
   clientTag: MongoClientService.TagType<MongoClientK>,
   dbName: Effect.Effect<string, E, R>,
   options?: DbOptions
-) =>
+): Layer.Layer<DbService<DbK>, E, MongoClientService.MongoClientService<MongoClientK> | R> =>
   Effect.gen(function*() {
     const dbname_ = yield* dbName
     return layer(dbTag, clientTag, dbname_, options)
@@ -31,7 +31,7 @@ export const layer = <DbK extends string, MongoClientK extends string>(
   clientTag: MongoClientService.TagType<MongoClientK>,
   dbName: string,
   options?: DbOptions
-) =>
+): Layer.Layer<DbService<DbK>, never, MongoClientService.MongoClientService<MongoClientK>> =>
   Layer.effect(
     dbTag,
     Effect.gen(function*() {
