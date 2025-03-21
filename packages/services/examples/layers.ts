@@ -6,6 +6,8 @@ import * as FindCursor from "effect-mongodb/FindCursor"
 import * as Effect from "effect/Effect"
 import * as Schema from "effect/Schema"
 
+import * as Layer from "effect/Layer"
+
 const Todo = Schema.Struct({
   userId: Schema.Number,
   id: Schema.Number,
@@ -31,8 +33,9 @@ const MyMongoClient = MongoClientService.Tag("MyMongoClient")
 const MyDbLive = DbService.layer(MyDb, MyMongoClient, "mydb")
 const MyMongoClientLive = MongoClientService.layer(MyMongoClient, "mongodb://localhost:27017")
 
+const MainLive = Layer.provide(MyDbLive, MyMongoClientLive)
+
 await program.pipe(
-  Effect.provide(MyDbLive),
-  Effect.provide(MyMongoClientLive),
+  Effect.provide(MainLive),
   Effect.runPromise
 )

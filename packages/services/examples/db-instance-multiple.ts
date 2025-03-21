@@ -4,6 +4,7 @@ import * as Collection from "effect-mongodb/Collection"
 import * as Db from "effect-mongodb/Db"
 import * as FindCursor from "effect-mongodb/FindCursor"
 import * as Effect from "effect/Effect"
+import * as Layer from "effect/Layer"
 import * as Schema from "effect/Schema"
 
 const Todo = Schema.Struct({
@@ -41,8 +42,9 @@ const ReplicaDbLive = DbInstance.layer(ReplicaDb, {
   client: { url: "mongodb://localhost:37017" }
 })
 
+const MainLive = Layer.mergeAll(MainDbLive, ReplicaDbLive)
+
 await program.pipe(
-  Effect.provide(MainDbLive),
-  Effect.provide(ReplicaDbLive),
+  Effect.provide(MainLive),
   Effect.runPromise
 )
