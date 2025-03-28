@@ -1,5 +1,14 @@
 # @effect-mongodb/services
 
+## 0.2.1
+
+### Patch Changes
+
+- [`191c6c6`](https://github.com/doubleloop-io/effect-mongodb/commit/191c6c695c52b2e62f09ef8ba25a208223e258b1) Thanks [@VenomAV](https://github.com/VenomAV)! - Bump patch to work around changeset issue in the previous release
+
+- Updated dependencies [[`191c6c6`](https://github.com/doubleloop-io/effect-mongodb/commit/191c6c695c52b2e62f09ef8ba25a208223e258b1)]:
+  - effect-mongodb@0.3.1
+
 ## 0.2.0
 
 ### Minor Changes
