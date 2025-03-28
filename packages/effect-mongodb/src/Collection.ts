@@ -38,7 +38,7 @@ import type {
 } from "mongodb"
 import * as AggregationCursor from "./AggregationCursor.js"
 import * as FindCursor from "./FindCursor.js"
-import type { Filter } from "./internal/filter.js"
+import type { Filter as Filter_ } from "./internal/filter.js"
 import type { ModifyResult } from "./internal/modify-result.js"
 import { mongoErrorOrDie } from "./internal/mongo-error.js"
 import * as SchemaExt from "./internal/schema.js"
@@ -69,6 +69,7 @@ export class CollectionImpl<A extends Document, I extends Document = A, R = neve
 }
 
 export type FindOptions = Omit<MongoFindOptions, "projection">
+export type Filter<TSchema> = Filter_<TSchema>
 
 export const find: {
   <I extends Document>(

@@ -12,7 +12,7 @@ import * as Schema from "effect/Schema"
 import * as Stream from "effect/Stream"
 import * as Tuple from "effect/Tuple"
 import type { Document, FindCursor as FindCursor_, Sort, SortDirection } from "mongodb"
-import type { Filter } from "./internal/filter.js"
+import type { Filter as Filter_ } from "./internal/filter.js"
 import { mongoErrorOrDie } from "./internal/mongo-error.js"
 import * as MongoError from "./MongoError.js"
 
@@ -33,6 +33,8 @@ export class FindCursorImpl<A, I = A, R = never> extends Data.TaggedClass("FindC
     return pipeArguments(this, arguments)
   }
 }
+
+export type Filter<TSchema> = Filter_<TSchema>
 
 export const filter: {
   <I extends Document>(filter: Filter<I>): <A, R>(cursor: FindCursor<A, I, R>) => FindCursor<A, I, R>
