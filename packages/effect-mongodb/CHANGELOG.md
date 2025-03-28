@@ -1,5 +1,11 @@
 # effect-mongodb
 
+## 0.3.0
+
+### Minor Changes
+
+- [`4c9d190`](https://github.com/doubleloop-io/effect-mongodb/commit/4c9d190b1fedcb31c15bbceecbabfa019f234354) Thanks [@VenomAV](https://github.com/VenomAV)! - Export internal Filter type to allow it to be used by clients
+
 ## 0.2.0
 
 ### Minor Changes
