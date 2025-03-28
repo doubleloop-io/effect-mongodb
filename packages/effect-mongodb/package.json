@@ -1,7 +1,7 @@
 {
   "name": "effect-mongodb",
   "author": "doubleloop.io",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "license": "MIT",
   "description": "A MongoDB toolkit for Effect",
