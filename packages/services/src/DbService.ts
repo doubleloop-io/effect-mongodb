@@ -14,6 +14,7 @@ export type DbService<K extends string> = Db.Db & Brand.Brand<K>
 
 export type Tag<K extends string> = Context.Tag<DbService<K>, DbService<K>>
 export const Tag = <K extends string>(key: K): Tag<K> => Context.GenericTag<DbService<K>>(key)
+export type Service<T extends Tag<any>> = Context.Tag.Service<T>
 
 export const layerEffect = <DbK extends string, MongoClientK extends string, E = never, R = never>(
   dbTag: Tag<DbK>,

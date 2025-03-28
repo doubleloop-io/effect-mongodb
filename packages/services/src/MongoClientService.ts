@@ -12,6 +12,7 @@ export type MongoClientService<K extends string> = MongoClient.MongoClient & Bra
 
 export type Tag<K extends string> = Context.Tag<MongoClientService<K>, MongoClientService<K>>
 export const Tag = <K extends string>(key: K): Tag<K> => Context.GenericTag<MongoClientService<K>>(key)
+export type Service<T extends Tag<any>> = Context.Tag.Service<T>
 
 export const layerEffect = <MongoClientK extends string, E = never, R = never>(
   clientTag: Tag<MongoClientK>,
