@@ -75,6 +75,16 @@ Collection.deleteMany(collection, { birthday: "2024-11-28" })
 F.pipe(collection, Collection.deleteMany({ birthday: "2024-11-28" }))
 
 // -------------------------------------------------------------------------------------
+// updateOne
+// -------------------------------------------------------------------------------------
+
+// $ExpectType Effect<UpdateResult<{ readonly birthday: string; }>, MongoError, never>
+Collection.updateOne(collection, { birthday: "2024-11-28" }, { $set: { birthday: "2024-11-29" } })
+
+// $ExpectType Effect<UpdateResult<{ readonly birthday: string; }>, MongoError, never>
+F.pipe(collection, Collection.updateOne({ birthday: "2024-11-28" }, { $set: { birthday: "2024-11-29" } }))
+
+// -------------------------------------------------------------------------------------
 // updateMany
 // -------------------------------------------------------------------------------------
 

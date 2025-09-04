@@ -202,6 +202,37 @@ export const deleteMany: {
     )
 )
 
+export const updateOne: {
+  <I extends Document>(
+    filter: Filter<I>,
+    update: UpdateFilter<I> | ReadonlyArray<Document>,
+    options?: UpdateOptions
+  ): <A extends Document, I2 extends I, R>(
+    collection: Collection<A, I2, R>
+  ) => Effect.Effect<UpdateResult<I2>, MongoError.MongoError, R>
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    filter: Filter<I>,
+    update: UpdateFilter<I> | ReadonlyArray<Document>,
+    options?: UpdateOptions
+  ): Effect.Effect<UpdateResult<I>, MongoError.MongoError, R>
+} = F.dual(
+  (args) => isCollection(args[0]),
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    filter: Filter<I>,
+    update: UpdateFilter<I> | ReadonlyArray<Document>,
+    options?: UpdateOptions
+  ): Effect.Effect<UpdateResult<I>, MongoError.MongoError, R> =>
+    Effect.promise(() =>
+      collection.collection.updateOne(
+        filter,
+        Array.isArray(update) ? [...update] : update as UpdateFilter<Document>,
+        options
+      )
+    ).pipe(Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "updateOne"))))
+)
+
 export const updateMany: {
   <I extends Document>(
     filter: Filter<I>,

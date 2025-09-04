@@ -194,6 +194,36 @@ export const deleteMany: {
     )
 )
 
+export const updateOne: {
+  (
+    filter: Filter<Document>,
+    update: UpdateFilter<Document> | ReadonlyArray<Document>,
+    options?: UpdateOptions
+  ): (
+    collection: DocumentCollection
+  ) => Effect.Effect<UpdateResult, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    filter: Filter<Document>,
+    update: UpdateFilter<Document> | ReadonlyArray<Document>,
+    options?: UpdateOptions
+  ): Effect.Effect<UpdateResult, MongoError.MongoError>
+} = F.dual(
+  (args) => isDocumentCollection(args[0]),
+  (
+    collection: DocumentCollection,
+    filter: Filter<Document>,
+    update: UpdateFilter<Document> | ReadonlyArray<Document>,
+    options?: UpdateOptions
+  ): Effect.Effect<UpdateResult, MongoError.MongoError> =>
+    F.pipe(
+      Effect.promise(() =>
+        collection.collection.updateOne(filter, Array.isArray(update) ? [...update] : update, options)
+      ),
+      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "updateOne")))
+    )
+)
+
 export const updateMany: {
   (
     filter: Filter<Document>,
