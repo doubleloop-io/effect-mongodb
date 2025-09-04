@@ -1,5 +1,12 @@
 # @effect-mongodb/services
 
+## 0.2.2
+
+### Patch Changes
+
+- Updated dependencies [[`facda4f`](https://github.com/doubleloop-io/effect-mongodb/commit/facda4f91f42546dfc8180942ed812b0aec79e0d)]:
+  - effect-mongodb@0.3.2
+
 ## 0.2.1
 
 ### Patch Changes

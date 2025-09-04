@@ -1,5 +1,11 @@
 # effect-mongodb
 
+## 0.3.2
+
+### Patch Changes
+
+- [`facda4f`](https://github.com/doubleloop-io/effect-mongodb/commit/facda4f91f42546dfc8180942ed812b0aec79e0d) Thanks [@VenomAV](https://github.com/VenomAV)! - Add `updateOne` to `Collection` and `DocumentCollection`
+
 ## 0.3.1
 
 ### Patch Changes
