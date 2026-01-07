@@ -5,7 +5,7 @@ import type { GlobalSetupContext } from "vitest/node"
 let container: StartedMongoDBContainer | undefined
 
 export async function setup({ provide }: GlobalSetupContext) {
-  container = await new MongoDBContainer("mongo:6.0.16").start()
+  container = await new MongoDBContainer("mongo:8.0.17").start()
 
   provide("mongoConnectionString", container.getConnectionString())
   if (process.env.EFFECT_MONGODB_DEBUG === "true") {
