@@ -1,5 +1,11 @@
 # effect-mongodb
 
+## 0.3.3
+
+### Patch Changes
+
+- [`8bbb497`](https://github.com/doubleloop-io/effect-mongodb/commit/8bbb49704f1e5460822f508a29f52fc3ce5e47b6) Thanks [@devmatteini](https://github.com/devmatteini)! - Add `dropIndexes` to `Collection` and `DocumentCollection`
+
 ## 0.3.2
 
 ### Patch Changes
