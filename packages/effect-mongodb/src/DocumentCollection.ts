@@ -459,6 +459,26 @@ export const dropIndex: {
     )
 )
 
+export const dropIndexes: {
+  (
+    options?: DropIndexesOptions
+  ): (collection: DocumentCollection) => Effect.Effect<boolean, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    options?: DropIndexesOptions
+  ): Effect.Effect<boolean, MongoError.MongoError>
+} = F.dual(
+  (args) => isDocumentCollection(args[0]),
+  (
+    collection: DocumentCollection,
+    options?: DropIndexesOptions
+  ): Effect.Effect<boolean, MongoError.MongoError> =>
+    F.pipe(
+      Effect.promise(() => collection.collection.dropIndexes(options)),
+      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "dropIndexes")))
+    )
+)
+
 export const aggregate: {
   (pipeline?: ReadonlyArray<Document>, options?: AggregateOptions): (
     collection: DocumentCollection

@@ -195,6 +195,16 @@ DocumentCollection.dropIndex(collection, "birthday_1")
 F.pipe(collection, DocumentCollection.dropIndex("birthday_1"))
 
 // -------------------------------------------------------------------------------------
+// dropIndexes
+// -------------------------------------------------------------------------------------
+
+// $ExpectType Effect<boolean, MongoError, never>
+DocumentCollection.dropIndexes(collection)
+
+// $ExpectType Effect<boolean, MongoError, never>
+F.pipe(collection, DocumentCollection.dropIndexes())
+
+// -------------------------------------------------------------------------------------
 // aggregate
 // -------------------------------------------------------------------------------------
 

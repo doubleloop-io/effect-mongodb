@@ -486,6 +486,26 @@ export const dropIndex: {
     )
 )
 
+export const dropIndexes: {
+  (options?: DropIndexesOptions): <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>
+  ) => Effect.Effect<boolean, MongoError.MongoError, R>
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    options?: DropIndexesOptions
+  ): Effect.Effect<boolean, MongoError.MongoError, R>
+} = F.dual(
+  (args) => isCollection(args[0]),
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    options?: DropIndexesOptions
+  ): Effect.Effect<boolean, MongoError.MongoError, R> =>
+    F.pipe(
+      Effect.promise(() => collection.collection.dropIndexes(options)),
+      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "dropIndexes")))
+    )
+)
+
 export const aggregate: {
   <B extends Document, BI extends Document, BR>(
     schema: Schema.Schema<B, BI, BR>,
