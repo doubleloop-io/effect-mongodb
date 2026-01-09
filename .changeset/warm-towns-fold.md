@@ -1,5 +1,5 @@
 ---
-"effect-mongodb": minor
+"effect-mongodb": patch
 ---
 
 Add `dropIndexes` to `Collection` and `DocumentCollection`
