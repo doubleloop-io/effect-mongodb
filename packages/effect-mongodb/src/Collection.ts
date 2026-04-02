@@ -12,7 +12,9 @@ import { pipeArguments } from "effect/Pipeable"
 import * as Schema from "effect/Schema"
 import type {
   AggregateOptions,
+  AnyBulkWriteOperation,
   BulkWriteOptions,
+  BulkWriteResult,
   Collection as MongoCollection,
   CountDocumentsOptions,
   CreateIndexesOptions,
@@ -159,6 +161,35 @@ export const insertMany: {
     Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "insertMany")))
   )
 })
+
+export const bulkWrite: {
+  <I extends Document>(
+    operations: ReadonlyArray<AnyBulkWriteOperation<I>>,
+    options?: BulkWriteOptions
+  ): <A extends Document, R>(
+    collection: Collection<A, I, R>
+  ) => Effect.Effect<BulkWriteResult, MongoError.MongoError, R>
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    operations: ReadonlyArray<AnyBulkWriteOperation<I>>,
+    options?: BulkWriteOptions
+  ): Effect.Effect<BulkWriteResult, MongoError.MongoError, R>
+} = F.dual(
+  (args) => isCollection(args[0]),
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    operations: ReadonlyArray<AnyBulkWriteOperation<I>>,
+    options?: BulkWriteOptions
+  ): Effect.Effect<BulkWriteResult, MongoError.MongoError, R> =>
+    Effect.tryPromise(() =>
+      collection.collection.bulkWrite(
+        operations as ReadonlyArray<AnyBulkWriteOperation<Document>>,
+        options
+      )
+    ).pipe(
+      Effect.catchAll(mongoErrorOrDie(errorSource(collection, "bulkWrite")))
+    )
+)
 
 export const deleteOne: {
   <I extends Document>(filter: Filter<I>, options?: DeleteOptions): <A extends Document, R>(
