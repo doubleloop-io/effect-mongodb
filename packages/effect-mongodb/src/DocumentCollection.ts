@@ -11,7 +11,9 @@ import { pipeArguments } from "effect/Pipeable"
 import type * as Schema from "effect/Schema"
 import type {
   AggregateOptions,
+  AnyBulkWriteOperation,
   BulkWriteOptions,
+  BulkWriteResult,
   Collection as MongoCollection,
   CountDocumentsOptions,
   CreateIndexesOptions,
@@ -555,6 +557,28 @@ export const typed: {
   schema: Schema.Schema<A, I, R>
 ): Collection.Collection<A, I, R> =>
   new Collection.CollectionImpl<A, I, R>({ collection: collection.collection, schema }))
+
+export const bulkWrite: {
+  (
+    operations: ReadonlyArray<AnyBulkWriteOperation<Document>>,
+    options?: BulkWriteOptions
+  ): (collection: DocumentCollection) => Effect.Effect<BulkWriteResult, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    operations: ReadonlyArray<AnyBulkWriteOperation<Document>>,
+    options?: BulkWriteOptions
+  ): Effect.Effect<BulkWriteResult, MongoError.MongoError>
+} = F.dual(
+  (args) => isDocumentCollection(args[0]),
+  (
+    collection: DocumentCollection,
+    operations: ReadonlyArray<AnyBulkWriteOperation<Document>>,
+    options?: BulkWriteOptions
+  ): Effect.Effect<BulkWriteResult, MongoError.MongoError> =>
+    Effect.tryPromise(() => collection.collection.bulkWrite(operations, options)).pipe(
+      Effect.catchAll(mongoErrorOrDie(errorSource(collection, "bulkWrite")))
+    )
+)
 
 const isDocumentCollection = (x: unknown) => x instanceof DocumentCollectionImpl
 
