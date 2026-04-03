@@ -47,7 +47,8 @@
   },
   "peerDependencies": {
     "effect": "^3.10.14",
-    "mongodb": "^6.9.0"
+    "mongodb": "^6.9.0",
+    "mongodb-connection-string-url": "^7.0.1"
   },
   "devDependencies": {
     "effect": "^3.10.14",

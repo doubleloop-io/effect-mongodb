@@ -5,13 +5,17 @@ import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import type * as Scope from "effect/Scope"
-import type { DbOptions, MongoClientOptions } from "mongodb"
+import type { DbOptions, MongoClientOptions, MongoParseError } from "mongodb"
 import { MongoClient as MongoClient_ } from "mongodb"
+import { ConnectionString } from "mongodb-connection-string-url"
 import * as Db from "./Db.js"
 import { mongoErrorOrDie } from "./internal/mongo-error.js"
 import * as MongoError from "./MongoError.js"
 
 export class MongoClient extends Data.TaggedClass("MongoClient")<{ client: MongoClient_ }> {}
+
+const parseHosts = (url: string): Effect.Effect<ConnectionString, MongoParseError> =>
+  Effect.try({ try: () => new ConnectionString(url), catch: (e) => e as MongoParseError })
 
 export const connect = (
   url: string,
@@ -19,7 +23,12 @@ export const connect = (
 ): Effect.Effect<MongoClient, MongoError.MongoError> =>
   Effect.promise(() => MongoClient_.connect(url, options)).pipe(
     Effect.map((client) => new MongoClient({ client })),
-    Effect.catchAllDefect(mongoErrorOrDie(errorSource([new URL(url).host], "connect")))
+    Effect.catchAllDefect((e) =>
+      parseHosts(url).pipe(
+        Effect.catchAll((e) => Effect.succeed({ hosts: [e.message] })),
+        Effect.flatMap((cs) => mongoErrorOrDie(errorSource(cs.hosts, "connect"))(e))
+      )
+    )
   )
 
 export const close: {
