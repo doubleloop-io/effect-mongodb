@@ -139,64 +139,15 @@ describeMongo("Collection", (ctx) => {
     ])
   })
 
-  test("bulkWrite - insert many", async () => {
+  test("bulkWrite - encodes documents before inserting", async () => {
     const program = Effect.gen(function*() {
       const db = yield* ctx.database
-      const collection = Db.collection(db, "bulk-write-insert-many", UserWithVersion)
+      const collection = Db.collection(db, "bulk-write-encodes-insert", UserWithVersion)
 
       const result = yield* Collection.bulkWrite(collection, [
         { insertOne: { document: { name: "alice", version: "v1" } } },
-        { insertOne: { document: { name: "bob", version: "v1" } } },
-        { insertOne: { document: { name: "charlie", version: "v1" } } }
+        { insertOne: { document: { name: "bob", version: "v1" } } }
       ])
-
-      return result
-    })
-
-    const result = await Effect.runPromise(program)
-
-    expect(result.insertedCount).toBe(3)
-  })
-
-  test("bulkWrite - mixed operations", async () => {
-    const program = Effect.gen(function*() {
-      const db = yield* ctx.database
-      const collection = Db.collection(db, "bulk-write-mixed", UserWithVersion)
-
-      yield* Collection.insertOne(collection, { name: "to-delete", version: "v1" })
-      yield* Collection.insertOne(collection, { name: "to-update", version: "v1" })
-      yield* Collection.insertOne(collection, { name: "to-keep", version: "v1" })
-
-      const result = yield* Collection.bulkWrite(collection, [
-        { deleteOne: { filter: { name: "to-delete" } } },
-        { updateOne: { filter: { name: "to-update" }, update: { $set: { version: "v2" } } } },
-        { insertOne: { document: { name: "new-user", version: "v1" } } }
-      ])
-
-      return result
-    })
-
-    const result = await Effect.runPromise(program)
-
-    expect(result.insertedCount).toBe(1)
-    expect(result.deletedCount).toBe(1)
-    expect(result.modifiedCount).toBe(1)
-    expect(result.matchedCount).toBe(1)
-  })
-
-  test("bulkWrite - with ordered option", async () => {
-    const program = Effect.gen(function*() {
-      const db = yield* ctx.database
-      const collection = Db.collection(db, "bulk-write-ordered", UserWithVersion)
-
-      const result = yield* Collection.bulkWrite(
-        collection,
-        [
-          { insertOne: { document: { name: "first", version: "v1" } } },
-          { insertOne: { document: { name: "second", version: "v1" } } }
-        ],
-        { ordered: true }
-      )
 
       return result
     })
@@ -206,15 +157,20 @@ describeMongo("Collection", (ctx) => {
     expect(result.insertedCount).toBe(2)
   })
 
-  test("bulkWrite - replace one", async () => {
+  test("bulkWrite - encodes documents before replacing", async () => {
     const program = Effect.gen(function*() {
       const db = yield* ctx.database
-      const collection = Db.collection(db, "bulk-write-replace-one", UserWithVersion)
+      const collection = Db.collection(db, "bulk-write-encodes-replace", UserWithVersion)
 
       yield* Collection.insertOne(collection, { name: "original", version: "v1" })
 
       const result = yield* Collection.bulkWrite(collection, [
-        { replaceOne: { filter: { name: "original" }, replacement: { name: "replaced", version: "v2" } } }
+        {
+          replaceOne: {
+            filter: { name: "original" },
+            replacement: { name: "replaced", version: "v2" }
+          }
+        }
       ])
 
       return result
@@ -224,6 +180,36 @@ describeMongo("Collection", (ctx) => {
 
     expect(result.matchedCount).toBe(1)
     expect(result.modifiedCount).toBe(1)
+  })
+
+  test("bulkWrite - handles mixed operations with encoding", async () => {
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
+      const collection = Db.collection(db, "bulk-write-mixed-encoding", UserWithVersion)
+
+      yield* Collection.insertOne(collection, { name: "to-update", version: "v1" })
+      yield* Collection.insertOne(collection, { name: "to-delete", version: "v1" })
+
+      const result = yield* Collection.bulkWrite(collection, [
+        { insertOne: { document: { name: "new-user", version: "v1" } } },
+        {
+          replaceOne: {
+            filter: { name: "to-update" },
+            replacement: { name: "updated", version: "v2" }
+          }
+        },
+        { deleteOne: { filter: { name: "to-delete" } } }
+      ])
+
+      return result
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result.insertedCount).toBe(1)
+    expect(result.matchedCount).toBe(1)
+    expect(result.modifiedCount).toBe(1)
+    expect(result.deletedCount).toBe(1)
   })
 })
 

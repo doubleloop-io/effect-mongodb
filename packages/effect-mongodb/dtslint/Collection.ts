@@ -55,6 +55,44 @@ Collection.insertMany(collection, [myType])
 F.pipe(collection, Collection.insertMany([myType]))
 
 // -------------------------------------------------------------------------------------
+// bulkWrite
+// -------------------------------------------------------------------------------------
+
+// $ExpectType Effect<BulkWriteResult, MongoError | ParseError, never>
+Collection.bulkWrite(collection, [
+  { insertOne: { document: myType } }
+])
+
+// $ExpectType Effect<BulkWriteResult, MongoError | ParseError, never>
+Collection.bulkWrite(collection, [
+  { insertOne: { document: myType } },
+  { replaceOne: { filter: { birthday: "2024-11-28" }, replacement: myType } }
+])
+
+// $ExpectType Effect<BulkWriteResult, MongoError | ParseError, never>
+Collection.bulkWrite(collection, [
+  { deleteOne: { filter: { birthday: "2024-11-28" } } },
+  { updateOne: { filter: { birthday: "2024-11-28" }, update: { $set: { birthday: "2024-11-29" } } } }
+])
+
+// $ExpectType Effect<BulkWriteResult, MongoError | ParseError, never>
+F.pipe(
+  collection,
+  Collection.bulkWrite([
+    { insertOne: { document: myType } }
+  ])
+)
+
+// $ExpectType Effect<BulkWriteResult, MongoError | ParseError, never>
+F.pipe(
+  collection,
+  Collection.bulkWrite([
+    { insertOne: { document: myType } },
+    { replaceOne: { filter: { birthday: "2024-11-28" }, replacement: myType } }
+  ])
+)
+
+// -------------------------------------------------------------------------------------
 // deleteOne
 // -------------------------------------------------------------------------------------
 
