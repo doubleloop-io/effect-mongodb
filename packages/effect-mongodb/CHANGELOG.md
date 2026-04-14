@@ -1,5 +1,11 @@
 # effect-mongodb
 
+## 0.4.0
+
+### Minor Changes
+
+- [#60](https://github.com/doubleloop-io/effect-mongodb/pull/60) [`fb7d3ef`](https://github.com/doubleloop-io/effect-mongodb/commit/fb7d3efc51d0f6ae392e85b970c09643cf03a70f) Thanks [@Botik](https://github.com/Botik)! - Add `bulkWrite` to `Collection` and `DocumentCollection`
+
 ## 0.3.3
 
 ### Patch Changes

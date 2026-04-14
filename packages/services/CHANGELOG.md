@@ -1,5 +1,12 @@
 # @effect-mongodb/services
 
+## 1.0.0
+
+### Patch Changes
+
+- Updated dependencies [[`fb7d3ef`](https://github.com/doubleloop-io/effect-mongodb/commit/fb7d3efc51d0f6ae392e85b970c09643cf03a70f)]:
+  - effect-mongodb@0.4.0
+
 ## 0.2.2
 
 ### Patch Changes
