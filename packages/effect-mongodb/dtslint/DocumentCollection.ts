@@ -62,35 +62,24 @@ F.pipe(collection, DocumentCollection.insertMany([anyDocument]))
 
 // $ExpectType Effect<BulkWriteResult, MongoError, never>
 DocumentCollection.bulkWrite(collection, [
-  { insertOne: { document: anyDocument } }
-])
-
-// $ExpectType Effect<BulkWriteResult, MongoError, never>
-DocumentCollection.bulkWrite(collection, [
   { insertOne: { document: anyDocument } },
-  { replaceOne: { filter: { birthday: "2024-11-28" }, replacement: anyDocument } }
-])
-
-// $ExpectType Effect<BulkWriteResult, MongoError, never>
-DocumentCollection.bulkWrite(collection, [
+  { replaceOne: { filter: { birthday: "2024-11-28" }, replacement: anyDocument } },
   { deleteOne: { filter: { birthday: "2024-11-28" } } },
-  { updateOne: { filter: { birthday: "2024-11-28" }, update: { $set: { birthday: "2024-11-29" } } } }
+  { updateOne: { filter: { birthday: "2024-11-28" }, update: { $set: { birthday: "2024-11-29" } } } },
+  { deleteMany: { filter: { birthday: "2024-11-28" } } },
+  { updateMany: { filter: { birthday: "2024-11-28" }, update: { $set: { birthday: "2024-11-29" } } } }
 ])
-
-// $ExpectType Effect<BulkWriteResult, MongoError, never>
-F.pipe(
-  collection,
-  DocumentCollection.bulkWrite([
-    { insertOne: { document: anyDocument } }
-  ])
-)
 
 // $ExpectType Effect<BulkWriteResult, MongoError, never>
 F.pipe(
   collection,
   DocumentCollection.bulkWrite([
     { insertOne: { document: anyDocument } },
-    { replaceOne: { filter: { birthday: "2024-11-28" }, replacement: anyDocument } }
+    { replaceOne: { filter: { birthday: "2024-11-28" }, replacement: anyDocument } },
+    { deleteOne: { filter: { birthday: "2024-11-28" } } },
+    { updateOne: { filter: { birthday: "2024-11-28" }, update: { $set: { birthday: "2024-11-29" } } } },
+    { deleteMany: { filter: { birthday: "2024-11-28" } } },
+    { updateMany: { filter: { birthday: "2024-11-28" }, update: { $set: { birthday: "2024-11-29" } } } }
   ])
 )
 
