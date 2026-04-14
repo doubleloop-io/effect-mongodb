@@ -57,33 +57,6 @@ DocumentCollection.insertMany(collection, [anyDocument])
 F.pipe(collection, DocumentCollection.insertMany([anyDocument]))
 
 // -------------------------------------------------------------------------------------
-// bulkWrite
-// -------------------------------------------------------------------------------------
-
-// $ExpectType Effect<BulkWriteResult, MongoError, never>
-DocumentCollection.bulkWrite(collection, [
-  { insertOne: { document: anyDocument } },
-  { replaceOne: { filter: { birthday: "2024-11-28" }, replacement: anyDocument } },
-  { deleteOne: { filter: { birthday: "2024-11-28" } } },
-  { updateOne: { filter: { birthday: "2024-11-28" }, update: { $set: { birthday: "2024-11-29" } } } },
-  { deleteMany: { filter: { birthday: "2024-11-28" } } },
-  { updateMany: { filter: { birthday: "2024-11-28" }, update: { $set: { birthday: "2024-11-29" } } } }
-])
-
-// $ExpectType Effect<BulkWriteResult, MongoError, never>
-F.pipe(
-  collection,
-  DocumentCollection.bulkWrite([
-    { insertOne: { document: anyDocument } },
-    { replaceOne: { filter: { birthday: "2024-11-28" }, replacement: anyDocument } },
-    { deleteOne: { filter: { birthday: "2024-11-28" } } },
-    { updateOne: { filter: { birthday: "2024-11-28" }, update: { $set: { birthday: "2024-11-29" } } } },
-    { deleteMany: { filter: { birthday: "2024-11-28" } } },
-    { updateMany: { filter: { birthday: "2024-11-28" }, update: { $set: { birthday: "2024-11-29" } } } }
-  ])
-)
-
-// -------------------------------------------------------------------------------------
 // deleteOne
 // -------------------------------------------------------------------------------------
 
@@ -279,3 +252,30 @@ DocumentCollection.typed(collection, Schema.Date)
 // TODO the following test should work, i.e. array are not acceptable as a collection type
 // // @ts-expect-error
 // DocumentCollection.typed(collection, Schema.Array(MyType))
+
+// -------------------------------------------------------------------------------------
+// bulkWrite
+// -------------------------------------------------------------------------------------
+
+// $ExpectType Effect<BulkWriteResult, MongoError, never>
+DocumentCollection.bulkWrite(collection, [
+  { insertOne: { document: anyDocument } },
+  { replaceOne: { filter: { birthday: "2024-11-28" }, replacement: anyDocument } },
+  { deleteOne: { filter: { birthday: "2024-11-28" } } },
+  { updateOne: { filter: { birthday: "2024-11-28" }, update: { $set: { birthday: "2024-11-29" } } } },
+  { deleteMany: { filter: { birthday: "2024-11-28" } } },
+  { updateMany: { filter: { birthday: "2024-11-28" }, update: { $set: { birthday: "2024-11-29" } } } }
+])
+
+// $ExpectType Effect<BulkWriteResult, MongoError, never>
+F.pipe(
+  collection,
+  DocumentCollection.bulkWrite([
+    { insertOne: { document: anyDocument } },
+    { replaceOne: { filter: { birthday: "2024-11-28" }, replacement: anyDocument } },
+    { deleteOne: { filter: { birthday: "2024-11-28" } } },
+    { updateOne: { filter: { birthday: "2024-11-28" }, update: { $set: { birthday: "2024-11-29" } } } },
+    { deleteMany: { filter: { birthday: "2024-11-28" } } },
+    { updateMany: { filter: { birthday: "2024-11-28" }, update: { $set: { birthday: "2024-11-29" } } } }
+  ])
+)

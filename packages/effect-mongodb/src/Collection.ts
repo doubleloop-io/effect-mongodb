@@ -164,33 +164,6 @@ export const insertMany: {
   )
 })
 
-export const bulkWrite: {
-  <A extends Document, I extends Document>(
-    operations: ReadonlyArray<AnyBulkWriteOperation<A, I>>,
-    options?: BulkWriteOptions
-  ): <R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<BulkWriteResult, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    operations: ReadonlyArray<AnyBulkWriteOperation<A, I>>,
-    options?: BulkWriteOptions
-  ): Effect.Effect<BulkWriteResult, MongoError.MongoError | ParseResult.ParseError, R>
-} = F.dual(
-  (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    operations: ReadonlyArray<AnyBulkWriteOperation<A, I>>,
-    options?: BulkWriteOptions
-  ): Effect.Effect<BulkWriteResult, MongoError.MongoError | ParseResult.ParseError, R> =>
-    F.pipe(
-      operations,
-      Effect.forEach((op) => encodeBulkWriteOperation(collection, op)),
-      Effect.flatMap((operations) => Effect.promise(() => collection.collection.bulkWrite(operations, options))),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "bulkWrite")))
-    )
-)
-
 export const deleteOne: {
   <I extends Document>(filter: Filter<I>, options?: DeleteOptions): <A extends Document, R>(
     collection: Collection<A, I, R>
@@ -604,6 +577,33 @@ export const countDocuments: {
     F.pipe(
       Effect.promise(() => collection.collection.countDocuments(filter, options)),
       Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "countDocuments")))
+    )
+)
+
+export const bulkWrite: {
+  <A extends Document, I extends Document>(
+    operations: ReadonlyArray<AnyBulkWriteOperation<A, I>>,
+    options?: BulkWriteOptions
+  ): <R>(
+    collection: Collection<A, I, R>
+  ) => Effect.Effect<BulkWriteResult, MongoError.MongoError | ParseResult.ParseError, R>
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    operations: ReadonlyArray<AnyBulkWriteOperation<A, I>>,
+    options?: BulkWriteOptions
+  ): Effect.Effect<BulkWriteResult, MongoError.MongoError | ParseResult.ParseError, R>
+} = F.dual(
+  (args) => isCollection(args[0]),
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    operations: ReadonlyArray<AnyBulkWriteOperation<A, I>>,
+    options?: BulkWriteOptions
+  ): Effect.Effect<BulkWriteResult, MongoError.MongoError | ParseResult.ParseError, R> =>
+    F.pipe(
+      operations,
+      Effect.forEach((op) => encodeBulkWriteOperation(collection, op)),
+      Effect.flatMap((operations) => Effect.promise(() => collection.collection.bulkWrite(operations, options))),
+      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "bulkWrite")))
     )
 )
 
