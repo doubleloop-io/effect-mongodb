@@ -601,7 +601,7 @@ export const bulkWrite: {
   ): Effect.Effect<BulkWriteResult, MongoError.MongoError | ParseResult.ParseError, R> =>
     F.pipe(
       operations,
-      Effect.forEach((op) => encodeBulkWriteOperation(collection, op)),
+      Effect.forEach((op) => encodeBulkWriteOperation(collection.schema, op)),
       Effect.flatMap((operations) => Effect.promise(() => collection.collection.bulkWrite(operations, options))),
       Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "bulkWrite")))
     )
