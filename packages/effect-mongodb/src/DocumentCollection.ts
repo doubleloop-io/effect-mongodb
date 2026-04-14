@@ -43,7 +43,6 @@ import type {
 import * as Collection from "./Collection.js"
 import * as DocumentAggregationCursor from "./DocumentAggregationCursor.js"
 import * as DocumentFindCursor from "./DocumentFindCursor.js"
-import type { BulkWriteOperation } from "./internal/bulk-write-operation.js"
 import type { ModifyResult } from "./internal/modify-result.js"
 import { mongoErrorOrDie } from "./internal/mongo-error.js"
 import * as MongoError from "./MongoError.js"
@@ -561,27 +560,22 @@ export const typed: {
 
 export const bulkWrite: {
   (
-    operations: ReadonlyArray<BulkWriteOperation<Document, Document>>,
+    operations: ReadonlyArray<AnyBulkWriteOperation<Document>>,
     options?: BulkWriteOptions
   ): (collection: DocumentCollection) => Effect.Effect<BulkWriteResult, MongoError.MongoError>
   (
     collection: DocumentCollection,
-    operations: ReadonlyArray<BulkWriteOperation<Document, Document>>,
+    operations: ReadonlyArray<AnyBulkWriteOperation<Document>>,
     options?: BulkWriteOptions
   ): Effect.Effect<BulkWriteResult, MongoError.MongoError>
 } = F.dual(
   (args) => isDocumentCollection(args[0]),
   (
     collection: DocumentCollection,
-    operations: ReadonlyArray<BulkWriteOperation<Document, Document>>,
+    operations: ReadonlyArray<AnyBulkWriteOperation<Document>>,
     options?: BulkWriteOptions
   ): Effect.Effect<BulkWriteResult, MongoError.MongoError> =>
-    Effect.tryPromise(() =>
-      collection.collection.bulkWrite(
-        operations as ReadonlyArray<AnyBulkWriteOperation<Document>>,
-        options
-      )
-    ).pipe(
+    Effect.tryPromise(() => collection.collection.bulkWrite(operations, options)).pipe(
       Effect.catchAll(mongoErrorOrDie(errorSource(collection, "bulkWrite")))
     )
 )
