@@ -19,7 +19,7 @@ jobs:
       id-token: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install dependencies
         uses: ./.github/actions/setup
         with:
@@ -27,7 +27,7 @@ jobs:
       - name: Upgrade npm for OIDC support
         run: npm install -g npm@latest
       - name: Create Release Pull Request or Publish
-        uses: changesets/action@v1
+        uses: changesets/action@6a0a831ff30acef54f2c6aa1cbbc1096b066edaf
         with:
           version: pnpm changeset-version
           publish: pnpm changeset-publish
