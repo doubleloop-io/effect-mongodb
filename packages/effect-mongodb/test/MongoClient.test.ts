@@ -25,11 +25,11 @@ describe("MongoClient", () => {
       Effect.runPromise
     )
 
-    expect(result).toBeInstanceOf(MongoError.MongoError)
-    if (result instanceof MongoError.MongoError) {
-      expect(result.message).not.toContain("user")
-      expect(result.message).not.toContain("pwd")
-    }
+    assertInstanceOf(result, MongoError.MongoError)
+    expect(result.message).not.toContain("user")
+    expect(result.message).not.toContain("pwd")
+    assertInstanceOf(result.source, MongoError.ClientErrorSource)
+    expect(result.source.hosts).toEqual(["wrongurlforsure.local:27017"])
   })
 
   test("connect error with multiple hosts in connection string", async () => {
