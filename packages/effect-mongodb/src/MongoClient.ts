@@ -19,7 +19,7 @@ export const connect = (
 ): Effect.Effect<MongoClient, MongoError.MongoError> =>
   Effect.promise(() => MongoClient_.connect(url, options)).pipe(
     Effect.map((client) => new MongoClient({ client })),
-    Effect.catchAllDefect(mongoErrorOrDie(errorSource([new URL(url).host], "connect")))
+    Effect.catchAllDefect(mongoErrorOrDie(errorSource(hostsFromUrl(url), "connect")))
   )
 
 export const close: {
@@ -29,7 +29,9 @@ export const close: {
   (args) => isMongoClient(args[0]),
   ({ client }: MongoClient, force?: boolean): Effect.Effect<void, MongoError.MongoError> =>
     Effect.promise(() => client.close(force)).pipe(
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(client.options.hosts.map((x) => x.host ?? "NO_HOST"), "close")))
+      Effect.catchAllDefect(
+        mongoErrorOrDie(errorSource(client.options.hosts.map((x) => x.host ?? UNKNOWN_HOST), "close"))
+      )
     )
 )
 
@@ -57,3 +59,16 @@ const isMongoClient = (x: unknown) => x instanceof MongoClient
 
 const errorSource = (hosts: Array<string>, functionName: string) =>
   new MongoError.ClientErrorSource({ module: "MongoClient", functionName, hosts })
+
+const SCHEME = /mongodb(?:\+srv)?:\/\//
+const CREDENTIALS = /(?:[^/?]*@)?/
+const HOSTS = /([^/?]+)/
+// https://www.mongodb.com/docs/manual/reference/connection-string-formats/
+const MONGO_CONNECTION_STRING = new RegExp(`^${SCHEME.source}${CREDENTIALS.source}${HOSTS.source}`, "i")
+
+const hostsFromUrl = (url: string) => {
+  const match = url.match(MONGO_CONNECTION_STRING)
+  return match ? match[1].split(",") : [UNKNOWN_HOST]
+}
+
+const UNKNOWN_HOST = "NO_HOST"
