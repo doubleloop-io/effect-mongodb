@@ -1,5 +1,15 @@
 # effect-mongodb
 
+## 0.4.0
+
+### Minor Changes
+
+- [#60](https://github.com/doubleloop-io/effect-mongodb/pull/60) [`fb7d3ef`](https://github.com/doubleloop-io/effect-mongodb/commit/fb7d3efc51d0f6ae392e85b970c09643cf03a70f) Thanks [@Botik](https://github.com/Botik)! - Add `bulkWrite` to `Collection` and `DocumentCollection`
+
+### Patch Changes
+
+- [`3f672cc`](https://github.com/doubleloop-io/effect-mongodb/commit/3f672cc33798bc7fd433250cfc4cab5fc2c71305) Thanks [@devmatteini](https://github.com/devmatteini)! - Fix connect error with multiple hosts in connection string [#58](https://github.com/doubleloop-io/effect-mongodb/issues/58)
+
 ## 0.3.3
 
 ### Patch Changes
