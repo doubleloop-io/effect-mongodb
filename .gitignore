@@ -11,3 +11,5 @@ scratchpad/
 .idea/
 .vscode/
 .envrc
+
+.claude
