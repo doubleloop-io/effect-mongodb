@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm exec *)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(pnpm dtslint *)",
+      "Bash(pnpm eslint *)"
+    ]
+  }
+}

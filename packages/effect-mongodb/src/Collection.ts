@@ -24,6 +24,7 @@ import type {
   DropIndexesOptions,
   EstimatedDocumentCountOptions,
   FindOneAndReplaceOptions,
+  FindOneAndUpdateOptions,
   FindOptions as MongoFindOptions,
   IndexDescription,
   IndexSpecification,
@@ -372,6 +373,90 @@ export const findOneAndReplace: {
       ),
       Effect.catchAllDefect(
         mongoErrorOrDie(errorSource(collection, "findOneAndReplace"))
+      )
+    )
+)
+
+export const findOneAndUpdate: {
+  <I extends Document>(
+    filter: Filter<I>,
+    update: UpdateFilter<I> | ReadonlyArray<Document>,
+    options: FindOneAndUpdateOptions & { includeResultMetadata: true }
+  ): <A extends Document, I2 extends I, R>(
+    collection: Collection<A, I2, R>
+  ) => Effect.Effect<ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  <I extends Document>(
+    filter: Filter<I>,
+    update: UpdateFilter<I> | ReadonlyArray<Document>,
+    options: FindOneAndUpdateOptions & { includeResultMetadata: false }
+  ): <A extends Document, I2 extends I, R>(
+    collection: Collection<A, I2, R>
+  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  <I extends Document>(
+    filter: Filter<I>,
+    update: UpdateFilter<I> | ReadonlyArray<Document>,
+    options: FindOneAndUpdateOptions
+  ): <A extends Document, I2 extends I, R>(
+    collection: Collection<A, I2, R>
+  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  <I extends Document>(filter: Filter<I>, update: UpdateFilter<I> | ReadonlyArray<Document>): <
+    A extends Document,
+    I2 extends I,
+    R
+  >(
+    collection: Collection<A, I2, R>
+  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    filter: Filter<I>,
+    update: UpdateFilter<I> | ReadonlyArray<Document>,
+    options: FindOneAndUpdateOptions & { includeResultMetadata: true }
+  ): Effect.Effect<ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    filter: Filter<I>,
+    update: UpdateFilter<I> | ReadonlyArray<Document>,
+    options: FindOneAndUpdateOptions & { includeResultMetadata: false }
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    filter: Filter<I>,
+    update: UpdateFilter<I> | ReadonlyArray<Document>,
+    options: FindOneAndUpdateOptions
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    filter: Filter<I>,
+    update: UpdateFilter<I> | ReadonlyArray<Document>
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+} = F.dual(
+  (args) => isCollection(args[0]),
+  <A extends Document, I extends Document, R>(
+    collection: Collection<A, I, R>,
+    filter: Filter<I>,
+    update: UpdateFilter<I> | ReadonlyArray<Document>,
+    options?: FindOneAndUpdateOptions
+  ): Effect.Effect<O.Option<A> | ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R> =>
+    F.pipe(
+      Effect.promise(() =>
+        collection.collection.findOneAndUpdate(
+          filter,
+          Array.isArray(update) ? [...update] : update as UpdateFilter<Document>,
+          options ?? {}
+        )
+      ),
+      Effect.flatMap((value) =>
+        Effect.gen(function*() {
+          if (options?.includeResultMetadata && !!value) {
+            const result = value as unknown as MongoModifyResult<I>
+            const maybeValue = yield* SchemaExt.decodeNullableDocument(collection.schema, result.value)
+            return { ...result, value: maybeValue }
+          }
+          return yield* SchemaExt.decodeNullableDocument(collection.schema, value)
+        })
+      ),
+      Effect.catchAllDefect(
+        mongoErrorOrDie(errorSource(collection, "findOneAndUpdate"))
       )
     )
 )

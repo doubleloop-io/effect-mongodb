@@ -133,6 +133,62 @@ Collection.findOneAndReplace(collection, { birthday: "2024-11-28" }, myType)
 F.pipe(collection, Collection.findOneAndReplace({ birthday: "2024-11-28" }, myType))
 
 // -------------------------------------------------------------------------------------
+// findOneAndUpdate
+// -------------------------------------------------------------------------------------
+
+// $ExpectType Effect<ModifyResult<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+Collection.findOneAndUpdate(
+  collection,
+  { birthday: "2024-11-28" },
+  { $set: { birthday: "2024-11-29" } },
+  { includeResultMetadata: true }
+)
+
+// $ExpectType Effect<ModifyResult<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+F.pipe(
+  collection,
+  Collection.findOneAndUpdate({ birthday: "2024-11-28" }, { $set: { birthday: "2024-11-29" } }, {
+    includeResultMetadata: true
+  })
+)
+
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+Collection.findOneAndUpdate(
+  collection,
+  { birthday: "2024-11-28" },
+  { $set: { birthday: "2024-11-29" } },
+  { includeResultMetadata: false }
+)
+
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+F.pipe(
+  collection,
+  Collection.findOneAndUpdate({ birthday: "2024-11-28" }, { $set: { birthday: "2024-11-29" } }, {
+    includeResultMetadata: false
+  })
+)
+
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+Collection.findOneAndUpdate(
+  collection,
+  { birthday: "2024-11-28" },
+  { $set: { birthday: "2024-11-29" } },
+  { comment: "any" }
+)
+
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+F.pipe(
+  collection,
+  Collection.findOneAndUpdate({ birthday: "2024-11-28" }, { $set: { birthday: "2024-11-29" } }, { comment: "any" })
+)
+
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+Collection.findOneAndUpdate(collection, { birthday: "2024-11-28" }, { $set: { birthday: "2024-11-29" } })
+
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+F.pipe(collection, Collection.findOneAndUpdate({ birthday: "2024-11-28" }, { $set: { birthday: "2024-11-29" } }))
+
+// -------------------------------------------------------------------------------------
 // rename
 // -------------------------------------------------------------------------------------
 

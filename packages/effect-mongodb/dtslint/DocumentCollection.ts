@@ -145,6 +145,67 @@ DocumentCollection.findOneAndReplace(collection, { birthday: "2024-11-28" }, any
 F.pipe(collection, DocumentCollection.findOneAndReplace({ birthday: "2024-11-28" }, anyDocument))
 
 // -------------------------------------------------------------------------------------
+// findOneAndUpdate
+// -------------------------------------------------------------------------------------
+
+// $ExpectType Effect<ModifyResult<Document>, MongoError, never>
+DocumentCollection.findOneAndUpdate(
+  collection,
+  { birthday: "2024-11-28" },
+  { $set: { birthday: "2024-11-29" } },
+  { includeResultMetadata: true }
+)
+
+// $ExpectType Effect<ModifyResult<Document>, MongoError, never>
+F.pipe(
+  collection,
+  DocumentCollection.findOneAndUpdate({ birthday: "2024-11-28" }, { $set: { birthday: "2024-11-29" } }, {
+    includeResultMetadata: true
+  })
+)
+
+// $ExpectType Effect<Option<Document>, MongoError, never>
+DocumentCollection.findOneAndUpdate(
+  collection,
+  { birthday: "2024-11-28" },
+  { $set: { birthday: "2024-11-29" } },
+  { includeResultMetadata: false }
+)
+
+// $ExpectType Effect<Option<Document>, MongoError, never>
+F.pipe(
+  collection,
+  DocumentCollection.findOneAndUpdate({ birthday: "2024-11-28" }, { $set: { birthday: "2024-11-29" } }, {
+    includeResultMetadata: false
+  })
+)
+
+// $ExpectType Effect<Option<Document>, MongoError, never>
+DocumentCollection.findOneAndUpdate(
+  collection,
+  { birthday: "2024-11-28" },
+  { $set: { birthday: "2024-11-29" } },
+  { comment: "any" }
+)
+
+// $ExpectType Effect<Option<Document>, MongoError, never>
+F.pipe(
+  collection,
+  DocumentCollection.findOneAndUpdate({ birthday: "2024-11-28" }, { $set: { birthday: "2024-11-29" } }, {
+    comment: "any"
+  })
+)
+
+// $ExpectType Effect<Option<Document>, MongoError, never>
+DocumentCollection.findOneAndUpdate(collection, { birthday: "2024-11-28" }, { $set: { birthday: "2024-11-29" } })
+
+// $ExpectType Effect<Option<Document>, MongoError, never>
+F.pipe(
+  collection,
+  DocumentCollection.findOneAndUpdate({ birthday: "2024-11-28" }, { $set: { birthday: "2024-11-29" } })
+)
+
+// -------------------------------------------------------------------------------------
 // rename
 // -------------------------------------------------------------------------------------
 

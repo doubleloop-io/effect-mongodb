@@ -25,6 +25,7 @@ import type {
   EstimatedDocumentCountOptions,
   Filter,
   FindOneAndReplaceOptions,
+  FindOneAndUpdateOptions,
   FindOptions,
   IndexDescription,
   IndexSpecification,
@@ -351,6 +352,83 @@ export const findOneAndReplace: {
       }),
       Effect.catchAllDefect(
         mongoErrorOrDie(errorSource(collection, "findOneAndReplace"))
+      )
+    )
+)
+
+export const findOneAndUpdate: {
+  (
+    filter: Filter<Document>,
+    update: UpdateFilter<Document> | ReadonlyArray<Document>,
+    options: FindOneAndUpdateOptions & { includeResultMetadata: true }
+  ): (
+    collection: DocumentCollection
+  ) => Effect.Effect<ModifyResult<Document>, MongoError.MongoError>
+  (
+    filter: Filter<Document>,
+    update: UpdateFilter<Document> | ReadonlyArray<Document>,
+    options: FindOneAndUpdateOptions & { includeResultMetadata: false }
+  ): (
+    collection: DocumentCollection
+  ) => Effect.Effect<O.Option<Document>, MongoError.MongoError>
+  (
+    filter: Filter<Document>,
+    update: UpdateFilter<Document> | ReadonlyArray<Document>,
+    options: FindOneAndUpdateOptions
+  ): (
+    collection: DocumentCollection
+  ) => Effect.Effect<O.Option<Document>, MongoError.MongoError>
+  (filter: Filter<Document>, update: UpdateFilter<Document> | ReadonlyArray<Document>): (
+    collection: DocumentCollection
+  ) => Effect.Effect<O.Option<Document>, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    filter: Filter<Document>,
+    update: UpdateFilter<Document> | ReadonlyArray<Document>,
+    options: FindOneAndUpdateOptions & { includeResultMetadata: true }
+  ): Effect.Effect<ModifyResult<Document>, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    filter: Filter<Document>,
+    update: UpdateFilter<Document> | ReadonlyArray<Document>,
+    options: FindOneAndUpdateOptions & { includeResultMetadata: false }
+  ): Effect.Effect<O.Option<Document>, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    filter: Filter<Document>,
+    update: UpdateFilter<Document> | ReadonlyArray<Document>,
+    options: FindOneAndUpdateOptions
+  ): Effect.Effect<O.Option<Document>, MongoError.MongoError>
+  (
+    collection: DocumentCollection,
+    filter: Filter<Document>,
+    update: UpdateFilter<Document> | ReadonlyArray<Document>
+  ): Effect.Effect<O.Option<Document>, MongoError.MongoError>
+} = F.dual(
+  (args) => isDocumentCollection(args[0]),
+  (
+    collection: DocumentCollection,
+    filter: Filter<Document>,
+    update: UpdateFilter<Document> | ReadonlyArray<Document>,
+    options?: FindOneAndUpdateOptions
+  ): Effect.Effect<O.Option<Document> | ModifyResult<Document>, MongoError.MongoError> =>
+    F.pipe(
+      Effect.promise(() =>
+        collection.collection.findOneAndUpdate(
+          filter,
+          Array.isArray(update) ? [...update] : update,
+          options ?? {}
+        )
+      ),
+      Effect.map((value) => {
+        if (options?.includeResultMetadata && !!value) {
+          const result = value as unknown as MongoModifyResult<Document>
+          return { ...result, value: O.fromNullable(result.value) }
+        }
+        return O.fromNullable(value)
+      }),
+      Effect.catchAllDefect(
+        mongoErrorOrDie(errorSource(collection, "findOneAndUpdate"))
       )
     )
 )

@@ -88,6 +88,49 @@ describeMongo("Collection", (ctx) => {
     })
   })
 
+  test("find one and update", async () => {
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
+      const collection = Db.collection(db, "find-one-and-update", UserWithVersion)
+
+      yield* Collection.insertOne(collection, { name: "john", version: "v1" })
+
+      return yield* Collection.findOneAndUpdate(
+        collection,
+        { name: "john" },
+        { $set: { version: "v2" } },
+        { returnDocument: "after" }
+      )
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result).toEqual(O.some({ name: "john", version: "v2" }))
+  })
+
+  test("find one and update - include result metadata", async () => {
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
+      const collection = Db.collection(db, "find-one-and-update-include-result-metadata", UserWithVersion)
+
+      yield* Collection.insertOne(collection, { name: "john", version: "v1" })
+
+      return yield* Collection.findOneAndUpdate(
+        collection,
+        { name: "john" },
+        { $set: { version: "v2" } },
+        { returnDocument: "after", includeResultMetadata: true }
+      )
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result).toMatchObject({
+      ok: 1,
+      value: O.some({ name: "john", version: "v2" })
+    })
+  })
+
   test("aggregate", async () => {
     const user1 = User.make({ name: "user1", birthday: new Date(1977, 11, 27) })
     const user2 = User.make({ name: "user2", birthday: new Date(1977, 11, 27) })
