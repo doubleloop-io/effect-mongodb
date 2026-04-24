@@ -1,5 +1,11 @@
 # effect-mongodb
 
+## 0.4.1
+
+### Patch Changes
+
+- [`b3b5377`](https://github.com/doubleloop-io/effect-mongodb/commit/b3b537774c6ba0b695ab877416d77af032569041) Thanks [@VenomAV](https://github.com/VenomAV)! - Add findOneAndUpdate function in Collection and DocumentCollection
+
 ## 0.4.0
 
 ### Minor Changes
