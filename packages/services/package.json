@@ -48,12 +48,12 @@
     "coverage": "vitest --coverage"
   },
   "peerDependencies": {
-    "effect": "^3.10.14",
+    "effect": "^4.0.0-beta.103",
     "mongodb": "^6.9.0",
     "effect-mongodb": "workspace:^"
   },
   "devDependencies": {
-    "effect": "^3.10.14",
+    "effect": "4.0.0-beta.103",
     "mongodb": "^6.9.0",
     "effect-mongodb": "workspace:^",
     "@types/node": "^22.5.4"
