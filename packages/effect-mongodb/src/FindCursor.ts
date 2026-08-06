@@ -3,12 +3,12 @@
  */
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
-import type * as E from "effect/Either"
 import * as F from "effect/Function"
-import type * as ParseResult from "effect/ParseResult"
 import type { Pipeable } from "effect/Pipeable"
 import { pipeArguments } from "effect/Pipeable"
+import type * as Result from "effect/Result"
 import * as Schema from "effect/Schema"
+import type * as SchemaError from "effect/SchemaError"
 import * as Stream from "effect/Stream"
 import * as Tuple from "effect/Tuple"
 import type { Document, FindCursor as FindCursor_, Sort, SortDirection } from "mongodb"
@@ -18,7 +18,7 @@ import * as MongoError from "./MongoError.js"
 
 type FindCursorFields<A, I = A, R = never> = {
   cursor: FindCursor_<unknown>
-  schema: Schema.Schema<A, I, R>
+  schema: Schema.Codec<A, I, R, R>
 }
 
 export interface FindCursor<A, I = A, R = never> extends FindCursorFields<A, I, R>, Pipeable {
@@ -49,19 +49,19 @@ export const filter: {
 
 export const project: {
   <B, BI, BR, T extends Document = Document>(
-    newSchema: Schema.Schema<B, BI, BR>,
+    newSchema: Schema.Codec<B, BI, BR, BR>,
     value: T
   ): <A, I, R>(cursor: FindCursor<A, I, R>) => FindCursor<B, BI, BR>
   <A, B, I, R, BI, BR, T extends Document = Document>(
     cursor: FindCursor<A, I, R>,
-    newSchema: Schema.Schema<B, BI, BR>,
+    newSchema: Schema.Codec<B, BI, BR, BR>,
     value: T
   ): FindCursor<B, BI, BR>
 } = F.dual(
   (args) => isFindCursor(args[0]),
   <A, B, I, R, BI, BR, T extends Document = Document>(
     cursor: FindCursor<A, I, R>,
-    newSchema: Schema.Schema<B, BI, BR>,
+    newSchema: Schema.Codec<B, BI, BR, BR>,
     value: T
   ): FindCursor<B, BI, BR> => new FindCursorImpl({ cursor: cursor.cursor.project(value), schema: newSchema })
 )
@@ -93,10 +93,10 @@ export const limit: {
 
 export const toArray = <A, I, R>(
   cursor: FindCursor<A, I, R>
-): Effect.Effect<Array<A>, MongoError.MongoError | ParseResult.ParseError, R> => {
-  const decode = Schema.decodeUnknown(cursor.schema)
+): Effect.Effect<Array<A>, MongoError.MongoError | SchemaError.SchemaError, R> => {
+  const decode = Schema.decodeUnknownEffect(cursor.schema)
   return Effect.promise(() => cursor.cursor.toArray()).pipe(
-    Effect.catchAllDefect(mongoErrorOrDie(errorSource(cursor, "toArray"))),
+    Effect.catchDefect(mongoErrorOrDie(errorSource(cursor, "toArray"))),
     Effect.flatMap(Effect.forEach((x) => decode(x)))
   )
 }
@@ -104,18 +104,18 @@ export const toArray = <A, I, R>(
 export const toArrayEither = <A, I, R>(
   cursor: FindCursor<A, I, R>
 ): Effect.Effect<
-  Array<E.Either<A, [document: unknown, error: ParseResult.ParseError]>>,
+  Array<Result.Result<A, [document: unknown, error: SchemaError.SchemaError]>>,
   MongoError.MongoError,
   R
 > => {
-  const decode = Schema.decodeUnknown(cursor.schema)
+  const decode = Schema.decodeUnknownEffect(cursor.schema)
   return Effect.promise(() => cursor.cursor.toArray()).pipe(
-    Effect.catchAllDefect(mongoErrorOrDie(errorSource(cursor, "toArrayEither"))),
+    Effect.catchDefect(mongoErrorOrDie(errorSource(cursor, "toArrayEither"))),
     Effect.flatMap(Effect.forEach((x) =>
       F.pipe(
         decode(x),
         Effect.mapError((error) => Tuple.make(x, error)),
-        Effect.either
+        Effect.result
       )
     ))
   )
@@ -123,28 +123,28 @@ export const toArrayEither = <A, I, R>(
 
 export const toStream = <A, I, R>(
   cursor: FindCursor<A, I, R>
-): Stream.Stream<A, MongoError.MongoError | ParseResult.ParseError, R> => {
-  const decode = Schema.decodeUnknown(cursor.schema)
+): Stream.Stream<A, MongoError.MongoError | SchemaError.SchemaError, R> => {
+  const decode = Schema.decodeUnknownEffect(cursor.schema)
   return F.pipe(
     Stream.fromAsyncIterable(cursor.cursor, F.identity),
-    Stream.catchAll(mongoErrorOrDie(errorSource(cursor, "toStream"))),
+    Stream.catch(F.flow(mongoErrorOrDie(errorSource(cursor, "toStream")), Stream.fromEffect)),
     Stream.mapEffect((x) => decode(x))
   )
 }
 
 export const toStreamEither = <A, I, R>(
   cursor: FindCursor<A, I, R>
-): Stream.Stream<E.Either<A, [document: unknown, error: ParseResult.ParseError]>, MongoError.MongoError, R> => {
-  const decode = Schema.decodeUnknown(cursor.schema)
+): Stream.Stream<Result.Result<A, [document: unknown, error: SchemaError.SchemaError]>, MongoError.MongoError, R> => {
+  const decode = Schema.decodeUnknownEffect(cursor.schema)
   return F.pipe(
     Stream.fromAsyncIterable(cursor.cursor, F.identity),
-    Stream.catchAll(mongoErrorOrDie(errorSource(cursor, "toStreamEither"))),
+    Stream.catch(F.flow(mongoErrorOrDie(errorSource(cursor, "toStreamEither")), Stream.fromEffect)),
     Stream.mapEffect((x) =>
       F.pipe(
         // keep new line
         decode(x),
         Effect.mapError((error) => Tuple.make(x, error)),
-        Effect.either
+        Effect.result
       )
     )
   )

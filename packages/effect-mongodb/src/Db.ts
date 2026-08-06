@@ -28,19 +28,19 @@ export const documentCollection: {
 export const collection: {
   <A extends Document, I extends Document = A, R = never>(
     name: string,
-    schema: Schema.Schema<A, I, R>
+    schema: Schema.Codec<A, I, R, R>
   ): (db: Db) => Collection.Collection<A, I, R>
   <A extends Document, I extends Document = A, R = never>(
     db: Db,
     name: string,
-    schema: Schema.Schema<A, I, R>
+    schema: Schema.Codec<A, I, R, R>
   ): Collection.Collection<A, I, R>
 } = F.dual(
   (args) => isDb(args[0]),
   <A extends Document, I extends Document = A, R = never>(
     db: Db,
     name: string,
-    schema: Schema.Schema<A, I, R>
+    schema: Schema.Codec<A, I, R, R>
   ): Collection.Collection<A, I, R> => DocumentCollection.typed(documentCollection(db, name), schema)
 )
 
@@ -82,7 +82,7 @@ export const dropCollection: {
   (db: Db, name: string, options?: DropCollectionOptions): Effect.Effect<boolean, MongoError.MongoError> =>
     F.pipe(
       Effect.promise(() => db.db.dropCollection(name, options)),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(db, "dropCollection")))
+      Effect.catchDefect(mongoErrorOrDie(errorSource(db, "dropCollection")))
     )
 )
 

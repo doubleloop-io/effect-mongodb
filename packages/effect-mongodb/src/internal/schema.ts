@@ -4,9 +4,9 @@ import * as Schema from "effect/Schema"
 import type { Document } from "mongodb"
 
 // TODO: there is probably a Schema to do this decode or using typeclass package for traverse
-export const decodeNullableDocument = <A, I, R>(schema: Schema.Schema<A, I, R>, value: Document | null) =>
+export const decodeNullableDocument = <A, I, R>(schema: Schema.Codec<A, I, R, R>, value: Document | null) =>
   Effect.gen(function*() {
     if (value === null) return O.none()
-    const decoded = yield* Schema.decodeUnknown(schema)(value)
+    const decoded = yield* Schema.decodeUnknownEffect(schema)(value)
     return O.some(decoded)
   })

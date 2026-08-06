@@ -6,10 +6,10 @@ import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import type * as O from "effect/Option"
-import type * as ParseResult from "effect/ParseResult"
 import type { Pipeable } from "effect/Pipeable"
 import { pipeArguments } from "effect/Pipeable"
 import * as Schema from "effect/Schema"
+import type * as SchemaError from "effect/SchemaError"
 import type {
   AggregateOptions,
   BulkWriteOptions,
@@ -50,7 +50,7 @@ import * as MongoError from "./MongoError.js"
 
 type CollectionFields<A extends Document, I extends Document = A, R = never> = {
   collection: MongoCollection
-  schema: Schema.Schema<A, I, R>
+  schema: Schema.Codec<A, I, R, R>
 }
 
 export interface Collection<A extends Document, I extends Document = A, R = never>
@@ -58,7 +58,7 @@ export interface Collection<A extends Document, I extends Document = A, R = neve
 {
   _tag: "Collection"
   /** @internal */
-  encode: ReturnType<typeof Schema.encode<A, I, R>>
+  encode: (doc: A) => Effect.Effect<I, SchemaError.SchemaError, R>
 }
 
 /** @internal */
@@ -66,7 +66,7 @@ export class CollectionImpl<A extends Document, I extends Document = A, R = neve
   extends Data.TaggedClass("Collection")<CollectionFields<A, I, R>>
   implements Collection<A, I, R>
 {
-  readonly encode = Schema.encode(this.schema)
+  readonly encode = Schema.encodeEffect(this.schema)
   pipe() {
     return pipeArguments(this, arguments)
   }
@@ -102,66 +102,66 @@ export const find: {
 export const findOne: {
   <I extends Document>(filter: Filter<I>, options?: FindOptions): <A extends Document, R>(
     collection: Collection<A, I, R>
-  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | SchemaError.SchemaError, R>
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
     options?: FindOptions
-  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | SchemaError.SchemaError, R>
 } = F.dual(
   (args) => isCollection(args[0]),
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
     options?: FindOptions
-  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R> =>
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | SchemaError.SchemaError, R> =>
     Effect.gen(function*() {
       const value = yield* Effect.promise(() => collection.collection.findOne(filter, options))
       return yield* SchemaExt.decodeNullableDocument(collection.schema, value)
     }).pipe(
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "findOne")))
+      Effect.catchDefect(mongoErrorOrDie(errorSource(collection, "findOne")))
     )
 )
 
 export const insertOne: {
   <A extends Document>(doc: A, options?: InsertOneOptions): <I extends Document, R>(
     collection: Collection<A, I, R>
-  ) => Effect.Effect<InsertOneResult<I>, MongoError.MongoError | ParseResult.ParseError, R>
+  ) => Effect.Effect<InsertOneResult<I>, MongoError.MongoError | SchemaError.SchemaError, R>
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     doc: A,
     options?: InsertOneOptions
-  ): Effect.Effect<InsertOneResult<I>, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<InsertOneResult<I>, MongoError.MongoError | SchemaError.SchemaError, R>
 } = F.dual((args) => isCollection(args[0]), <A extends Document, I extends Document, R>(
   collection: Collection<A, I, R>,
   doc: A,
   options?: InsertOneOptions
-): Effect.Effect<InsertOneResult<I>, MongoError.MongoError | ParseResult.ParseError, R> =>
+): Effect.Effect<InsertOneResult<I>, MongoError.MongoError | SchemaError.SchemaError, R> =>
   F.pipe(
     collection.encode(doc),
     Effect.flatMap((doc) => Effect.promise(() => collection.collection.insertOne(doc, options))),
-    Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "insertOne")))
+    Effect.catchDefect(mongoErrorOrDie(errorSource(collection, "insertOne")))
   ))
 
 export const insertMany: {
   <A extends Document>(docs: ReadonlyArray<A>, options?: BulkWriteOptions): <I extends Document, R>(
     collection: Collection<A, I, R>
-  ) => Effect.Effect<InsertManyResult<I>, MongoError.MongoError | ParseResult.ParseError, R>
+  ) => Effect.Effect<InsertManyResult<I>, MongoError.MongoError | SchemaError.SchemaError, R>
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     docs: ReadonlyArray<A>,
     options?: BulkWriteOptions
-  ): Effect.Effect<InsertManyResult<I>, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<InsertManyResult<I>, MongoError.MongoError | SchemaError.SchemaError, R>
 } = F.dual((args) => isCollection(args[0]), <A extends Document, I extends Document, R>(
   collection: Collection<A, I, R>,
   docs: ReadonlyArray<A>,
   options?: BulkWriteOptions
-): Effect.Effect<InsertManyResult<I>, MongoError.MongoError | ParseResult.ParseError, R> => {
+): Effect.Effect<InsertManyResult<I>, MongoError.MongoError | SchemaError.SchemaError, R> => {
   return F.pipe(
     docs,
     Effect.forEach((doc) => collection.encode(doc)),
     Effect.flatMap((docs) => Effect.promise(() => collection.collection.insertMany(docs, options))),
-    Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "insertMany")))
+    Effect.catchDefect(mongoErrorOrDie(errorSource(collection, "insertMany")))
   )
 })
 
@@ -182,7 +182,7 @@ export const deleteOne: {
     options?: DeleteOptions
   ): Effect.Effect<DeleteResult, MongoError.MongoError, R> =>
     Effect.promise(() => collection.collection.deleteOne(filter, options)).pipe(
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "deleteOne")))
+      Effect.catchDefect(mongoErrorOrDie(errorSource(collection, "deleteOne")))
     )
 )
 
@@ -203,7 +203,7 @@ export const deleteMany: {
     options?: DeleteOptions
   ): Effect.Effect<DeleteResult, MongoError.MongoError, R> =>
     Effect.promise(() => collection.collection.deleteMany(filter, options)).pipe(
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "deleteMany")))
+      Effect.catchDefect(mongoErrorOrDie(errorSource(collection, "deleteMany")))
     )
 )
 
@@ -235,7 +235,7 @@ export const updateOne: {
         Array.isArray(update) ? [...update] : update as UpdateFilter<Document>,
         options
       )
-    ).pipe(Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "updateOne"))))
+    ).pipe(Effect.catchDefect(mongoErrorOrDie(errorSource(collection, "updateOne"))))
 )
 
 export const updateMany: {
@@ -266,7 +266,7 @@ export const updateMany: {
         Array.isArray(update) ? [...update] : update as UpdateFilter<Document>,
         options
       )
-    ).pipe(Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "updateMany"))))
+    ).pipe(Effect.catchDefect(mongoErrorOrDie(errorSource(collection, "updateMany"))))
 )
 
 export const replaceOne: {
@@ -276,13 +276,13 @@ export const replaceOne: {
     options?: ReplaceOptions
   ): <R>(
     collection: Collection<A, I, R>
-  ) => Effect.Effect<UpdateResult<I> | Document, MongoError.MongoError | ParseResult.ParseError, R>
+  ) => Effect.Effect<UpdateResult<I> | Document, MongoError.MongoError | SchemaError.SchemaError, R>
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
     replacement: A,
     options?: ReplaceOptions
-  ): Effect.Effect<UpdateResult<I> | Document, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<UpdateResult<I> | Document, MongoError.MongoError | SchemaError.SchemaError, R>
 } = F.dual(
   (args) => isCollection(args[0]),
   <A extends Document, I extends Document, R>(
@@ -292,7 +292,7 @@ export const replaceOne: {
     options?: ReplaceOptions
   ): Effect.Effect<
     UpdateResult<I> | Document,
-    MongoError.MongoError | ParseResult.ParseError,
+    MongoError.MongoError | SchemaError.SchemaError,
     R
   > =>
     F.pipe(
@@ -300,7 +300,7 @@ export const replaceOne: {
       Effect.flatMap((replacement) =>
         Effect.promise(() => collection.collection.replaceOne(filter, replacement, options))
       ),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "replaceOne")))
+      Effect.catchDefect(mongoErrorOrDie(errorSource(collection, "replaceOne")))
     )
 )
 
@@ -311,43 +311,43 @@ export const findOneAndReplace: {
     options: FindOneAndReplaceOptions & { includeResultMetadata: true }
   ): <R>(
     collection: Collection<A, I, R>
-  ) => Effect.Effect<ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ) => Effect.Effect<ModifyResult<A>, MongoError.MongoError | SchemaError.SchemaError, R>
   <A extends Document, I extends Document>(
     filter: Filter<I>,
     replacement: A,
     options: FindOneAndReplaceOptions & { includeResultMetadata: false }
   ): <R>(
     collection: Collection<A, I, R>
-  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | SchemaError.SchemaError, R>
   <A extends Document, I extends Document>(filter: Filter<I>, replacement: A, options: FindOneAndReplaceOptions): <R>(
     collection: Collection<A, I, R>
-  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | SchemaError.SchemaError, R>
   <A extends Document, I extends Document>(filter: Filter<I>, replacement: A): <R>(
     collection: Collection<A, I, R>
-  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | SchemaError.SchemaError, R>
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
     replacement: A,
     options: FindOneAndReplaceOptions & { includeResultMetadata: true }
-  ): Effect.Effect<ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<ModifyResult<A>, MongoError.MongoError | SchemaError.SchemaError, R>
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
     replacement: A,
     options: FindOneAndReplaceOptions & { includeResultMetadata: false }
-  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | SchemaError.SchemaError, R>
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
     replacement: A,
     options: FindOneAndReplaceOptions
-  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | SchemaError.SchemaError, R>
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
     replacement: A
-  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | SchemaError.SchemaError, R>
 } = F.dual(
   (args) => isCollection(args[0]),
   <A extends Document, I extends Document, R>(
@@ -355,7 +355,7 @@ export const findOneAndReplace: {
     filter: Filter<I>,
     replacement: A,
     options?: FindOneAndReplaceOptions
-  ): Effect.Effect<O.Option<A> | ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R> =>
+  ): Effect.Effect<O.Option<A> | ModifyResult<A>, MongoError.MongoError | SchemaError.SchemaError, R> =>
     F.pipe(
       collection.encode(replacement),
       Effect.flatMap((replacement) =>
@@ -371,7 +371,7 @@ export const findOneAndReplace: {
           return yield* SchemaExt.decodeNullableDocument(collection.schema, value)
         })
       ),
-      Effect.catchAllDefect(
+      Effect.catchDefect(
         mongoErrorOrDie(errorSource(collection, "findOneAndReplace"))
       )
     )
@@ -384,51 +384,51 @@ export const findOneAndUpdate: {
     options: FindOneAndUpdateOptions & { includeResultMetadata: true }
   ): <A extends Document, I2 extends I, R>(
     collection: Collection<A, I2, R>
-  ) => Effect.Effect<ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ) => Effect.Effect<ModifyResult<A>, MongoError.MongoError | SchemaError.SchemaError, R>
   <I extends Document>(
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options: FindOneAndUpdateOptions & { includeResultMetadata: false }
   ): <A extends Document, I2 extends I, R>(
     collection: Collection<A, I2, R>
-  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | SchemaError.SchemaError, R>
   <I extends Document>(
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options: FindOneAndUpdateOptions
   ): <A extends Document, I2 extends I, R>(
     collection: Collection<A, I2, R>
-  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | SchemaError.SchemaError, R>
   <I extends Document>(filter: Filter<I>, update: UpdateFilter<I> | ReadonlyArray<Document>): <
     A extends Document,
     I2 extends I,
     R
   >(
     collection: Collection<A, I2, R>
-  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | SchemaError.SchemaError, R>
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options: FindOneAndUpdateOptions & { includeResultMetadata: true }
-  ): Effect.Effect<ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<ModifyResult<A>, MongoError.MongoError | SchemaError.SchemaError, R>
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options: FindOneAndUpdateOptions & { includeResultMetadata: false }
-  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | SchemaError.SchemaError, R>
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options: FindOneAndUpdateOptions
-  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | SchemaError.SchemaError, R>
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>
-  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | SchemaError.SchemaError, R>
 } = F.dual(
   (args) => isCollection(args[0]),
   <A extends Document, I extends Document, R>(
@@ -436,7 +436,7 @@ export const findOneAndUpdate: {
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options?: FindOneAndUpdateOptions
-  ): Effect.Effect<O.Option<A> | ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R> =>
+  ): Effect.Effect<O.Option<A> | ModifyResult<A>, MongoError.MongoError | SchemaError.SchemaError, R> =>
     F.pipe(
       Effect.promise(() =>
         collection.collection.findOneAndUpdate(
@@ -455,7 +455,7 @@ export const findOneAndUpdate: {
           return yield* SchemaExt.decodeNullableDocument(collection.schema, value)
         })
       ),
-      Effect.catchAllDefect(
+      Effect.catchDefect(
         mongoErrorOrDie(errorSource(collection, "findOneAndUpdate"))
       )
     )
@@ -482,7 +482,7 @@ export const rename: {
       Effect.map((newCollection) =>
         new CollectionImpl<A, I, R>({ collection: newCollection, schema: collection.schema })
       ),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "rename")))
+      Effect.catchDefect(mongoErrorOrDie(errorSource(collection, "rename")))
     )
 )
 
@@ -502,7 +502,7 @@ export const drop: {
   ): Effect.Effect<boolean, MongoError.MongoError, R> =>
     F.pipe(
       Effect.promise(() => collection.collection.drop(options)),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "drop")))
+      Effect.catchDefect(mongoErrorOrDie(errorSource(collection, "drop")))
     )
 )
 
@@ -527,7 +527,7 @@ export const createIndexes: {
   ): Effect.Effect<Array<string>, MongoError.MongoError, R> =>
     F.pipe(
       Effect.promise(() => collection.collection.createIndexes([...indexSpecs], options)),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "createIndexes")))
+      Effect.catchDefect(mongoErrorOrDie(errorSource(collection, "createIndexes")))
     )
 )
 
@@ -549,7 +549,7 @@ export const createIndex: {
   ): Effect.Effect<string, MongoError.MongoError, R> =>
     F.pipe(
       Effect.promise(() => collection.collection.createIndex(indexSpec, options)),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "createIndex")))
+      Effect.catchDefect(mongoErrorOrDie(errorSource(collection, "createIndex")))
     )
 )
 
@@ -571,7 +571,7 @@ export const dropIndex: {
   ): Effect.Effect<Document, MongoError.MongoError, R> =>
     F.pipe(
       Effect.promise(() => collection.collection.dropIndex(indexName, options)),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "dropIndex")))
+      Effect.catchDefect(mongoErrorOrDie(errorSource(collection, "dropIndex")))
     )
 )
 
@@ -591,13 +591,13 @@ export const dropIndexes: {
   ): Effect.Effect<boolean, MongoError.MongoError, R> =>
     F.pipe(
       Effect.promise(() => collection.collection.dropIndexes(options)),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "dropIndexes")))
+      Effect.catchDefect(mongoErrorOrDie(errorSource(collection, "dropIndexes")))
     )
 )
 
 export const aggregate: {
   <B extends Document, BI extends Document, BR>(
-    schema: Schema.Schema<B, BI, BR>,
+    schema: Schema.Codec<B, BI, BR, BR>,
     pipeline: ReadonlyArray<Document>,
     options?: AggregateOptions
   ): <A extends Document, I extends Document, R>(
@@ -605,7 +605,7 @@ export const aggregate: {
   ) => AggregationCursor.AggregationCursor<B, BI, BR>
   <A extends Document, I extends Document, R, B extends Document, BI extends Document, BR>(
     collection: Collection<A, I, R>,
-    schema: Schema.Schema<B, BI, BR>,
+    schema: Schema.Codec<B, BI, BR, BR>,
     pipeline: ReadonlyArray<Document>,
     options?: AggregateOptions
   ): AggregationCursor.AggregationCursor<B, BI, BR>
@@ -613,7 +613,7 @@ export const aggregate: {
   (args) => isCollection(args[0]),
   <A extends Document, I extends Document, R, B extends Document, BI extends Document, BR>(
     collection: Collection<A, I, R>,
-    schema: Schema.Schema<B, BI, BR>,
+    schema: Schema.Codec<B, BI, BR, BR>,
     pipeline: ReadonlyArray<Document>,
     options?: AggregateOptions
   ): AggregationCursor.AggregationCursor<B, BI, BR> =>
@@ -639,7 +639,7 @@ export const estimatedDocumentCount: {
   ): Effect.Effect<number, MongoError.MongoError, R> =>
     F.pipe(
       Effect.promise(() => collection.collection.estimatedDocumentCount(options)),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "estimatedDocumentCount")))
+      Effect.catchDefect(mongoErrorOrDie(errorSource(collection, "estimatedDocumentCount")))
     )
 )
 
@@ -661,7 +661,7 @@ export const countDocuments: {
   ): Effect.Effect<number, MongoError.MongoError, R> =>
     F.pipe(
       Effect.promise(() => collection.collection.countDocuments(filter, options)),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "countDocuments")))
+      Effect.catchDefect(mongoErrorOrDie(errorSource(collection, "countDocuments")))
     )
 )
 
@@ -671,24 +671,24 @@ export const bulkWrite: {
     options?: BulkWriteOptions
   ): <R>(
     collection: Collection<A, I, R>
-  ) => Effect.Effect<BulkWriteResult, MongoError.MongoError | ParseResult.ParseError, R>
+  ) => Effect.Effect<BulkWriteResult, MongoError.MongoError | SchemaError.SchemaError, R>
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     operations: ReadonlyArray<AnyBulkWriteOperation<A, I>>,
     options?: BulkWriteOptions
-  ): Effect.Effect<BulkWriteResult, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<BulkWriteResult, MongoError.MongoError | SchemaError.SchemaError, R>
 } = F.dual(
   (args) => isCollection(args[0]),
   <A extends Document, I extends Document, R>(
     collection: Collection<A, I, R>,
     operations: ReadonlyArray<AnyBulkWriteOperation<A, I>>,
     options?: BulkWriteOptions
-  ): Effect.Effect<BulkWriteResult, MongoError.MongoError | ParseResult.ParseError, R> =>
+  ): Effect.Effect<BulkWriteResult, MongoError.MongoError | SchemaError.SchemaError, R> =>
     F.pipe(
       operations,
       Effect.forEach((op) => encodeBulkWriteOperation(collection.schema, op)),
       Effect.flatMap((operations) => Effect.promise(() => collection.collection.bulkWrite(operations, options))),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "bulkWrite")))
+      Effect.catchDefect(mongoErrorOrDie(errorSource(collection, "bulkWrite")))
     )
 )
 

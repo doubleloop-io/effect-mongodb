@@ -49,7 +49,7 @@ export const toArray = <T extends DefaultCollectionInfo>(
 ): Effect.Effect<Array<T>, MongoError.MongoError> =>
   F.pipe(
     Effect.promise(() => cursor.cursor.toArray()),
-    Effect.catchAllDefect(mongoErrorOrDie(errorSource(cursor, "toArray")))
+    Effect.catchDefect(mongoErrorOrDie(errorSource(cursor, "toArray")))
   )
 
 export const toStream = <T extends DefaultCollectionInfo>(
@@ -57,7 +57,7 @@ export const toStream = <T extends DefaultCollectionInfo>(
 ): Stream.Stream<T, MongoError.MongoError> =>
   F.pipe(
     Stream.fromAsyncIterable(cursor.cursor, F.identity),
-    Stream.catchAll(mongoErrorOrDie(errorSource(cursor, "toStream")))
+    Stream.catch(F.flow(mongoErrorOrDie(errorSource(cursor, "toStream")), Stream.fromEffect))
   )
 
 const errorSource = (cursor: ListCollectionsCursor, functionName: string) =>
