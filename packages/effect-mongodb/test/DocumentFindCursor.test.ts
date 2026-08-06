@@ -1,7 +1,6 @@
 import * as Db from "effect-mongodb/Db"
 import * as DocumentCollection from "effect-mongodb/DocumentCollection"
 import * as DocumentFindCursor from "effect-mongodb/DocumentFindCursor"
-import * as Chunk from "effect/Chunk"
 import * as Effect from "effect/Effect"
 import * as Stream from "effect/Stream"
 import { expect, test } from "vitest"
@@ -52,8 +51,7 @@ describeMongo("DocumentFindCursor", (ctx) => {
 
       return yield* DocumentCollection.find(collection).pipe(
         DocumentFindCursor.toStream,
-        Stream.runCollect,
-        Effect.map(Chunk.toReadonlyArray)
+        Stream.runCollect
       )
     })
 

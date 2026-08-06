@@ -218,7 +218,7 @@ describeMongo("Collection", (ctx) => {
 
 const User = Schema.Struct({
   name: Schema.String,
-  birthday: Schema.Date
+  birthday: Schema.DateFromString
 })
 
 const UserWithVersion = Schema.Struct({
@@ -227,6 +227,6 @@ const UserWithVersion = Schema.Struct({
 })
 
 const UserAggregation = Schema.Struct({
-  _id: Schema.Date,
+  _id: Schema.DateFromString,
   names: Schema.Array(Schema.String)
 })
