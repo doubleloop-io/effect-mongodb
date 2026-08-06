@@ -4,8 +4,7 @@ import * as DocumentFindCursor from "effect-mongodb/DocumentFindCursor"
 import * as FindCursor from "effect-mongodb/FindCursor"
 import * as MongoClient from "effect-mongodb/MongoClient"
 import * as Effect from "effect/Effect"
-import * as E from "effect/Either"
-import * as ParseResult from "effect/ParseResult"
+import * as Result from "effect/Result"
 import * as Schema from "effect/Schema"
 import * as Stream from "effect/Stream"
 
@@ -33,12 +32,9 @@ const program = Effect.gen(function*() {
     DocumentFindCursor.typed(MyType),
     FindCursor.toStreamEither,
     Stream.mapEffect(
-      E.match({
-        onLeft: ([document, error]) =>
-          ParseResult.TreeFormatter.formatError(error).pipe(
-            Effect.flatMap((error) => Effect.logError(`Unable to decode item`, { document, error }))
-          ),
-        onRight: (x) => Effect.log(`Elaborated ${x.name}`)
+      Result.match({
+        onFailure: ([document, error]) => Effect.logError(`Unable to decode item`, { document, error: error.message }),
+        onSuccess: (x) => Effect.log(`Elaborated ${x.name}`)
       })
     ),
     Stream.runDrain
@@ -48,7 +44,7 @@ const program = Effect.gen(function*() {
 const MyType = Schema.Struct({
   name: Schema.String,
   age: Schema.Number,
-  birthday: Schema.Date
+  birthday: Schema.DateFromString
 })
 type MyType = typeof MyType.Type
 

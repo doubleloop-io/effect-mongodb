@@ -32,7 +32,7 @@ export const toArray = (
 ): Effect.Effect<Array<Document>, MongoError.MongoError> =>
   F.pipe(
     Effect.promise(() => cursor.cursor.toArray()),
-    Effect.catchAllDefect(mongoErrorOrDie(errorSource(cursor, "toArray")))
+    Effect.catchDefect(mongoErrorOrDie(errorSource(cursor, "toArray")))
   )
 
 export const toStream = (
@@ -40,7 +40,7 @@ export const toStream = (
 ): Stream.Stream<Document, MongoError.MongoError> =>
   F.pipe(
     Stream.fromAsyncIterable(cursor.cursor, F.identity),
-    Stream.catchAll(mongoErrorOrDie(errorSource(cursor, "toStream")))
+    Stream.catch(F.flow(mongoErrorOrDie(errorSource(cursor, "toStream")), Stream.fromEffect))
   )
 
 const errorSource = (cursor: DocumentAggregationCursor, functionName: string) =>

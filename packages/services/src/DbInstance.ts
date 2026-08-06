@@ -22,7 +22,7 @@ export const layerEffect = <DbK extends string, E = never, R = never>(
   F.pipe(
     options,
     Effect.map((options) => layer(dbTag, options)),
-    Layer.unwrapEffect
+    Layer.unwrap
   )
 
 export const layer = <DbK extends string>(

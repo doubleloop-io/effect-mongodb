@@ -10,9 +10,9 @@ import * as Layer from "effect/Layer"
 
 export type MongoClientService<K extends string> = MongoClient.MongoClient & Brand.Brand<K>
 
-export type Tag<K extends string> = Context.Tag<MongoClientService<K>, MongoClientService<K>>
-export const Tag = <K extends string>(key: K): Tag<K> => Context.GenericTag<MongoClientService<K>>(key)
-export type Service<T extends Tag<any>> = Context.Tag.Service<T>
+export type Tag<K extends string> = Context.Service<MongoClientService<K>, MongoClientService<K>>
+export const Tag = <K extends string>(key: K): Tag<K> => Context.Service<MongoClientService<K>>(key)
+export type Service<T extends Tag<any>> = T["Service"]
 
 export const layerEffect = <MongoClientK extends string, E = never, R = never>(
   clientTag: Tag<MongoClientK>,
@@ -22,14 +22,14 @@ export const layerEffect = <MongoClientK extends string, E = never, R = never>(
   Effect.gen(function*() {
     const url_ = yield* url
     return layer(clientTag, url_, options)
-  }).pipe(Layer.unwrapEffect)
+  }).pipe(Layer.unwrap)
 
 export const layer = <MongoClientK extends string>(
   clientTag: Tag<MongoClientK>,
   url: string,
   options?: MongoClient.MongoClientScopedOptions
 ): Layer.Layer<MongoClientService<MongoClientK>, MongoError.MongoError> =>
-  Layer.scopedContext(Effect.gen(function*() {
+  Layer.effectContext(Effect.gen(function*() {
     const client = yield* MongoClient.connectScoped(url, options)
     return Context.make(clientTag, client as MongoClientService<MongoClientK>)
   }))

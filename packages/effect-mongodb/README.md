@@ -26,7 +26,7 @@ import { Collection, Db, FindCursor, MongoClient } from "effect-mongodb"
 const Person = Schema.Struct({
    name: Schema.String,
    age: Schema.Number,
-   birthday: Schema.Date
+   birthday: Schema.DateFromString
 })
 
 const program = Effect.gen(function*() {
@@ -85,8 +85,8 @@ All cursor modules provide, at least, two functions:
   allows to process the documents one by one, without loading them all in memory.
 
 For document-based modules, these functions can only fail with a `MongoError`, while for schema-based modules, they can
-fail also with a `ParseError`. For this reason, the schema-based modules provide two additional functions:
-`toArrayEither` and `toStreamEither`. These functions return, respectively, an array and a stream of `Either`s, allowing
+fail also with a `SchemaError`. For this reason, the schema-based modules provide two additional functions:
+`toArrayEither` and `toStreamEither`. These functions return, respectively, an array and a stream of `Result`s, allowing
 the code to process all the documents, even if some of them are invalid.
 
 ## Known limitations
@@ -95,7 +95,7 @@ the code to process all the documents, even if some of them are invalid.
 
 Using `Filter` in schema-based operations (e.g. `find`, `deleteOne`, etc.) is not as straightforward as in
 document-based operations.
-Given a `Schema<A, I, R>`, `A` is the runtime/decoded type of the documents, while `I` is the persisted/encoded type of
+Given a `Codec<A, I, R, R>`, `A` is the runtime/decoded type of the documents, while `I` is the persisted/encoded type of
 the same documents.
 Therefore, to filter documents in MongoDB, the client must provide a filter of type `Filter<I>`, where `Filter` is the
 type provided by the MongoDB driver.

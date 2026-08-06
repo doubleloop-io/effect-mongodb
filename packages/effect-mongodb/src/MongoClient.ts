@@ -19,7 +19,7 @@ export const connect = (
 ): Effect.Effect<MongoClient, MongoError.MongoError> =>
   Effect.promise(() => MongoClient_.connect(url, options)).pipe(
     Effect.map((client) => new MongoClient({ client })),
-    Effect.catchAllDefect(mongoErrorOrDie(errorSource(hostsFromUrl(url), "connect")))
+    Effect.catchDefect(mongoErrorOrDie(errorSource(hostsFromUrl(url), "connect")))
   )
 
 export const close: {
@@ -29,7 +29,7 @@ export const close: {
   (args) => isMongoClient(args[0]),
   ({ client }: MongoClient, force?: boolean): Effect.Effect<void, MongoError.MongoError> =>
     Effect.promise(() => client.close(force)).pipe(
-      Effect.catchAllDefect(
+      Effect.catchDefect(
         mongoErrorOrDie(errorSource(client.options.hosts.map((x) => x.host ?? UNKNOWN_HOST), "close"))
       )
     )

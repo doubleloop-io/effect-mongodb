@@ -8,7 +8,7 @@ const User = Schema.Struct({
 })
 type User = typeof User.Type
 type UserEncoded = typeof User.Encoded
-type UserContext = typeof User.Context
+type UserContext = typeof User.DecodingServices
 
 declare const cursor: FindCursor.FindCursor<User, UserEncoded, UserContext>
 
@@ -60,26 +60,26 @@ F.pipe(cursor, FindCursor.limit(50))
 // toArray
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Effect<{ readonly id: number; readonly name: string; }[], MongoError | ParseError, never>
+// $ExpectType Effect<{ readonly id: number; readonly name: string; }[], MongoError | SchemaError, never>
 FindCursor.toArray(cursor)
 
 // -------------------------------------------------------------------------------------
 // toArrayEither
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Effect<Either<{ readonly id: number; readonly name: string; }, [document: unknown, error: ParseError]>[], MongoError, never>
+// $ExpectType Effect<Result<{ readonly id: number; readonly name: string; }, [document: unknown, error: SchemaError]>[], MongoError, never>
 FindCursor.toArrayEither(cursor)
 
 // -------------------------------------------------------------------------------------
 // toStream
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Stream<{ readonly id: number; readonly name: string; }, MongoError | ParseError, never>
+// $ExpectType Stream<{ readonly id: number; readonly name: string; }, MongoError | SchemaError, never>
 FindCursor.toStream(cursor)
 
 // -------------------------------------------------------------------------------------
 // toStreamEither
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Stream<Either<{ readonly id: number; readonly name: string; }, [document: unknown, error: ParseError]>, MongoError, never>
+// $ExpectType Stream<Result<{ readonly id: number; readonly name: string; }, [document: unknown, error: SchemaError]>, MongoError, never>
 FindCursor.toStreamEither(cursor)

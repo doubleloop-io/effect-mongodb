@@ -2,14 +2,12 @@ import * as Collection from "effect-mongodb/Collection"
 import * as Db from "effect-mongodb/Db"
 import * as DocumentCollection from "effect-mongodb/DocumentCollection"
 import * as FindCursor from "effect-mongodb/FindCursor"
-import * as Arbitrary from "effect/Arbitrary"
 import * as Array from "effect/Array"
-import * as Chunk from "effect/Chunk"
 import * as Effect from "effect/Effect"
-import * as FastCheck from "effect/FastCheck"
-import * as ParseResult from "effect/ParseResult"
 import * as Schema from "effect/Schema"
+import * as SchemaError from "effect/SchemaError"
 import * as Stream from "effect/Stream"
+import * as FastCheck from "effect/testing/FastCheck"
 import { expect, test } from "vitest"
 import { describeMongo } from "./support/describe-mongo.js"
 
@@ -19,7 +17,7 @@ describeMongo("FindCursor", (ctx) => {
 
     const User = Schema.Struct({
       id: Schema.Number,
-      createdOn: Schema.Date
+      createdOn: Schema.DateFromString
     })
     const UserProjection = Schema.Struct({
       id: User.fields.id
@@ -66,10 +64,10 @@ describeMongo("FindCursor", (ctx) => {
 
     const result = await Effect.runPromise(program)
 
-    expect(Array.getRights(result)).toHaveLength(9)
-    expect(Array.getLefts(result)).toEqual(
+    expect(Array.getSuccesses(result)).toHaveLength(9)
+    expect(Array.getFailures(result)).toEqual(
       [
-        [expect.objectContaining({ id: 999, surname: "foo" }), expect.any(ParseResult.ParseError)] as const
+        [expect.objectContaining({ id: 999, surname: "foo" }), expect.any(SchemaError.SchemaError)] as const
       ]
     )
   })
@@ -85,8 +83,7 @@ describeMongo("FindCursor", (ctx) => {
 
       return yield* Collection.find(collection).pipe(
         FindCursor.toStream,
-        Stream.runCollect,
-        Effect.map(Chunk.toReadonlyArray)
+        Stream.runCollect
       )
     })
 
@@ -107,17 +104,16 @@ describeMongo("FindCursor", (ctx) => {
 
       return yield* Collection.find(collection).pipe(
         FindCursor.toStreamEither,
-        Stream.runCollect,
-        Effect.map(Chunk.toReadonlyArray)
+        Stream.runCollect
       )
     })
 
     const result = await Effect.runPromise(program)
 
-    expect(Array.getRights(result)).toHaveLength(9)
-    expect(Array.getLefts(result)).toEqual(
+    expect(Array.getSuccesses(result)).toHaveLength(9)
+    expect(Array.getFailures(result)).toEqual(
       [
-        [expect.objectContaining({ id: 999, surname: "foo" }), expect.any(ParseResult.ParseError)] as const
+        [expect.objectContaining({ id: 999, surname: "foo" }), expect.any(SchemaError.SchemaError)] as const
       ]
     )
   })
@@ -127,4 +123,4 @@ const User = Schema.Struct({
   id: Schema.Number,
   name: Schema.String
 })
-const UserArbitrary = Arbitrary.make(User)
+const UserArbitrary = Schema.toArbitrary(User)

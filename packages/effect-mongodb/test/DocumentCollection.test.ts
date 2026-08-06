@@ -2,7 +2,6 @@ import * as Db from "effect-mongodb/Db"
 import * as DocumentCollection from "effect-mongodb/DocumentCollection"
 import * as DocumentFindCursor from "effect-mongodb/DocumentFindCursor"
 import * as Cause from "effect/Cause"
-import * as Chunk from "effect/Chunk"
 import * as Effect from "effect/Effect"
 import * as Exit from "effect/Exit"
 import * as O from "effect/Option"
@@ -23,7 +22,7 @@ describeMongo("DocumentCollection", (ctx) => {
 
     expect(Exit.isFailure(result)).toBeTruthy()
     if (Exit.isFailure(result)) {
-      const error = Chunk.unsafeHead(Cause.failures(result.cause))
+      const error = O.getOrThrow(Cause.findErrorOption(result.cause))
       expect(error.cause.errmsg).toEqual(
         "BSON field 'insert.documents.0' is the wrong type 'array', expected type 'object'"
       )

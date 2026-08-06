@@ -21,7 +21,7 @@ describe("MongoClient", () => {
         directConnection: true,
         serverSelectionTimeoutMS: 200
       }),
-      Effect.catchAll(Effect.succeed),
+      Effect.catch(Effect.succeed),
       Effect.runPromise
     )
 
@@ -40,7 +40,7 @@ describe("MongoClient", () => {
           serverSelectionTimeoutMS: 200
         }
       ),
-      Effect.catchAll(Effect.succeed),
+      Effect.catch(Effect.succeed),
       Effect.runPromise
     )
 

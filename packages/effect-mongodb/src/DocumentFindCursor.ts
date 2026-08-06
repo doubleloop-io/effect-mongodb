@@ -69,7 +69,7 @@ export const limit: {
 export const toArray = (cursor: DocumentFindCursor): Effect.Effect<Array<Document>, MongoError.MongoError> =>
   F.pipe(
     Effect.promise(() => cursor.cursor.toArray()),
-    Effect.catchAllDefect(mongoErrorOrDie(errorSource(cursor, "toArray")))
+    Effect.catchDefect(mongoErrorOrDie(errorSource(cursor, "toArray")))
   )
 
 export const toStream = (
@@ -77,15 +77,17 @@ export const toStream = (
 ): Stream.Stream<Document, MongoError.MongoError> =>
   F.pipe(
     Stream.fromAsyncIterable(cursor.cursor, F.identity),
-    Stream.catchAll(mongoErrorOrDie(errorSource(cursor, "toStream")))
+    Stream.catch(F.flow(mongoErrorOrDie(errorSource(cursor, "toStream")), Stream.fromEffect))
   )
 
 export const typed: {
-  <A, I = A, R = never>(schema: Schema.Schema<A, I, R>): (cursor: DocumentFindCursor) => FindCursor.FindCursor<A, I, R>
-  <A, I = A, R = never>(cursor: DocumentFindCursor, schema: Schema.Schema<A, I, R>): FindCursor.FindCursor<A, I, R>
+  <A, I = A, R = never>(
+    schema: Schema.Codec<A, I, R, R>
+  ): (cursor: DocumentFindCursor) => FindCursor.FindCursor<A, I, R>
+  <A, I = A, R = never>(cursor: DocumentFindCursor, schema: Schema.Codec<A, I, R, R>): FindCursor.FindCursor<A, I, R>
 } = F.dual((args) => isDocumentFindCursor(args[0]), <A, I = A, R = never>(
   cursor: DocumentFindCursor,
-  schema: Schema.Schema<A, I, R>
+  schema: Schema.Codec<A, I, R, R>
 ): FindCursor.FindCursor<A, I, R> => new FindCursor.FindCursorImpl<A, I, R>({ cursor: cursor.cursor, schema }))
 
 const isDocumentFindCursor = (x: unknown) => x instanceof DocumentFindCursorImpl

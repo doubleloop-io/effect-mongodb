@@ -12,7 +12,7 @@ import { Collection, Db, FindCursor, MongoClient } from "effect-mongodb"
 const Person = Schema.Struct({
   name: Schema.String,
   age: Schema.Number,
-  birthday: Schema.Date
+  birthday: Schema.DateFromString
 })
 
 const program = Effect.gen(function*() {

@@ -2,11 +2,10 @@ import * as Collection from "effect-mongodb/Collection"
 import * as Db from "effect-mongodb/Db"
 import * as FindCursor from "effect-mongodb/FindCursor"
 import * as MongoClient from "effect-mongodb/MongoClient"
-import * as Arbitrary from "effect/Arbitrary"
 import * as Console from "effect/Console"
 import * as Effect from "effect/Effect"
-import * as FastCheck from "effect/FastCheck"
 import * as Schema from "effect/Schema"
+import * as FastCheck from "effect/testing/FastCheck"
 
 /**
  * Find without cursor builder
@@ -34,6 +33,6 @@ const MyType = Schema.Struct({
 })
 type MyType = typeof MyType.Type
 
-const anyMyType = Arbitrary.make(MyType)
+const anyMyType = Schema.toArbitrary(MyType)
 
 await program.pipe(Effect.scoped, Effect.runPromise)
