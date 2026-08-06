@@ -24,7 +24,7 @@ import { DbInstance, DbService } from "@effect-mongodb/services"
 import { Effect, Schema } from "effect"
 import { Collection, Db, FindCursor } from "effect-mongodb"
 
-const Person = Schema.Struct({ name: Schema.String, age: Schema.Number, birthday: Schema.Date })
+const Person = Schema.Struct({ name: Schema.String, age: Schema.Number, birthday: Schema.DateFromString })
 
 // 1. Create your database service tag
 const Database = DbService.Tag("Database")
