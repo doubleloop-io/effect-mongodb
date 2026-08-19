@@ -10,7 +10,7 @@ import type * as Schema from "effect/Schema"
 import * as Stream from "effect/Stream"
 import type { Document, Filter, FindCursor as MongoFindCursor, Sort, SortDirection } from "mongodb"
 import * as FindCursor from "./FindCursor.js"
-import { mongoErrorOrDie } from "./internal/mongo-error.js"
+import { mongoOperation, mongoStreamOperation } from "./internal/mongo-operation.js"
 import * as MongoError from "./MongoError.js"
 
 type DocumentFindCursorFields = {
@@ -69,7 +69,7 @@ export const limit: {
 export const toArray = (cursor: DocumentFindCursor): Effect.Effect<Array<Document>, MongoError.MongoError> =>
   F.pipe(
     Effect.promise(() => cursor.cursor.toArray()),
-    Effect.catchAllDefect(mongoErrorOrDie(errorSource(cursor, "toArray")))
+    mongoOperation(errorSource(cursor, "toArray"))
   )
 
 export const toStream = (
@@ -77,7 +77,7 @@ export const toStream = (
 ): Stream.Stream<Document, MongoError.MongoError> =>
   F.pipe(
     Stream.fromAsyncIterable(cursor.cursor, F.identity),
-    Stream.catchAll(mongoErrorOrDie(errorSource(cursor, "toStream")))
+    mongoStreamOperation(errorSource(cursor, "toStream"))
   )
 
 export const typed: {
@@ -92,7 +92,7 @@ const isDocumentFindCursor = (x: unknown) => x instanceof DocumentFindCursorImpl
 
 const errorSource = (cursor: DocumentFindCursor, functionName: string) =>
   new MongoError.CollectionErrorSource({
-    module: DocumentFindCursorImpl.name,
+    module: "DocumentFindCursor",
     functionName,
     db: cursor.cursor.namespace.db,
     collection: cursor.cursor.namespace.collection ?? "NO_COLLECTION_NAME"

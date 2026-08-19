@@ -13,7 +13,7 @@ import * as Stream from "effect/Stream"
 import * as Tuple from "effect/Tuple"
 import type { Document, FindCursor as FindCursor_, Sort, SortDirection } from "mongodb"
 import type { Filter as Filter_ } from "./internal/filter.js"
-import { mongoErrorOrDie } from "./internal/mongo-error.js"
+import { mongoOperation, mongoStreamOperation } from "./internal/mongo-operation.js"
 import * as MongoError from "./MongoError.js"
 
 type FindCursorFields<A, I = A, R = never> = {
@@ -96,7 +96,7 @@ export const toArray = <A, I, R>(
 ): Effect.Effect<Array<A>, MongoError.MongoError | ParseResult.ParseError, R> => {
   const decode = Schema.decodeUnknown(cursor.schema)
   return Effect.promise(() => cursor.cursor.toArray()).pipe(
-    Effect.catchAllDefect(mongoErrorOrDie(errorSource(cursor, "toArray"))),
+    mongoOperation(errorSource(cursor, "toArray")),
     Effect.flatMap(Effect.forEach((x) => decode(x)))
   )
 }
@@ -110,7 +110,7 @@ export const toArrayEither = <A, I, R>(
 > => {
   const decode = Schema.decodeUnknown(cursor.schema)
   return Effect.promise(() => cursor.cursor.toArray()).pipe(
-    Effect.catchAllDefect(mongoErrorOrDie(errorSource(cursor, "toArrayEither"))),
+    mongoOperation(errorSource(cursor, "toArrayEither")),
     Effect.flatMap(Effect.forEach((x) =>
       F.pipe(
         decode(x),
@@ -127,7 +127,7 @@ export const toStream = <A, I, R>(
   const decode = Schema.decodeUnknown(cursor.schema)
   return F.pipe(
     Stream.fromAsyncIterable(cursor.cursor, F.identity),
-    Stream.catchAll(mongoErrorOrDie(errorSource(cursor, "toStream"))),
+    mongoStreamOperation(errorSource(cursor, "toStream")),
     Stream.mapEffect((x) => decode(x))
   )
 }
@@ -138,7 +138,7 @@ export const toStreamEither = <A, I, R>(
   const decode = Schema.decodeUnknown(cursor.schema)
   return F.pipe(
     Stream.fromAsyncIterable(cursor.cursor, F.identity),
-    Stream.catchAll(mongoErrorOrDie(errorSource(cursor, "toStreamEither"))),
+    mongoStreamOperation(errorSource(cursor, "toStreamEither")),
     Stream.mapEffect((x) =>
       F.pipe(
         // keep new line
@@ -154,7 +154,7 @@ const isFindCursor = (x: unknown): x is FindCursor<unknown> => x instanceof Find
 
 const errorSource = <A, I, R>(cursor: FindCursor<A, I, R>, functionName: string) =>
   new MongoError.CollectionErrorSource({
-    module: FindCursorImpl.name,
+    module: "FindCursor",
     functionName,
     db: cursor.cursor.namespace.db,
     collection: cursor.cursor.namespace.collection ?? "NO_COLLECTION_NAME"

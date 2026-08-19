@@ -44,7 +44,7 @@ import type { AnyBulkWriteOperation as AnyBulkWriteOperation_ } from "./internal
 import { encodeBulkWriteOperation } from "./internal/bulk-write-operation.js"
 import type { Filter as Filter_ } from "./internal/filter.js"
 import type { ModifyResult } from "./internal/modify-result.js"
-import { mongoErrorOrDie } from "./internal/mongo-error.js"
+import { mongoOperation } from "./internal/mongo-operation.js"
 import * as SchemaExt from "./internal/schema.js"
 import * as MongoError from "./MongoError.js"
 
@@ -119,7 +119,7 @@ export const findOne: {
       const value = yield* Effect.promise(() => collection.collection.findOne(filter, options))
       return yield* SchemaExt.decodeNullableDocument(collection.schema, value)
     }).pipe(
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "findOne")))
+      mongoOperation(errorSource(collection, "findOne"))
     )
 )
 
@@ -140,7 +140,7 @@ export const insertOne: {
   F.pipe(
     collection.encode(doc),
     Effect.flatMap((doc) => Effect.promise(() => collection.collection.insertOne(doc, options))),
-    Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "insertOne")))
+    mongoOperation(errorSource(collection, "insertOne"))
   ))
 
 export const insertMany: {
@@ -161,7 +161,7 @@ export const insertMany: {
     docs,
     Effect.forEach((doc) => collection.encode(doc)),
     Effect.flatMap((docs) => Effect.promise(() => collection.collection.insertMany(docs, options))),
-    Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "insertMany")))
+    mongoOperation(errorSource(collection, "insertMany"))
   )
 })
 
@@ -182,7 +182,7 @@ export const deleteOne: {
     options?: DeleteOptions
   ): Effect.Effect<DeleteResult, MongoError.MongoError, R> =>
     Effect.promise(() => collection.collection.deleteOne(filter, options)).pipe(
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "deleteOne")))
+      mongoOperation(errorSource(collection, "deleteOne"))
     )
 )
 
@@ -203,7 +203,7 @@ export const deleteMany: {
     options?: DeleteOptions
   ): Effect.Effect<DeleteResult, MongoError.MongoError, R> =>
     Effect.promise(() => collection.collection.deleteMany(filter, options)).pipe(
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "deleteMany")))
+      mongoOperation(errorSource(collection, "deleteMany"))
     )
 )
 
@@ -235,7 +235,7 @@ export const updateOne: {
         Array.isArray(update) ? [...update] : update as UpdateFilter<Document>,
         options
       )
-    ).pipe(Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "updateOne"))))
+    ).pipe(mongoOperation(errorSource(collection, "updateOne")))
 )
 
 export const updateMany: {
@@ -266,7 +266,7 @@ export const updateMany: {
         Array.isArray(update) ? [...update] : update as UpdateFilter<Document>,
         options
       )
-    ).pipe(Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "updateMany"))))
+    ).pipe(mongoOperation(errorSource(collection, "updateMany")))
 )
 
 export const replaceOne: {
@@ -300,7 +300,7 @@ export const replaceOne: {
       Effect.flatMap((replacement) =>
         Effect.promise(() => collection.collection.replaceOne(filter, replacement, options))
       ),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "replaceOne")))
+      mongoOperation(errorSource(collection, "replaceOne"))
     )
 )
 
@@ -371,9 +371,7 @@ export const findOneAndReplace: {
           return yield* SchemaExt.decodeNullableDocument(collection.schema, value)
         })
       ),
-      Effect.catchAllDefect(
-        mongoErrorOrDie(errorSource(collection, "findOneAndReplace"))
-      )
+      mongoOperation(errorSource(collection, "findOneAndReplace"))
     )
 )
 
@@ -455,9 +453,7 @@ export const findOneAndUpdate: {
           return yield* SchemaExt.decodeNullableDocument(collection.schema, value)
         })
       ),
-      Effect.catchAllDefect(
-        mongoErrorOrDie(errorSource(collection, "findOneAndUpdate"))
-      )
+      mongoOperation(errorSource(collection, "findOneAndUpdate"))
     )
 )
 
@@ -482,7 +478,7 @@ export const rename: {
       Effect.map((newCollection) =>
         new CollectionImpl<A, I, R>({ collection: newCollection, schema: collection.schema })
       ),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "rename")))
+      mongoOperation(errorSource(collection, "rename"))
     )
 )
 
@@ -502,7 +498,7 @@ export const drop: {
   ): Effect.Effect<boolean, MongoError.MongoError, R> =>
     F.pipe(
       Effect.promise(() => collection.collection.drop(options)),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "drop")))
+      mongoOperation(errorSource(collection, "drop"))
     )
 )
 
@@ -527,7 +523,7 @@ export const createIndexes: {
   ): Effect.Effect<Array<string>, MongoError.MongoError, R> =>
     F.pipe(
       Effect.promise(() => collection.collection.createIndexes([...indexSpecs], options)),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "createIndexes")))
+      mongoOperation(errorSource(collection, "createIndexes"))
     )
 )
 
@@ -549,7 +545,7 @@ export const createIndex: {
   ): Effect.Effect<string, MongoError.MongoError, R> =>
     F.pipe(
       Effect.promise(() => collection.collection.createIndex(indexSpec, options)),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "createIndex")))
+      mongoOperation(errorSource(collection, "createIndex"))
     )
 )
 
@@ -571,7 +567,7 @@ export const dropIndex: {
   ): Effect.Effect<Document, MongoError.MongoError, R> =>
     F.pipe(
       Effect.promise(() => collection.collection.dropIndex(indexName, options)),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "dropIndex")))
+      mongoOperation(errorSource(collection, "dropIndex"))
     )
 )
 
@@ -591,7 +587,7 @@ export const dropIndexes: {
   ): Effect.Effect<boolean, MongoError.MongoError, R> =>
     F.pipe(
       Effect.promise(() => collection.collection.dropIndexes(options)),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "dropIndexes")))
+      mongoOperation(errorSource(collection, "dropIndexes"))
     )
 )
 
@@ -639,7 +635,7 @@ export const estimatedDocumentCount: {
   ): Effect.Effect<number, MongoError.MongoError, R> =>
     F.pipe(
       Effect.promise(() => collection.collection.estimatedDocumentCount(options)),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "estimatedDocumentCount")))
+      mongoOperation(errorSource(collection, "estimatedDocumentCount"))
     )
 )
 
@@ -661,7 +657,7 @@ export const countDocuments: {
   ): Effect.Effect<number, MongoError.MongoError, R> =>
     F.pipe(
       Effect.promise(() => collection.collection.countDocuments(filter, options)),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "countDocuments")))
+      mongoOperation(errorSource(collection, "countDocuments"))
     )
 )
 
@@ -688,7 +684,7 @@ export const bulkWrite: {
       operations,
       Effect.forEach((op) => encodeBulkWriteOperation(collection.schema, op)),
       Effect.flatMap((operations) => Effect.promise(() => collection.collection.bulkWrite(operations, options))),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(collection, "bulkWrite")))
+      mongoOperation(errorSource(collection, "bulkWrite"))
     )
 )
 
@@ -699,7 +695,7 @@ const errorSource = <A extends Document, I extends Document = A, R = never>(
   functionName: string
 ) =>
   new MongoError.CollectionErrorSource({
-    module: CollectionImpl.name,
+    module: "Collection",
     functionName,
     db: collection.collection.dbName,
     collection: collection.collection.collectionName

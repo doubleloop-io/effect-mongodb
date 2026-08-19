@@ -8,7 +8,7 @@ import type * as Scope from "effect/Scope"
 import type { DbOptions, MongoClientOptions } from "mongodb"
 import { MongoClient as MongoClient_ } from "mongodb"
 import * as Db from "./Db.js"
-import { mongoErrorOrDie } from "./internal/mongo-error.js"
+import { mongoOperation } from "./internal/mongo-operation.js"
 import * as MongoError from "./MongoError.js"
 
 export class MongoClient extends Data.TaggedClass("MongoClient")<{ client: MongoClient_ }> {}
@@ -19,7 +19,7 @@ export const connect = (
 ): Effect.Effect<MongoClient, MongoError.MongoError> =>
   Effect.promise(() => MongoClient_.connect(url, options)).pipe(
     Effect.map((client) => new MongoClient({ client })),
-    Effect.catchAllDefect(mongoErrorOrDie(errorSource(hostsFromUrl(url), "connect")))
+    mongoOperation(errorSource(hostsFromUrl(url), "connect"))
   )
 
 export const close: {
@@ -29,9 +29,7 @@ export const close: {
   (args) => isMongoClient(args[0]),
   ({ client }: MongoClient, force?: boolean): Effect.Effect<void, MongoError.MongoError> =>
     Effect.promise(() => client.close(force)).pipe(
-      Effect.catchAllDefect(
-        mongoErrorOrDie(errorSource(client.options.hosts.map((x) => x.host ?? UNKNOWN_HOST), "close"))
-      )
+      mongoOperation(errorSource(client.options.hosts.map((x) => x.host ?? UNKNOWN_HOST), "close"))
     )
 )
 

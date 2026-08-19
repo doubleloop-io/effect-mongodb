@@ -8,7 +8,7 @@ import type { Pipeable } from "effect/Pipeable"
 import { pipeArguments } from "effect/Pipeable"
 import * as Stream from "effect/Stream"
 import type { AggregationCursor as MongoAggregationCursor, Document } from "mongodb"
-import { mongoErrorOrDie } from "./internal/mongo-error.js"
+import { mongoOperation, mongoStreamOperation } from "./internal/mongo-operation.js"
 import * as MongoError from "./MongoError.js"
 
 type DocumentAggregationCursorFields = { cursor: MongoAggregationCursor<Document> }
@@ -32,7 +32,7 @@ export const toArray = (
 ): Effect.Effect<Array<Document>, MongoError.MongoError> =>
   F.pipe(
     Effect.promise(() => cursor.cursor.toArray()),
-    Effect.catchAllDefect(mongoErrorOrDie(errorSource(cursor, "toArray")))
+    mongoOperation(errorSource(cursor, "toArray"))
   )
 
 export const toStream = (
@@ -40,12 +40,12 @@ export const toStream = (
 ): Stream.Stream<Document, MongoError.MongoError> =>
   F.pipe(
     Stream.fromAsyncIterable(cursor.cursor, F.identity),
-    Stream.catchAll(mongoErrorOrDie(errorSource(cursor, "toStream")))
+    mongoStreamOperation(errorSource(cursor, "toStream"))
   )
 
 const errorSource = (cursor: DocumentAggregationCursor, functionName: string) =>
   new MongoError.CollectionErrorSource({
-    module: DocumentAggregationCursorImpl.name,
+    module: "DocumentAggregationCursor",
     functionName,
     db: cursor.cursor.namespace.db,
     collection: cursor.cursor.namespace.collection ?? "NO_COLLECTION_NAME"

@@ -8,7 +8,7 @@ import type * as Schema from "effect/Schema"
 import type { Db as Db_, Document, DropCollectionOptions, ListCollectionsOptions } from "mongodb"
 import type * as Collection from "./Collection.js"
 import * as DocumentCollection from "./DocumentCollection.js"
-import { mongoErrorOrDie } from "./internal/mongo-error.js"
+import { mongoOperation } from "./internal/mongo-operation.js"
 import * as ListCollectionsCursor from "./ListCollectionsCursor.js"
 import * as MongoError from "./MongoError.js"
 
@@ -82,7 +82,7 @@ export const dropCollection: {
   (db: Db, name: string, options?: DropCollectionOptions): Effect.Effect<boolean, MongoError.MongoError> =>
     F.pipe(
       Effect.promise(() => db.db.dropCollection(name, options)),
-      Effect.catchAllDefect(mongoErrorOrDie(errorSource(db, "dropCollection")))
+      mongoOperation(errorSource(db, "dropCollection"))
     )
 )
 

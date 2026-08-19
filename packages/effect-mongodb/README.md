@@ -89,6 +89,25 @@ fail also with a `ParseError`. For this reason, the schema-based modules provide
 `toArrayEither` and `toStreamEither`. These functions return, respectively, an array and a stream of `Either`s, allowing
 the code to process all the documents, even if some of them are invalid.
 
+### Tracing
+
+Every operation that communicates with MongoDB runs inside its own span, named `mongodb.<Module>.<function>`
+(e.g. `mongodb.Collection.findOne`, `mongodb.FindCursor.toStream`), with span kind `client`.
+
+Spans are annotated with the [OpenTelemetry database attributes](https://opentelemetry.io/docs/specs/semconv/database/database-spans/):
+
+| Attribute            | Description                                            |
+|----------------------|--------------------------------------------------------|
+| `db.system.name`     | always `mongodb`                                       |
+| `db.operation.name`  | the name of the called function, e.g. `findOne`        |
+| `db.namespace`       | the database name, for database and collection modules |
+| `db.collection.name` | the collection name, for collection and cursor modules |
+| `server.address`     | the host, for `MongoClient` operations                 |
+| `server.port`        | the port, for `MongoClient` operations                 |
+
+Spans are exported as any other Effect span, e.g. through
+[`@effect/opentelemetry`](https://github.com/Effect-TS/effect/tree/main/packages/opentelemetry).
+
 ## Known limitations
 
 ### Filters for Schema-based operations
