@@ -1,5 +1,19 @@
 # effect-mongodb
 
+## 0.5.0
+
+### Minor Changes
+
+- [`f23f662`](https://github.com/doubleloop-io/effect-mongodb/commit/f23f662366b196b5f4307036a648ab2c816320e8) Thanks [@VenomAV](https://github.com/VenomAV)! - Trace every MongoDB operation with its own span
+
+  Each operation that talks to MongoDB (client, database, collection and cursor functions) is now wrapped in a `client`
+  span named `mongodb.<Module>.<function>`, carrying the OpenTelemetry database attributes `db.system.name`,
+  `db.operation.name`, `db.namespace`, `db.collection.name` and, for client operations, `server.address` and
+  `server.port`.
+
+  `MongoError` messages now report the module name without the `Impl` suffix, e.g. `Error in Collection.findOne` instead
+  of `Error in CollectionImpl.findOne`.
+
 ## 0.4.1
 
 ### Patch Changes
