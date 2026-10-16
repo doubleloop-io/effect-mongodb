@@ -121,6 +121,74 @@ describeMongo("FindCursor", (ctx) => {
       ]
     )
   })
+  test("run the same cursor multiple times and read fresh data", async () => {
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
+      const collection = Db.collection(db, "run-multiple-times", User)
+      const cursor = Collection.find(collection).pipe(FindCursor.sort("id", "ascending"))
+
+      yield* Collection.insertMany(collection, [{ id: 1, name: "a" }, { id: 2, name: "b" }])
+      const firstArray = yield* FindCursor.toArray(cursor)
+      const firstStream = yield* FindCursor.toStream(cursor).pipe(Stream.runCollect, Effect.map(Chunk.toReadonlyArray))
+
+      yield* Collection.insertMany(collection, [{ id: 3, name: "c" }])
+      const secondArray = yield* FindCursor.toArray(cursor)
+      const secondStream = yield* FindCursor.toStream(cursor).pipe(Stream.runCollect, Effect.map(Chunk.toReadonlyArray))
+
+      return { firstArray, firstStream, secondArray, secondStream }
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result.firstArray).toEqual([{ id: 1, name: "a" }, { id: 2, name: "b" }])
+    expect(result.firstStream).toEqual(result.firstArray)
+    expect(result.secondArray).toEqual([{ id: 1, name: "a" }, { id: 2, name: "b" }, { id: 3, name: "c" }])
+    expect(result.secondStream).toEqual(result.secondArray)
+  })
+
+  test("run the same stream multiple times", async () => {
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
+      const collection = Db.collection(db, "run-stream-multiple-times", User)
+      yield* Collection.insertMany(collection, [{ id: 1, name: "a" }, { id: 2, name: "b" }])
+      const stream = Collection.find(collection).pipe(FindCursor.sort("id", "ascending"), FindCursor.toStream)
+
+      const first = yield* Stream.runCollect(stream)
+      const second = yield* Stream.runCollect(stream)
+
+      return { first: Chunk.toReadonlyArray(first), second: Chunk.toReadonlyArray(second) }
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result.first).toEqual([{ id: 1, name: "a" }, { id: 2, name: "b" }])
+    expect(result.second).toEqual(result.first)
+  })
+
+  test("derived cursors do not affect each other", async () => {
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
+      const collection = Db.collection(db, "derived-cursors", User)
+      yield* Collection.insertMany(collection, [{ id: 1, name: "a" }, { id: 2, name: "b" }, { id: 3, name: "c" }])
+
+      const all = Collection.find(collection).pipe(FindCursor.sort("id", "ascending"))
+      const onlyFirst = all.pipe(FindCursor.limit(1))
+      const onlyB = all.pipe(FindCursor.filter({ name: "b" }))
+      const onlyFirstResult = yield* FindCursor.toArray(onlyFirst)
+      const onlyBResult = yield* FindCursor.toArray(onlyB)
+      const allResult = yield* FindCursor.toArray(all)
+      const onlyFirstAgain = yield* all.pipe(FindCursor.limit(1), FindCursor.toArray)
+
+      return { allResult, onlyFirstResult, onlyBResult, onlyFirstAgain }
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result.allResult).toEqual([{ id: 1, name: "a" }, { id: 2, name: "b" }, { id: 3, name: "c" }])
+    expect(result.onlyFirstResult).toEqual([{ id: 1, name: "a" }])
+    expect(result.onlyBResult).toEqual([{ id: 2, name: "b" }])
+    expect(result.onlyFirstAgain).toEqual([{ id: 1, name: "a" }])
+  })
 })
 
 const User = Schema.Struct({

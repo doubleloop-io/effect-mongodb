@@ -11,13 +11,22 @@ import { pipeArguments } from "effect/Pipeable"
 import * as Schema from "effect/Schema"
 import * as Stream from "effect/Stream"
 import * as Tuple from "effect/Tuple"
-import type { Document, FindCursor as FindCursor_, Sort, SortDirection } from "mongodb"
+import type {
+  Collection as MongoCollection,
+  Document,
+  Filter as MongoFilter,
+  FindOptions as MongoFindOptions,
+  Sort,
+  SortDirection
+} from "mongodb"
 import type { Filter as Filter_ } from "./internal/filter.js"
 import { mongoOperation, mongoStreamOperation } from "./internal/mongo-operation.js"
 import * as MongoError from "./MongoError.js"
 
 type FindCursorFields<A, I = A, R = never> = {
-  cursor: FindCursor_<unknown>
+  collection: MongoCollection
+  filter: MongoFilter<Document>
+  options: MongoFindOptions
   schema: Schema.Schema<A, I, R>
 }
 
@@ -44,7 +53,7 @@ export const filter: {
   <A, I extends Document, R>(
     cursor: FindCursor<A, I, R>,
     filter: Filter<I>
-  ): FindCursor<A, I, R> => new FindCursorImpl({ cursor: cursor.cursor.filter(filter), schema: cursor.schema })
+  ): FindCursor<A, I, R> => new FindCursorImpl({ ...cursor, filter })
 )
 
 export const project: {
@@ -63,7 +72,8 @@ export const project: {
     cursor: FindCursor<A, I, R>,
     newSchema: Schema.Schema<B, BI, BR>,
     value: T
-  ): FindCursor<B, BI, BR> => new FindCursorImpl({ cursor: cursor.cursor.project(value), schema: newSchema })
+  ): FindCursor<B, BI, BR> =>
+    new FindCursorImpl({ ...cursor, schema: newSchema, options: { ...cursor.options, projection: value } })
 )
 
 export const sort: {
@@ -79,7 +89,8 @@ export const sort: {
     cursor: FindCursor<A, I, R>,
     sort: Sort | string,
     direction?: SortDirection
-  ): FindCursor<A, I, R> => new FindCursorImpl({ cursor: cursor.cursor.sort(sort, direction), schema: cursor.schema })
+  ): FindCursor<A, I, R> =>
+    new FindCursorImpl({ ...cursor, options: { ...cursor.options, sort: sortOption(sort, direction) } })
 )
 
 export const limit: {
@@ -88,14 +99,14 @@ export const limit: {
 } = F.dual(
   (args) => isFindCursor(args[0]),
   <A, I, R>(cursor: FindCursor<A, I, R>, value: number): FindCursor<A, I, R> =>
-    new FindCursorImpl({ cursor: cursor.cursor.limit(value), schema: cursor.schema })
+    new FindCursorImpl({ ...cursor, options: { ...cursor.options, limit: value } })
 )
 
 export const toArray = <A, I, R>(
   cursor: FindCursor<A, I, R>
 ): Effect.Effect<Array<A>, MongoError.MongoError | ParseResult.ParseError, R> => {
   const decode = Schema.decodeUnknown(cursor.schema)
-  return Effect.promise(() => cursor.cursor.toArray()).pipe(
+  return Effect.promise(() => nativeCursor(cursor).toArray()).pipe(
     mongoOperation(errorSource(cursor, "toArray")),
     Effect.flatMap(Effect.forEach((x) => decode(x)))
   )
@@ -109,7 +120,7 @@ export const toArrayEither = <A, I, R>(
   R
 > => {
   const decode = Schema.decodeUnknown(cursor.schema)
-  return Effect.promise(() => cursor.cursor.toArray()).pipe(
+  return Effect.promise(() => nativeCursor(cursor).toArray()).pipe(
     mongoOperation(errorSource(cursor, "toArrayEither")),
     Effect.flatMap(Effect.forEach((x) =>
       F.pipe(
@@ -126,7 +137,7 @@ export const toStream = <A, I, R>(
 ): Stream.Stream<A, MongoError.MongoError | ParseResult.ParseError, R> => {
   const decode = Schema.decodeUnknown(cursor.schema)
   return F.pipe(
-    Stream.fromAsyncIterable(cursor.cursor, F.identity),
+    Stream.suspend(() => Stream.fromAsyncIterable(nativeCursor(cursor), F.identity)),
     mongoStreamOperation(errorSource(cursor, "toStream")),
     Stream.mapEffect((x) => decode(x))
   )
@@ -137,7 +148,7 @@ export const toStreamEither = <A, I, R>(
 ): Stream.Stream<E.Either<A, [document: unknown, error: ParseResult.ParseError]>, MongoError.MongoError, R> => {
   const decode = Schema.decodeUnknown(cursor.schema)
   return F.pipe(
-    Stream.fromAsyncIterable(cursor.cursor, F.identity),
+    Stream.suspend(() => Stream.fromAsyncIterable(nativeCursor(cursor), F.identity)),
     mongoStreamOperation(errorSource(cursor, "toStreamEither")),
     Stream.mapEffect((x) =>
       F.pipe(
@@ -150,12 +161,18 @@ export const toStreamEither = <A, I, R>(
   )
 }
 
+/** @internal */
+export const sortOption = (sort: Sort | string, direction?: SortDirection): Sort =>
+  typeof sort === "string" && direction !== undefined ? { [sort]: direction } : sort
+
+const nativeCursor = <A, I, R>(cursor: FindCursor<A, I, R>) => cursor.collection.find(cursor.filter, cursor.options)
+
 const isFindCursor = (x: unknown): x is FindCursor<unknown> => x instanceof FindCursorImpl
 
 const errorSource = <A, I, R>(cursor: FindCursor<A, I, R>, functionName: string) =>
   new MongoError.CollectionErrorSource({
     module: "FindCursor",
     functionName,
-    db: cursor.cursor.namespace.db,
-    collection: cursor.cursor.namespace.collection ?? "NO_COLLECTION_NAME"
+    db: cursor.collection.dbName,
+    collection: cursor.collection.collectionName
   })

@@ -78,11 +78,11 @@ export const find: {
 } = F.dual(
   (args) => isDocumentCollection(args[0]),
   (collection: DocumentCollection, filter?: Filter<Document>, options?: FindOptions) =>
-    new DocumentFindCursor.DocumentFindCursorImpl(
-      {
-        cursor: collection.collection.find(filter ?? {}, options)
-      }
-    )
+    new DocumentFindCursor.DocumentFindCursorImpl({
+      collection: collection.collection,
+      filter: filter ?? {},
+      options: options ?? {}
+    })
 )
 
 export const findOne: {

@@ -94,7 +94,9 @@ export const find: {
     options?: FindOptions
   ): FindCursor.FindCursor<A, I, R> =>
     new FindCursor.FindCursorImpl<A, I, R>({
-      cursor: collection.collection.find(filter ?? {}, options),
+      collection: collection.collection,
+      filter: filter ?? {},
+      options: options ?? {},
       schema: collection.schema
     })
 )

@@ -61,4 +61,64 @@ describeMongo("DocumentFindCursor", (ctx) => {
 
     expect(result).toEqual(users)
   })
+
+  test("run the same cursor multiple times and read fresh data", async () => {
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
+      const collection = Db.documentCollection(db, "run-multiple-times")
+      const cursor = DocumentCollection.find(collection).pipe(
+        DocumentFindCursor.sort("id", "ascending"),
+        DocumentFindCursor.project({ _id: 0 })
+      )
+
+      yield* DocumentCollection.insertMany(collection, [{ id: 1 }, { id: 2 }])
+      const firstArray = yield* DocumentFindCursor.toArray(cursor)
+      const firstStream = yield* DocumentFindCursor.toStream(cursor).pipe(
+        Stream.runCollect,
+        Effect.map(Chunk.toReadonlyArray)
+      )
+
+      yield* DocumentCollection.insertMany(collection, [{ id: 3 }])
+      const secondArray = yield* DocumentFindCursor.toArray(cursor)
+      const secondStream = yield* DocumentFindCursor.toStream(cursor).pipe(
+        Stream.runCollect,
+        Effect.map(Chunk.toReadonlyArray)
+      )
+
+      return { firstArray, firstStream, secondArray, secondStream }
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result.firstArray).toEqual([{ id: 1 }, { id: 2 }])
+    expect(result.firstStream).toEqual(result.firstArray)
+    expect(result.secondArray).toEqual([{ id: 1 }, { id: 2 }, { id: 3 }])
+    expect(result.secondStream).toEqual(result.secondArray)
+  })
+
+  test("derived cursors do not affect each other", async () => {
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
+      const collection = Db.documentCollection(db, "derived-cursors")
+      yield* DocumentCollection.insertMany(collection, [{ id: 1 }, { id: 2 }, { id: 3 }])
+
+      const all = DocumentCollection.find(collection).pipe(
+        DocumentFindCursor.sort("id", "ascending"),
+        DocumentFindCursor.project({ _id: 0 })
+      )
+      const onlyFirst = all.pipe(DocumentFindCursor.limit(1))
+      const onlyTwo = all.pipe(DocumentFindCursor.filter({ id: 2 }))
+      const onlyFirstResult = yield* DocumentFindCursor.toArray(onlyFirst)
+      const onlyTwoResult = yield* DocumentFindCursor.toArray(onlyTwo)
+      const allResult = yield* DocumentFindCursor.toArray(all)
+
+      return { allResult, onlyFirstResult, onlyTwoResult }
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result.allResult).toEqual([{ id: 1 }, { id: 2 }, { id: 3 }])
+    expect(result.onlyFirstResult).toEqual([{ id: 1 }])
+    expect(result.onlyTwoResult).toEqual([{ id: 2 }])
+  })
 })
