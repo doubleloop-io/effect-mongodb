@@ -1,13 +1,17 @@
 packages:
   - packages/*
-minimumReleaseAge: 1440 # 1 day
-trustPolicy: no-downgrade
 
+blockExoticSubdeps: true
+minimumReleaseAge: 1440 # 1 day
+
+trustPolicy: no-downgrade
 trustPolicyExclude:
   # false positives: semver 5.x/6.x backports published after 7.x versions with provenance
   - semver@5.7.2 || 6.3.1
   # false positive: same maintainer, provenance dropped after 6.19.2 (2024), resumed with trusted publishing
   - undici-types@6.19.8
+
+verifyDepsBeforeRun: false
 
 overrides:
   dependency-tree: "^10.0.9"
