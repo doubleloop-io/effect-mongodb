@@ -1,6 +1,7 @@
 import * as AggregationCursor from "effect-mongodb/AggregationCursor"
 import * as Schema from "effect/Schema"
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const User = Schema.Struct({
   id: Schema.String
 })
