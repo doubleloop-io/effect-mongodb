@@ -1,7 +1,7 @@
 {
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@10.33.0",
+  "packageManager": "pnpm@11.28.6",
   "workspaces": [
     "packages/*"
   ],
@@ -23,19 +23,6 @@
     "changeset-publish": "pnpm lint-fix && pnpm build && TEST_DIST= pnpm vitest && changeset publish",
     "check-source-state": "git add packages/*/src && git diff-index --cached HEAD --exit-code packages/*/src",
     "infra": "docker compose up"
-  },
-  "resolutions": {
-    "dependency-tree": "^10.0.9",
-    "detective-amd": "^5.0.2",
-    "detective-cjs": "^5.0.1",
-    "detective-es6": "^4.0.1",
-    "detective-less": "^1.0.2",
-    "detective-postcss": "^6.1.3",
-    "detective-sass": "^5.0.3",
-    "detective-scss": "^4.0.3",
-    "detective-stylus": "^4.0.0",
-    "detective-typescript": "^11.1.0",
-    "@types/node": "^22.5.4"
   },
   "devDependencies": {
     "@babel/cli": "^7.29.7",
@@ -74,10 +61,5 @@
     "typescript": "^5.9.3",
     "vite": "^8.3.4",
     "vitest": "^5.0.5"
-  },
-  "pnpm": {
-    "patchedDependencies": {
-      "@changesets/assemble-release-plan@6.0.9": "patches/@changesets__assemble-release-plan@6.0.9.patch"
-    }
   }
 }
