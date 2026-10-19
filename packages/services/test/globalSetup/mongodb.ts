@@ -1,10 +1,10 @@
 import { MongoDBContainer } from "@testcontainers/mongodb"
 import type { StartedMongoDBContainer } from "@testcontainers/mongodb"
-import type { GlobalSetupContext } from "vitest/node"
+import type { TestProject } from "vitest/node"
 
 let container: StartedMongoDBContainer | undefined
 
-export async function setup({ provide }: GlobalSetupContext) {
+export async function setup({ provide }: TestProject) {
   container = await new MongoDBContainer("mongo:8.0.17").start()
 
   provide("mongoConnectionString", container.getConnectionString())
