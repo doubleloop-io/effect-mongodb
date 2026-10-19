@@ -1,12 +1,16 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@4.0.1/schema.json",
-  "changelog": ["@changesets/changelog-github", { "repo": "doubleloop-io/effect-mongodb" }],
+  "changelog": [
+    "@changesets/changelog-github",
+    { "repo": "doubleloop-io/effect-mongodb" }
+  ],
   "commit": false,
   "linked": [],
   "access": "restricted",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [],
+  "fixed": [["effect-mongodb", "@effect-mongodb/*"]],
   "snapshot": {
     "useCalculatedVersion": false,
     "prereleaseTemplate": "{tag}-{commit}"
