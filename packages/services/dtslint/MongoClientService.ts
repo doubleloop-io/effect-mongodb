@@ -4,17 +4,17 @@ import * as Config from "effect/Config"
 import type * as Context from "effect/Context"
 import * as Effect from "effect/Effect"
 
-declare const mongoClient: MongoClientService.Tag<"MyMongoClient">
+declare const mongoClient: MongoClientService.Service<"MyMongoClient">
 
 type SomeService = { url: string }
-declare const SomeService: Context.Tag<SomeService, SomeService>
+declare const SomeService: Context.Service<SomeService, SomeService>
 
 // -------------------------------------------------------------------------------------
-// Tag
+// Service
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Tag<"MyMongoClient">
-MongoClientService.Tag("MyMongoClient")
+// $ExpectType Service<"MyMongoClient">
+MongoClientService.Service("MyMongoClient")
 
 // -------------------------------------------------------------------------------------
 // layerEffect
@@ -24,9 +24,9 @@ MongoClientService.Tag("MyMongoClient")
 MongoClientService.layerEffect(mongoClient, Effect.succeed("mongodb://localhost:27017"))
 
 // $ExpectType Layer<MongoClientService<"MyMongoClient">, MongoError | ConfigError, never>
-MongoClientService.layerEffect(mongoClient, Config.string("DATABASE_NAME"))
+MongoClientService.layerEffect(mongoClient, Config.String("DATABASE_NAME"))
 
-const withRequirements = SomeService.pipe(Effect.flatMap(({ url }) => Config.string(url)))
+const withRequirements = SomeService.pipe(Effect.flatMap(({ url }) => Config.String(url)))
 // $ExpectType Layer<MongoClientService<"MyMongoClient">, MongoError | ConfigError, SomeService>
 MongoClientService.layerEffect(mongoClient, withRequirements)
 

@@ -4,10 +4,7 @@ import * as DocumentCollection from "effect-mongodb/DocumentCollection"
 import * as FindCursor from "effect-mongodb/FindCursor"
 import * as Arbitrary from "effect/Arbitrary"
 import * as Array from "effect/Array"
-import * as Chunk from "effect/Chunk"
 import * as Effect from "effect/Effect"
-import * as FastCheck from "effect/FastCheck"
-import * as ParseResult from "effect/ParseResult"
 import * as Schema from "effect/Schema"
 import * as Stream from "effect/Stream"
 import { expect, test } from "vitest"
@@ -19,7 +16,7 @@ describeMongo("FindCursor", (ctx) => {
 
     const User = Schema.Struct({
       id: Schema.Number,
-      createdOn: Schema.Date
+      createdOn: Schema.DateFromString
     })
     const UserProjection = Schema.Struct({
       id: User.fields.id
@@ -57,40 +54,39 @@ describeMongo("FindCursor", (ctx) => {
       const documentCollection = Db.documentCollection(db, "array-with-partitioned-errors")
       const collection = DocumentCollection.typed(documentCollection, User)
 
-      yield* Collection.insertMany(collection, FastCheck.sample(UserArbitrary, 6))
+      yield* Collection.insertMany(collection, yield* sampleUsers(6))
       yield* DocumentCollection.insertOne(documentCollection, { id: 999, surname: "foo" })
-      yield* Collection.insertMany(collection, FastCheck.sample(UserArbitrary, 3))
+      yield* Collection.insertMany(collection, yield* sampleUsers(3))
 
-      return yield* Collection.find(collection).pipe(FindCursor.toArrayEither)
+      return yield* Collection.find(collection).pipe(FindCursor.toArrayResult)
     })
 
     const result = await Effect.runPromise(program)
 
-    expect(Array.getRights(result)).toHaveLength(9)
-    expect(Array.getLefts(result)).toEqual(
+    expect(Array.getSuccesses(result)).toHaveLength(9)
+    expect(Array.getFailures(result)).toEqual(
       [
-        [expect.objectContaining({ id: 999, surname: "foo" }), expect.any(ParseResult.ParseError)] as const
+        [expect.objectContaining({ id: 999, surname: "foo" }), expect.any(Schema.SchemaError)] as const
       ]
     )
   })
 
   test("stream", async () => {
-    const anyUsers = FastCheck.sample(UserArbitrary, 6)
-
     const program = Effect.gen(function*() {
       const db = yield* ctx.database
       const collection = Db.collection(db, "stream", User)
+      const anyUsers = yield* sampleUsers(6)
 
       yield* Collection.insertMany(collection, anyUsers)
 
-      return yield* Collection.find(collection).pipe(
+      const result = yield* Collection.find(collection).pipe(
         FindCursor.toStream,
-        Stream.runCollect,
-        Effect.map(Chunk.toReadonlyArray)
+        Stream.runCollect
       )
+      return { anyUsers, result }
     })
 
-    const result = await Effect.runPromise(program)
+    const { anyUsers, result } = await Effect.runPromise(program)
 
     expect(result).toEqual(anyUsers)
   })
@@ -101,23 +97,22 @@ describeMongo("FindCursor", (ctx) => {
       const documentCollection = Db.documentCollection(db, "stream-with-partitioned-errors")
       const collection = DocumentCollection.typed(documentCollection, User)
 
-      yield* Collection.insertMany(collection, FastCheck.sample(UserArbitrary, 6))
+      yield* Collection.insertMany(collection, yield* sampleUsers(6))
       yield* DocumentCollection.insertOne(documentCollection, { id: 999, surname: "foo" })
-      yield* Collection.insertMany(collection, FastCheck.sample(UserArbitrary, 3))
+      yield* Collection.insertMany(collection, yield* sampleUsers(3))
 
       return yield* Collection.find(collection).pipe(
-        FindCursor.toStreamEither,
-        Stream.runCollect,
-        Effect.map(Chunk.toReadonlyArray)
+        FindCursor.toStreamResult,
+        Stream.runCollect
       )
     })
 
     const result = await Effect.runPromise(program)
 
-    expect(Array.getRights(result)).toHaveLength(9)
-    expect(Array.getLefts(result)).toEqual(
+    expect(Array.getSuccesses(result)).toHaveLength(9)
+    expect(Array.getFailures(result)).toEqual(
       [
-        [expect.objectContaining({ id: 999, surname: "foo" }), expect.any(ParseResult.ParseError)] as const
+        [expect.objectContaining({ id: 999, surname: "foo" }), expect.any(Schema.SchemaError)] as const
       ]
     )
   })
@@ -129,11 +124,11 @@ describeMongo("FindCursor", (ctx) => {
 
       yield* Collection.insertMany(collection, [{ id: 1, name: "a" }, { id: 2, name: "b" }])
       const firstArray = yield* FindCursor.toArray(cursor)
-      const firstStream = yield* FindCursor.toStream(cursor).pipe(Stream.runCollect, Effect.map(Chunk.toReadonlyArray))
+      const firstStream = yield* FindCursor.toStream(cursor).pipe(Stream.runCollect)
 
       yield* Collection.insertMany(collection, [{ id: 3, name: "c" }])
       const secondArray = yield* FindCursor.toArray(cursor)
-      const secondStream = yield* FindCursor.toStream(cursor).pipe(Stream.runCollect, Effect.map(Chunk.toReadonlyArray))
+      const secondStream = yield* FindCursor.toStream(cursor).pipe(Stream.runCollect)
 
       return { firstArray, firstStream, secondArray, secondStream }
     })
@@ -156,7 +151,7 @@ describeMongo("FindCursor", (ctx) => {
       const first = yield* Stream.runCollect(stream)
       const second = yield* Stream.runCollect(stream)
 
-      return { first: Chunk.toReadonlyArray(first), second: Chunk.toReadonlyArray(second) }
+      return { first, second }
     })
 
     const result = await Effect.runPromise(program)
@@ -195,4 +190,7 @@ const User = Schema.Struct({
   id: Schema.Number,
   name: Schema.String
 })
-const UserArbitrary = Arbitrary.make(User)
+// BSON stores strings as UTF-8, so lone surrogates generated by Arbitrary would be read back as U+FFFD
+const isUtf8RoundTrippable = (value: string) => new TextDecoder().decode(new TextEncoder().encode(value)) === value
+const UserArbitrary = Arbitrary.filter(Arbitrary.schema(User), (user) => isUtf8RoundTrippable(user.name))
+const sampleUsers = (count: number) => Arbitrary.sampleEffect(UserArbitrary, { count })

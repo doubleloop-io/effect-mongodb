@@ -4,6 +4,10 @@
 - **Date**: 2026-07-10
 - **Scope**: `packages/effect-mongodb`
 
+> **Note**: written against the effect v3 Schema AST. In effect v4: `TypeLiteral` → `Objects`, `TupleType` → `Arrays`,
+> `fromKey` → `encodeKeys`, `Union` members are an array, and `Collection` has 4 type parameters
+> (`Collection<A, I, RD, RE>`). A full review of this document is pending.
+
 ## 1. Goal
 
 Today the collection `Schema` is used only at the two "borders" of the package:

@@ -9,7 +9,7 @@ export const mongoOperation =
   (source: ErrorSource) => <A, E, R>(self: Effect.Effect<A, E, R>): Effect.Effect<A, E | MongoError, R> =>
     F.pipe(
       self,
-      Effect.catchAllDefect(mongoErrorOrDie(source)),
+      Effect.catchDefect(mongoErrorOrDie(source)),
       withSpan(source)
     )
 
@@ -17,6 +17,6 @@ export const mongoStreamOperation =
   (source: ErrorSource) => <A, E, R>(self: Stream.Stream<A, E, R>): Stream.Stream<A, MongoError, R> =>
     F.pipe(
       self,
-      Stream.catchAll(mongoErrorOrDie(source)),
+      Stream.catch((error) => Stream.fromEffect(mongoErrorOrDie(source)(error))),
       withSpanStream(source)
     )

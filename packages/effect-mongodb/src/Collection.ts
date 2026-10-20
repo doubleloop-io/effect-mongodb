@@ -6,9 +6,7 @@ import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import type * as O from "effect/Option"
-import type * as ParseResult from "effect/ParseResult"
 import type { Pipeable } from "effect/Pipeable"
-import { pipeArguments } from "effect/Pipeable"
 import * as Schema from "effect/Schema"
 import type {
   AggregateOptions,
@@ -48,28 +46,25 @@ import { mongoOperation } from "./internal/mongo-operation.js"
 import * as SchemaExt from "./internal/schema.js"
 import * as MongoError from "./MongoError.js"
 
-type CollectionFields<A extends Document, I extends Document = A, R = never> = {
+type CollectionFields<A extends Document, I extends Document = A, RD = never, RE = never> = {
   collection: MongoCollection
-  schema: Schema.Schema<A, I, R>
+  schema: Schema.Codec<A, I, RD, RE>
 }
 
-export interface Collection<A extends Document, I extends Document = A, R = never>
-  extends CollectionFields<A, I, R>, Pipeable
+export interface Collection<A extends Document, I extends Document = A, RD = never, RE = never>
+  extends CollectionFields<A, I, RD, RE>, Pipeable
 {
   _tag: "Collection"
   /** @internal */
-  encode: ReturnType<typeof Schema.encode<A, I, R>>
+  encode: (doc: A) => Effect.Effect<I, Schema.SchemaError, RE>
 }
 
 /** @internal */
-export class CollectionImpl<A extends Document, I extends Document = A, R = never>
-  extends Data.TaggedClass("Collection")<CollectionFields<A, I, R>>
-  implements Collection<A, I, R>
+export class CollectionImpl<A extends Document, I extends Document = A, RD = never, RE = never>
+  extends Data.TaggedClass("Collection")<CollectionFields<A, I, RD, RE>>
+  implements Collection<A, I, RD, RE>
 {
-  readonly encode = Schema.encode(this.schema)
-  pipe() {
-    return pipeArguments(this, arguments)
-  }
+  readonly encode = Schema.encodeEffect(this.schema)
 }
 
 export type FindOptions = Omit<MongoFindOptions, "projection">
@@ -80,20 +75,20 @@ export const find: {
   <I extends Document>(
     filter?: Filter<I>,
     options?: FindOptions
-  ): <A extends Document, R>(collection: Collection<A, I, R>) => FindCursor.FindCursor<A, I, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  ): <A extends Document, RD, RE>(collection: Collection<A, I, RD, RE>) => FindCursor.FindCursor<A, I, RD, RE>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter?: Filter<I>,
     options?: FindOptions
-  ): FindCursor.FindCursor<A, I, R>
+  ): FindCursor.FindCursor<A, I, RD, RE>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter?: Filter<I>,
     options?: FindOptions
-  ): FindCursor.FindCursor<A, I, R> =>
-    new FindCursor.FindCursorImpl<A, I, R>({
+  ): FindCursor.FindCursor<A, I, RD, RE> =>
+    new FindCursor.FindCursorImpl<A, I, RD, RE>({
       collection: collection.collection,
       filter: filter ?? {},
       options: options ?? {},
@@ -102,21 +97,21 @@ export const find: {
 )
 
 export const findOne: {
-  <I extends Document>(filter: Filter<I>, options?: FindOptions): <A extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <I extends Document>(filter: Filter<I>, options?: FindOptions): <A extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>
+  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | Schema.SchemaError, RD>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter: Filter<I>,
     options?: FindOptions
-  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | Schema.SchemaError, RD>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter: Filter<I>,
     options?: FindOptions
-  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R> =>
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | Schema.SchemaError, RD> =>
     Effect.gen(function*() {
       const value = yield* Effect.promise(() => collection.collection.findOne(filter, options))
       return yield* SchemaExt.decodeNullableDocument(collection.schema, value)
@@ -126,19 +121,19 @@ export const findOne: {
 )
 
 export const insertOne: {
-  <A extends Document>(doc: A, options?: InsertOneOptions): <I extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<InsertOneResult<I>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <A extends Document>(doc: A, options?: InsertOneOptions): <I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>
+  ) => Effect.Effect<InsertOneResult<I>, MongoError.MongoError | Schema.SchemaError, RE>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     doc: A,
     options?: InsertOneOptions
-  ): Effect.Effect<InsertOneResult<I>, MongoError.MongoError | ParseResult.ParseError, R>
-} = F.dual((args) => isCollection(args[0]), <A extends Document, I extends Document, R>(
-  collection: Collection<A, I, R>,
+  ): Effect.Effect<InsertOneResult<I>, MongoError.MongoError | Schema.SchemaError, RE>
+} = F.dual((args) => isCollection(args[0]), <A extends Document, I extends Document, RD, RE>(
+  collection: Collection<A, I, RD, RE>,
   doc: A,
   options?: InsertOneOptions
-): Effect.Effect<InsertOneResult<I>, MongoError.MongoError | ParseResult.ParseError, R> =>
+): Effect.Effect<InsertOneResult<I>, MongoError.MongoError | Schema.SchemaError, RE> =>
   F.pipe(
     collection.encode(doc),
     Effect.flatMap((doc) => Effect.promise(() => collection.collection.insertOne(doc, options))),
@@ -146,19 +141,19 @@ export const insertOne: {
   ))
 
 export const insertMany: {
-  <A extends Document>(docs: ReadonlyArray<A>, options?: BulkWriteOptions): <I extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<InsertManyResult<I>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <A extends Document>(docs: ReadonlyArray<A>, options?: BulkWriteOptions): <I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>
+  ) => Effect.Effect<InsertManyResult<I>, MongoError.MongoError | Schema.SchemaError, RE>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     docs: ReadonlyArray<A>,
     options?: BulkWriteOptions
-  ): Effect.Effect<InsertManyResult<I>, MongoError.MongoError | ParseResult.ParseError, R>
-} = F.dual((args) => isCollection(args[0]), <A extends Document, I extends Document, R>(
-  collection: Collection<A, I, R>,
+  ): Effect.Effect<InsertManyResult<I>, MongoError.MongoError | Schema.SchemaError, RE>
+} = F.dual((args) => isCollection(args[0]), <A extends Document, I extends Document, RD, RE>(
+  collection: Collection<A, I, RD, RE>,
   docs: ReadonlyArray<A>,
   options?: BulkWriteOptions
-): Effect.Effect<InsertManyResult<I>, MongoError.MongoError | ParseResult.ParseError, R> => {
+): Effect.Effect<InsertManyResult<I>, MongoError.MongoError | Schema.SchemaError, RE> => {
   return F.pipe(
     docs,
     Effect.forEach((doc) => collection.encode(doc)),
@@ -168,42 +163,42 @@ export const insertMany: {
 })
 
 export const deleteOne: {
-  <I extends Document>(filter: Filter<I>, options?: DeleteOptions): <A extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<DeleteResult, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <I extends Document>(filter: Filter<I>, options?: DeleteOptions): <A extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>
+  ) => Effect.Effect<DeleteResult, MongoError.MongoError, RD | RE>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter: Filter<I>,
     options?: DeleteOptions
-  ): Effect.Effect<DeleteResult, MongoError.MongoError, R>
+  ): Effect.Effect<DeleteResult, MongoError.MongoError, RD | RE>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter: Filter<I>,
     options?: DeleteOptions
-  ): Effect.Effect<DeleteResult, MongoError.MongoError, R> =>
+  ): Effect.Effect<DeleteResult, MongoError.MongoError, RD | RE> =>
     Effect.promise(() => collection.collection.deleteOne(filter, options)).pipe(
       mongoOperation(errorSource(collection, "deleteOne"))
     )
 )
 
 export const deleteMany: {
-  <I extends Document>(filter: Filter<I>, options?: DeleteOptions): <A extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<DeleteResult, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <I extends Document>(filter: Filter<I>, options?: DeleteOptions): <A extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>
+  ) => Effect.Effect<DeleteResult, MongoError.MongoError, RD | RE>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter: Filter<I>,
     options?: DeleteOptions
-  ): Effect.Effect<DeleteResult, MongoError.MongoError, R>
+  ): Effect.Effect<DeleteResult, MongoError.MongoError, RD | RE>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter: Filter<I>,
     options?: DeleteOptions
-  ): Effect.Effect<DeleteResult, MongoError.MongoError, R> =>
+  ): Effect.Effect<DeleteResult, MongoError.MongoError, RD | RE> =>
     Effect.promise(() => collection.collection.deleteMany(filter, options)).pipe(
       mongoOperation(errorSource(collection, "deleteMany"))
     )
@@ -214,23 +209,23 @@ export const updateOne: {
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options?: UpdateOptions
-  ): <A extends Document, I2 extends I, R>(
-    collection: Collection<A, I2, R>
-  ) => Effect.Effect<UpdateResult<I2>, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  ): <A extends Document, I2 extends I, RD, RE>(
+    collection: Collection<A, I2, RD, RE>
+  ) => Effect.Effect<UpdateResult<I2>, MongoError.MongoError, RD | RE>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options?: UpdateOptions
-  ): Effect.Effect<UpdateResult<I>, MongoError.MongoError, R>
+  ): Effect.Effect<UpdateResult<I>, MongoError.MongoError, RD | RE>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options?: UpdateOptions
-  ): Effect.Effect<UpdateResult<I>, MongoError.MongoError, R> =>
+  ): Effect.Effect<UpdateResult<I>, MongoError.MongoError, RD | RE> =>
     Effect.promise(() =>
       collection.collection.updateOne(
         filter,
@@ -245,23 +240,23 @@ export const updateMany: {
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options?: UpdateOptions
-  ): <A extends Document, I2 extends I, R>(
-    collection: Collection<A, I2, R>
-  ) => Effect.Effect<UpdateResult<I2>, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  ): <A extends Document, I2 extends I, RD, RE>(
+    collection: Collection<A, I2, RD, RE>
+  ) => Effect.Effect<UpdateResult<I2>, MongoError.MongoError, RD | RE>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options?: UpdateOptions
-  ): Effect.Effect<UpdateResult<I>, MongoError.MongoError, R>
+  ): Effect.Effect<UpdateResult<I>, MongoError.MongoError, RD | RE>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options?: UpdateOptions
-  ): Effect.Effect<UpdateResult<I>, MongoError.MongoError, R> =>
+  ): Effect.Effect<UpdateResult<I>, MongoError.MongoError, RD | RE> =>
     Effect.promise(() =>
       collection.collection.updateMany(
         filter,
@@ -276,26 +271,26 @@ export const replaceOne: {
     filter: Filter<I>,
     replacement: A,
     options?: ReplaceOptions
-  ): <R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<UpdateResult<I> | Document, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  ): <RD, RE>(
+    collection: Collection<A, I, RD, RE>
+  ) => Effect.Effect<UpdateResult<I> | Document, MongoError.MongoError | Schema.SchemaError, RE>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter: Filter<I>,
     replacement: A,
     options?: ReplaceOptions
-  ): Effect.Effect<UpdateResult<I> | Document, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<UpdateResult<I> | Document, MongoError.MongoError | Schema.SchemaError, RE>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter: Filter<I>,
     replacement: A,
     options?: ReplaceOptions
   ): Effect.Effect<
     UpdateResult<I> | Document,
-    MongoError.MongoError | ParseResult.ParseError,
-    R
+    MongoError.MongoError | Schema.SchemaError,
+    RE
   > =>
     F.pipe(
       collection.encode(replacement),
@@ -311,53 +306,57 @@ export const findOneAndReplace: {
     filter: Filter<I>,
     replacement: A,
     options: FindOneAndReplaceOptions & { includeResultMetadata: true }
-  ): <R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ): <RD, RE>(
+    collection: Collection<A, I, RD, RE>
+  ) => Effect.Effect<ModifyResult<A>, MongoError.MongoError | Schema.SchemaError, RD | RE>
   <A extends Document, I extends Document>(
     filter: Filter<I>,
     replacement: A,
     options: FindOneAndReplaceOptions & { includeResultMetadata: false }
-  ): <R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document>(filter: Filter<I>, replacement: A, options: FindOneAndReplaceOptions): <R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document>(filter: Filter<I>, replacement: A): <R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    filter: Filter<I>,
-    replacement: A,
-    options: FindOneAndReplaceOptions & { includeResultMetadata: true }
-  ): Effect.Effect<ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
-    filter: Filter<I>,
-    replacement: A,
-    options: FindOneAndReplaceOptions & { includeResultMetadata: false }
-  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  ): <RD, RE>(
+    collection: Collection<A, I, RD, RE>
+  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | Schema.SchemaError, RD | RE>
+  <A extends Document, I extends Document>(
     filter: Filter<I>,
     replacement: A,
     options: FindOneAndReplaceOptions
-  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  ): <RD, RE>(
+    collection: Collection<A, I, RD, RE>
+  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | Schema.SchemaError, RD | RE>
+  <A extends Document, I extends Document>(filter: Filter<I>, replacement: A): <RD, RE>(
+    collection: Collection<A, I, RD, RE>
+  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | Schema.SchemaError, RD | RE>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
+    filter: Filter<I>,
+    replacement: A,
+    options: FindOneAndReplaceOptions & { includeResultMetadata: true }
+  ): Effect.Effect<ModifyResult<A>, MongoError.MongoError | Schema.SchemaError, RD | RE>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
+    filter: Filter<I>,
+    replacement: A,
+    options: FindOneAndReplaceOptions & { includeResultMetadata: false }
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | Schema.SchemaError, RD | RE>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
+    filter: Filter<I>,
+    replacement: A,
+    options: FindOneAndReplaceOptions
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | Schema.SchemaError, RD | RE>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter: Filter<I>,
     replacement: A
-  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | Schema.SchemaError, RD | RE>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter: Filter<I>,
     replacement: A,
     options?: FindOneAndReplaceOptions
-  ): Effect.Effect<O.Option<A> | ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R> =>
+  ): Effect.Effect<O.Option<A> | ModifyResult<A>, MongoError.MongoError | Schema.SchemaError, RD | RE> =>
     F.pipe(
       collection.encode(replacement),
       Effect.flatMap((replacement) =>
@@ -382,61 +381,62 @@ export const findOneAndUpdate: {
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options: FindOneAndUpdateOptions & { includeResultMetadata: true }
-  ): <A extends Document, I2 extends I, R>(
-    collection: Collection<A, I2, R>
-  ) => Effect.Effect<ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ): <A extends Document, I2 extends I, RD, RE>(
+    collection: Collection<A, I2, RD, RE>
+  ) => Effect.Effect<ModifyResult<A>, MongoError.MongoError | Schema.SchemaError, RD>
   <I extends Document>(
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options: FindOneAndUpdateOptions & { includeResultMetadata: false }
-  ): <A extends Document, I2 extends I, R>(
-    collection: Collection<A, I2, R>
-  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ): <A extends Document, I2 extends I, RD, RE>(
+    collection: Collection<A, I2, RD, RE>
+  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | Schema.SchemaError, RD>
   <I extends Document>(
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options: FindOneAndUpdateOptions
-  ): <A extends Document, I2 extends I, R>(
-    collection: Collection<A, I2, R>
-  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ): <A extends Document, I2 extends I, RD, RE>(
+    collection: Collection<A, I2, RD, RE>
+  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | Schema.SchemaError, RD>
   <I extends Document>(filter: Filter<I>, update: UpdateFilter<I> | ReadonlyArray<Document>): <
     A extends Document,
     I2 extends I,
-    R
+    RD,
+    RE
   >(
-    collection: Collection<A, I2, R>
-  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+    collection: Collection<A, I2, RD, RE>
+  ) => Effect.Effect<O.Option<A>, MongoError.MongoError | Schema.SchemaError, RD>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options: FindOneAndUpdateOptions & { includeResultMetadata: true }
-  ): Effect.Effect<ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  ): Effect.Effect<ModifyResult<A>, MongoError.MongoError | Schema.SchemaError, RD>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options: FindOneAndUpdateOptions & { includeResultMetadata: false }
-  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | Schema.SchemaError, RD>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options: FindOneAndUpdateOptions
-  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | Schema.SchemaError, RD>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>
-  ): Effect.Effect<O.Option<A>, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<O.Option<A>, MongoError.MongoError | Schema.SchemaError, RD>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter: Filter<I>,
     update: UpdateFilter<I> | ReadonlyArray<Document>,
     options?: FindOneAndUpdateOptions
-  ): Effect.Effect<O.Option<A> | ModifyResult<A>, MongoError.MongoError | ParseResult.ParseError, R> =>
+  ): Effect.Effect<O.Option<A> | ModifyResult<A>, MongoError.MongoError | Schema.SchemaError, RD> =>
     F.pipe(
       Effect.promise(() =>
         collection.collection.findOneAndUpdate(
@@ -460,44 +460,44 @@ export const findOneAndUpdate: {
 )
 
 export const rename: {
-  (newName: string, options?: RenameOptions): <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<Collection<A, I, R>, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  (newName: string, options?: RenameOptions): <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>
+  ) => Effect.Effect<Collection<A, I, RD, RE>, MongoError.MongoError, RD | RE>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     newName: string,
     options?: RenameOptions
-  ): Effect.Effect<Collection<A, I, R>, MongoError.MongoError, R>
+  ): Effect.Effect<Collection<A, I, RD, RE>, MongoError.MongoError, RD | RE>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     newName: string,
     options?: RenameOptions
-  ): Effect.Effect<Collection<A, I, R>, MongoError.MongoError, R> =>
+  ): Effect.Effect<Collection<A, I, RD, RE>, MongoError.MongoError, RD | RE> =>
     F.pipe(
       Effect.promise(() => collection.collection.rename(newName, options)),
       Effect.map((newCollection) =>
-        new CollectionImpl<A, I, R>({ collection: newCollection, schema: collection.schema })
+        new CollectionImpl<A, I, RD, RE>({ collection: newCollection, schema: collection.schema })
       ),
       mongoOperation(errorSource(collection, "rename"))
     )
 )
 
 export const drop: {
-  (options?: DropCollectionOptions): <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<boolean, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  (options?: DropCollectionOptions): <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>
+  ) => Effect.Effect<boolean, MongoError.MongoError, RD | RE>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     options?: DropCollectionOptions
-  ): Effect.Effect<boolean, MongoError.MongoError, R>
+  ): Effect.Effect<boolean, MongoError.MongoError, RD | RE>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     options?: DropCollectionOptions
-  ): Effect.Effect<boolean, MongoError.MongoError, R> =>
+  ): Effect.Effect<boolean, MongoError.MongoError, RD | RE> =>
     F.pipe(
       Effect.promise(() => collection.collection.drop(options)),
       mongoOperation(errorSource(collection, "drop"))
@@ -508,21 +508,21 @@ export const createIndexes: {
   (
     indexSpecs: ReadonlyArray<IndexDescription>,
     options?: CreateIndexesOptions
-  ): <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<Array<string>, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  ): <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>
+  ) => Effect.Effect<Array<string>, MongoError.MongoError, RD | RE>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     indexSpecs: ReadonlyArray<IndexDescription>,
     options?: CreateIndexesOptions
-  ): Effect.Effect<Array<string>, MongoError.MongoError, R>
+  ): Effect.Effect<Array<string>, MongoError.MongoError, RD | RE>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     indexSpecs: ReadonlyArray<IndexDescription>,
     options?: CreateIndexesOptions
-  ): Effect.Effect<Array<string>, MongoError.MongoError, R> =>
+  ): Effect.Effect<Array<string>, MongoError.MongoError, RD | RE> =>
     F.pipe(
       Effect.promise(() => collection.collection.createIndexes([...indexSpecs], options)),
       mongoOperation(errorSource(collection, "createIndexes"))
@@ -530,21 +530,21 @@ export const createIndexes: {
 )
 
 export const createIndex: {
-  (indexSpec: IndexSpecification, options?: CreateIndexesOptions): <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<string, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  (indexSpec: IndexSpecification, options?: CreateIndexesOptions): <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>
+  ) => Effect.Effect<string, MongoError.MongoError, RD | RE>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     indexSpec: IndexSpecification,
     options?: CreateIndexesOptions
-  ): Effect.Effect<string, MongoError.MongoError, R>
+  ): Effect.Effect<string, MongoError.MongoError, RD | RE>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     indexSpec: IndexSpecification,
     options?: CreateIndexesOptions
-  ): Effect.Effect<string, MongoError.MongoError, R> =>
+  ): Effect.Effect<string, MongoError.MongoError, RD | RE> =>
     F.pipe(
       Effect.promise(() => collection.collection.createIndex(indexSpec, options)),
       mongoOperation(errorSource(collection, "createIndex"))
@@ -552,21 +552,21 @@ export const createIndex: {
 )
 
 export const dropIndex: {
-  (indexName: string, options?: DropIndexesOptions): <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<Document, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  (indexName: string, options?: DropIndexesOptions): <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>
+  ) => Effect.Effect<Document, MongoError.MongoError, RD | RE>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     indexName: string,
     options?: DropIndexesOptions
-  ): Effect.Effect<Document, MongoError.MongoError, R>
+  ): Effect.Effect<Document, MongoError.MongoError, RD | RE>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     indexName: string,
     options?: DropIndexesOptions
-  ): Effect.Effect<Document, MongoError.MongoError, R> =>
+  ): Effect.Effect<Document, MongoError.MongoError, RD | RE> =>
     F.pipe(
       Effect.promise(() => collection.collection.dropIndex(indexName, options)),
       mongoOperation(errorSource(collection, "dropIndex"))
@@ -574,19 +574,19 @@ export const dropIndex: {
 )
 
 export const dropIndexes: {
-  (options?: DropIndexesOptions): <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<boolean, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  (options?: DropIndexesOptions): <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>
+  ) => Effect.Effect<boolean, MongoError.MongoError, RD | RE>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     options?: DropIndexesOptions
-  ): Effect.Effect<boolean, MongoError.MongoError, R>
+  ): Effect.Effect<boolean, MongoError.MongoError, RD | RE>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     options?: DropIndexesOptions
-  ): Effect.Effect<boolean, MongoError.MongoError, R> =>
+  ): Effect.Effect<boolean, MongoError.MongoError, RD | RE> =>
     F.pipe(
       Effect.promise(() => collection.collection.dropIndexes(options)),
       mongoOperation(errorSource(collection, "dropIndexes"))
@@ -594,47 +594,47 @@ export const dropIndexes: {
 )
 
 export const aggregate: {
-  <B extends Document, BI extends Document, BR>(
-    schema: Schema.Schema<B, BI, BR>,
+  <B extends Document, BI extends Document, BRD, BRE>(
+    schema: Schema.Codec<B, BI, BRD, BRE>,
     pipeline: ReadonlyArray<Document>,
     options?: AggregateOptions
-  ): <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => AggregationCursor.AggregationCursor<B, BI, BR>
-  <A extends Document, I extends Document, R, B extends Document, BI extends Document, BR>(
-    collection: Collection<A, I, R>,
-    schema: Schema.Schema<B, BI, BR>,
+  ): <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>
+  ) => AggregationCursor.AggregationCursor<B, BI, BRD, BRE>
+  <A extends Document, I extends Document, RD, RE, B extends Document, BI extends Document, BRD, BRE>(
+    collection: Collection<A, I, RD, RE>,
+    schema: Schema.Codec<B, BI, BRD, BRE>,
     pipeline: ReadonlyArray<Document>,
     options?: AggregateOptions
-  ): AggregationCursor.AggregationCursor<B, BI, BR>
+  ): AggregationCursor.AggregationCursor<B, BI, BRD, BRE>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R, B extends Document, BI extends Document, BR>(
-    collection: Collection<A, I, R>,
-    schema: Schema.Schema<B, BI, BR>,
+  <A extends Document, I extends Document, RD, RE, B extends Document, BI extends Document, BRD, BRE>(
+    collection: Collection<A, I, RD, RE>,
+    schema: Schema.Codec<B, BI, BRD, BRE>,
     pipeline: ReadonlyArray<Document>,
     options?: AggregateOptions
-  ): AggregationCursor.AggregationCursor<B, BI, BR> =>
-    new AggregationCursor.AggregationCursorImpl<B, BI, BR>({
+  ): AggregationCursor.AggregationCursor<B, BI, BRD, BRE> =>
+    new AggregationCursor.AggregationCursorImpl<B, BI, BRD, BRE>({
       cursor: collection.collection.aggregate([...pipeline], options),
       schema
     })
 )
 
 export const estimatedDocumentCount: {
-  (options?: EstimatedDocumentCountOptions): <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<number, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  (options?: EstimatedDocumentCountOptions): <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>
+  ) => Effect.Effect<number, MongoError.MongoError, RD | RE>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     options?: EstimatedDocumentCountOptions
-  ): Effect.Effect<number, MongoError.MongoError, R>
+  ): Effect.Effect<number, MongoError.MongoError, RD | RE>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     options?: EstimatedDocumentCountOptions
-  ): Effect.Effect<number, MongoError.MongoError, R> =>
+  ): Effect.Effect<number, MongoError.MongoError, RD | RE> =>
     F.pipe(
       Effect.promise(() => collection.collection.estimatedDocumentCount(options)),
       mongoOperation(errorSource(collection, "estimatedDocumentCount"))
@@ -642,21 +642,21 @@ export const estimatedDocumentCount: {
 )
 
 export const countDocuments: {
-  <I extends Document>(filter?: Filter<I>, options?: CountDocumentsOptions): <A extends Document, R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<number, MongoError.MongoError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <I extends Document>(filter?: Filter<I>, options?: CountDocumentsOptions): <A extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>
+  ) => Effect.Effect<number, MongoError.MongoError, RD | RE>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter?: Filter<I>,
     options?: CountDocumentsOptions
-  ): Effect.Effect<number, MongoError.MongoError, R>
+  ): Effect.Effect<number, MongoError.MongoError, RD | RE>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     filter?: Filter<I>,
     options?: CountDocumentsOptions
-  ): Effect.Effect<number, MongoError.MongoError, R> =>
+  ): Effect.Effect<number, MongoError.MongoError, RD | RE> =>
     F.pipe(
       Effect.promise(() => collection.collection.countDocuments(filter, options)),
       mongoOperation(errorSource(collection, "countDocuments"))
@@ -667,21 +667,21 @@ export const bulkWrite: {
   <A extends Document, I extends Document>(
     operations: ReadonlyArray<AnyBulkWriteOperation<A, I>>,
     options?: BulkWriteOptions
-  ): <R>(
-    collection: Collection<A, I, R>
-  ) => Effect.Effect<BulkWriteResult, MongoError.MongoError | ParseResult.ParseError, R>
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  ): <RD, RE>(
+    collection: Collection<A, I, RD, RE>
+  ) => Effect.Effect<BulkWriteResult, MongoError.MongoError | Schema.SchemaError, RE>
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     operations: ReadonlyArray<AnyBulkWriteOperation<A, I>>,
     options?: BulkWriteOptions
-  ): Effect.Effect<BulkWriteResult, MongoError.MongoError | ParseResult.ParseError, R>
+  ): Effect.Effect<BulkWriteResult, MongoError.MongoError | Schema.SchemaError, RE>
 } = F.dual(
   (args) => isCollection(args[0]),
-  <A extends Document, I extends Document, R>(
-    collection: Collection<A, I, R>,
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
     operations: ReadonlyArray<AnyBulkWriteOperation<A, I>>,
     options?: BulkWriteOptions
-  ): Effect.Effect<BulkWriteResult, MongoError.MongoError | ParseResult.ParseError, R> =>
+  ): Effect.Effect<BulkWriteResult, MongoError.MongoError | Schema.SchemaError, RE> =>
     F.pipe(
       operations,
       Effect.forEach((op) => encodeBulkWriteOperation(collection.schema, op)),
@@ -692,8 +692,8 @@ export const bulkWrite: {
 
 const isCollection = (x: unknown) => x instanceof CollectionImpl
 
-const errorSource = <A extends Document, I extends Document = A, R = never>(
-  collection: Collection<A, I, R>,
+const errorSource = <A extends Document, I extends Document = A, RD = never, RE = never>(
+  collection: Collection<A, I, RD, RE>,
   functionName: string
 ) =>
   new MongoError.CollectionErrorSource({

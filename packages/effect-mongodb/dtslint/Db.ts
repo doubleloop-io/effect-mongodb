@@ -22,10 +22,10 @@ F.pipe(database, Db.documentCollection("users"))
 // collection
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Collection<{ readonly id: number; }, { readonly id: string; }, never>
+// $ExpectType Collection<{ readonly id: number; }, { readonly id: string; }, never, never>
 Db.collection(database, "users", User)
 
-// $ExpectType Collection<{ readonly id: number; }, { readonly id: string; }, never>
+// $ExpectType Collection<{ readonly id: number; }, { readonly id: string; }, never, never>
 F.pipe(database, Db.collection("users", User))
 
 // -------------------------------------------------------------------------------------

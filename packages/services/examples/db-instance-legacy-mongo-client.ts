@@ -14,7 +14,7 @@ const Todo = Schema.Struct({
   completed: Schema.Boolean
 })
 
-const MyDb = DbService.Tag("MyDb")
+const MyDb = DbService.Service("MyDb")
 
 const program = Effect.gen(function*() {
   const db = yield* MyDb

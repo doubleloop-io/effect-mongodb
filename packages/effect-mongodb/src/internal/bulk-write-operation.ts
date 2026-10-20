@@ -38,8 +38,8 @@ export type AnyBulkWriteOperation<A extends Document, I extends Document> =
   | DeleteOneModel<I>
   | DeleteManyModel<I>
 
-export const encodeBulkWriteOperation = <A extends Document, I extends Document, R>(
-  schema: Schema.Schema<A, I, R>,
+export const encodeBulkWriteOperation = <A extends Document, I extends Document, RD, RE>(
+  schema: Schema.Codec<A, I, RD, RE>,
   operation: AnyBulkWriteOperation<A, I>
 ) =>
   F.pipe(
@@ -72,23 +72,23 @@ export const encodeBulkWriteOperation = <A extends Document, I extends Document,
     Effect.map((x) => x as MongoAnyBulkWriteOperation<Document>)
   )
 
-const encodeInsertOne = <A extends Document, I extends Document, R>(
-  schema: Schema.Schema<A, I, R>,
+const encodeInsertOne = <A extends Document, I extends Document, RD, RE>(
+  schema: Schema.Codec<A, I, RD, RE>,
   operation: InsertOneModel<A>
 ) =>
   F.pipe(
     operation.insertOne.document,
-    Schema.encode(schema),
+    Schema.encodeEffect(schema),
     Effect.map((document) => ({ insertOne: { document } as MongoInsertOneModel<I> }))
   )
 
-const encodeReplaceOne = <A extends Document, I extends Document, R>(
-  schema: Schema.Schema<A, I, R>,
+const encodeReplaceOne = <A extends Document, I extends Document, RD, RE>(
+  schema: Schema.Codec<A, I, RD, RE>,
   operation: ReplaceOneModel<A, I>
 ) =>
   F.pipe(
     operation.replaceOne.replacement,
-    Schema.encode(schema),
+    Schema.encodeEffect(schema),
     Effect.map((replacement) => ({
       replaceOne: { ...operation.replaceOne, replacement }
     }))

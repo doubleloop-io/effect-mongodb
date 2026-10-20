@@ -5,7 +5,7 @@ import * as F from "effect/Function"
 import * as Schema from "effect/Schema"
 
 const MyType = Schema.Struct({
-  birthday: Schema.Date
+  birthday: Schema.DateFromString
 })
 type MyType = typeof MyType.Type
 
@@ -18,40 +18,40 @@ const collection = DocumentCollection.typed(documentCollection, MyType)
 // find
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Effect<{ readonly birthday: Date; }[], MongoError | ParseError, never>
+// $ExpectType Effect<{ readonly birthday: Date; }[], MongoError | SchemaError, never>
 FindCursor.toArray(Collection.find(collection, { birthday: "2024-11-28" }))
 
-// $ExpectType Effect<{ readonly birthday: Date; }[], MongoError | ParseError, never>
+// $ExpectType Effect<{ readonly birthday: Date; }[], MongoError | SchemaError, never>
 F.pipe(collection, Collection.find({ birthday: "2024-11-28" }), FindCursor.toArray)
 
 // -------------------------------------------------------------------------------------
 // findOne
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | SchemaError, never>
 Collection.findOne(collection, { birthday: "2024-11-28" })
 
-// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | SchemaError, never>
 F.pipe(collection, Collection.findOne({ birthday: "2024-11-28" }))
 
 // -------------------------------------------------------------------------------------
 // insertOne
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Effect<InsertOneResult<{ readonly birthday: string; }>, MongoError | ParseError, never>
+// $ExpectType Effect<InsertOneResult<{ readonly birthday: string; }>, MongoError | SchemaError, never>
 Collection.insertOne(collection, myType)
 
-// $ExpectType Effect<InsertOneResult<{ readonly birthday: string; }>, MongoError | ParseError, never>
+// $ExpectType Effect<InsertOneResult<{ readonly birthday: string; }>, MongoError | SchemaError, never>
 F.pipe(collection, Collection.insertOne(myType))
 
 // -------------------------------------------------------------------------------------
 // insertMany
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Effect<InsertManyResult<{ readonly birthday: string; }>, MongoError | ParseError, never>
+// $ExpectType Effect<InsertManyResult<{ readonly birthday: string; }>, MongoError | SchemaError, never>
 Collection.insertMany(collection, [myType])
 
-// $ExpectType Effect<InsertManyResult<{ readonly birthday: string; }>, MongoError | ParseError, never>
+// $ExpectType Effect<InsertManyResult<{ readonly birthday: string; }>, MongoError | SchemaError, never>
 F.pipe(collection, Collection.insertMany([myType]))
 
 // -------------------------------------------------------------------------------------
@@ -98,45 +98,45 @@ F.pipe(collection, Collection.updateMany({ birthday: "2024-11-28" }, { $set: { b
 // replaceOne
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Effect<Document | UpdateResult<{ readonly birthday: string; }>, MongoError | ParseError, never>
+// $ExpectType Effect<Document | UpdateResult<{ readonly birthday: string; }>, MongoError | SchemaError, never>
 Collection.replaceOne(collection, { birthday: "2024-11-28" }, myType)
 
-// $ExpectType Effect<Document | UpdateResult<{ readonly birthday: string; }>, MongoError | ParseError, never>
+// $ExpectType Effect<Document | UpdateResult<{ readonly birthday: string; }>, MongoError | SchemaError, never>
 F.pipe(collection, Collection.replaceOne({ birthday: "2024-11-28" }, myType))
 
 // -------------------------------------------------------------------------------------
 // findOneAndReplace
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Effect<ModifyResult<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+// $ExpectType Effect<ModifyResult<{ readonly birthday: Date; }>, MongoError | SchemaError, never>
 Collection.findOneAndReplace(collection, { birthday: "2024-11-28" }, myType, { includeResultMetadata: true })
 
-// $ExpectType Effect<ModifyResult<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+// $ExpectType Effect<ModifyResult<{ readonly birthday: Date; }>, MongoError | SchemaError, never>
 F.pipe(collection, Collection.findOneAndReplace({ birthday: "2024-11-28" }, myType, { includeResultMetadata: true }))
 
-// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | SchemaError, never>
 Collection.findOneAndReplace(collection, { birthday: "2024-11-28" }, myType, { includeResultMetadata: false })
 
-// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | SchemaError, never>
 F.pipe(collection, Collection.findOneAndReplace({ birthday: "2024-11-28" }, myType, { includeResultMetadata: false }))
 
-// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | SchemaError, never>
 Collection.findOneAndReplace(collection, { birthday: "2024-11-28" }, myType, { comment: "any" })
 
-// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | SchemaError, never>
 F.pipe(collection, Collection.findOneAndReplace({ birthday: "2024-11-28" }, myType, { comment: "any" }))
 
-// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | SchemaError, never>
 Collection.findOneAndReplace(collection, { birthday: "2024-11-28" }, myType)
 
-// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | SchemaError, never>
 F.pipe(collection, Collection.findOneAndReplace({ birthday: "2024-11-28" }, myType))
 
 // -------------------------------------------------------------------------------------
 // findOneAndUpdate
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Effect<ModifyResult<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+// $ExpectType Effect<ModifyResult<{ readonly birthday: Date; }>, MongoError | SchemaError, never>
 Collection.findOneAndUpdate(
   collection,
   { birthday: "2024-11-28" },
@@ -144,7 +144,7 @@ Collection.findOneAndUpdate(
   { includeResultMetadata: true }
 )
 
-// $ExpectType Effect<ModifyResult<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+// $ExpectType Effect<ModifyResult<{ readonly birthday: Date; }>, MongoError | SchemaError, never>
 F.pipe(
   collection,
   Collection.findOneAndUpdate({ birthday: "2024-11-28" }, { $set: { birthday: "2024-11-29" } }, {
@@ -152,7 +152,7 @@ F.pipe(
   })
 )
 
-// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | SchemaError, never>
 Collection.findOneAndUpdate(
   collection,
   { birthday: "2024-11-28" },
@@ -160,7 +160,7 @@ Collection.findOneAndUpdate(
   { includeResultMetadata: false }
 )
 
-// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | SchemaError, never>
 F.pipe(
   collection,
   Collection.findOneAndUpdate({ birthday: "2024-11-28" }, { $set: { birthday: "2024-11-29" } }, {
@@ -168,7 +168,7 @@ F.pipe(
   })
 )
 
-// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | SchemaError, never>
 Collection.findOneAndUpdate(
   collection,
   { birthday: "2024-11-28" },
@@ -176,26 +176,26 @@ Collection.findOneAndUpdate(
   { comment: "any" }
 )
 
-// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | SchemaError, never>
 F.pipe(
   collection,
   Collection.findOneAndUpdate({ birthday: "2024-11-28" }, { $set: { birthday: "2024-11-29" } }, { comment: "any" })
 )
 
-// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | SchemaError, never>
 Collection.findOneAndUpdate(collection, { birthday: "2024-11-28" }, { $set: { birthday: "2024-11-29" } })
 
-// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | ParseError, never>
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | SchemaError, never>
 F.pipe(collection, Collection.findOneAndUpdate({ birthday: "2024-11-28" }, { $set: { birthday: "2024-11-29" } }))
 
 // -------------------------------------------------------------------------------------
 // rename
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Effect<Collection<{ readonly birthday: Date; }, { readonly birthday: string; }, never>, MongoError, never>
+// $ExpectType Effect<Collection<{ readonly birthday: Date; }, { readonly birthday: string; }, never, never>, MongoError, never>
 Collection.rename(collection, "new-collection")
 
-// $ExpectType Effect<Collection<{ readonly birthday: Date; }, { readonly birthday: string; }, never>, MongoError, never>
+// $ExpectType Effect<Collection<{ readonly birthday: Date; }, { readonly birthday: string; }, never, never>, MongoError, never>
 F.pipe(collection, Collection.rename("new-collection"))
 
 // -------------------------------------------------------------------------------------
@@ -253,15 +253,15 @@ F.pipe(collection, Collection.dropIndexes())
 // -------------------------------------------------------------------------------------
 
 const MyAggregatedType = Schema.Struct({
-  _id: Schema.Date,
+  _id: Schema.DateFromString,
   birthdays: Schema.Number
 })
 const groupByBirthday = [{ $group: { _id: "$birthday", birthdays: { $sum: 1 } } }]
 
-// $ExpectType AggregationCursor<{ readonly _id: Date; readonly birthdays: number; }, { readonly _id: string; readonly birthdays: number; }, never>
+// $ExpectType AggregationCursor<{ readonly _id: Date; readonly birthdays: number; }, { readonly _id: string; readonly birthdays: number; }, never, never>
 Collection.aggregate(collection, MyAggregatedType, groupByBirthday)
 
-// $ExpectType AggregationCursor<{ readonly _id: Date; readonly birthdays: number; }, { readonly _id: string; readonly birthdays: number; }, never>
+// $ExpectType AggregationCursor<{ readonly _id: Date; readonly birthdays: number; }, { readonly _id: string; readonly birthdays: number; }, never, never>
 F.pipe(collection, Collection.aggregate(MyAggregatedType, groupByBirthday))
 
 // -------------------------------------------------------------------------------------
@@ -288,7 +288,7 @@ F.pipe(collection, Collection.countDocuments({ birthday: "2024-11-28" }))
 // bulkWrite
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Effect<BulkWriteResult, MongoError | ParseError, never>
+// $ExpectType Effect<BulkWriteResult, MongoError | SchemaError, never>
 Collection.bulkWrite(collection, [
   { insertOne: { document: myType } },
   { replaceOne: { filter: { birthday: "2024-11-28" }, replacement: myType } },
@@ -298,7 +298,7 @@ Collection.bulkWrite(collection, [
   { updateMany: { filter: { birthday: "2024-11-28" }, update: { $set: { birthday: "2024-11-29" } } } }
 ])
 
-// $ExpectType Effect<BulkWriteResult, MongoError | ParseError, never>
+// $ExpectType Effect<BulkWriteResult, MongoError | SchemaError, never>
 F.pipe(
   collection,
   Collection.bulkWrite([
@@ -310,3 +310,80 @@ F.pipe(
     { updateMany: { filter: { birthday: "2024-11-28" }, update: { $set: { birthday: "2024-11-29" } } } }
   ])
 )
+
+// -------------------------------------------------------------------------------------
+// decoding and encoding services
+// -------------------------------------------------------------------------------------
+
+interface Dec {
+  readonly Dec: unique symbol
+}
+interface Enc {
+  readonly Enc: unique symbol
+}
+declare const MyTypeWithServices: Schema.Codec<MyType, typeof MyType.Encoded, Dec, Enc>
+
+// $ExpectType Collection<{ readonly birthday: Date; }, { readonly birthday: string; }, Dec, Enc>
+DocumentCollection.typed(documentCollection, MyTypeWithServices)
+
+const collectionWithServices = DocumentCollection.typed(documentCollection, MyTypeWithServices)
+
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | SchemaError, Dec>
+Collection.findOne(collectionWithServices, { birthday: "2024-11-28" })
+
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | SchemaError, Dec>
+F.pipe(collectionWithServices, Collection.findOne({ birthday: "2024-11-28" }))
+
+// $ExpectType Effect<InsertOneResult<{ readonly birthday: string; }>, MongoError | SchemaError, Enc>
+Collection.insertOne(collectionWithServices, myType)
+
+// $ExpectType Effect<InsertOneResult<{ readonly birthday: string; }>, MongoError | SchemaError, Enc>
+F.pipe(collectionWithServices, Collection.insertOne(myType))
+
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | SchemaError, Dec | Enc>
+Collection.findOneAndReplace(collectionWithServices, { birthday: "2024-11-28" }, myType)
+
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | SchemaError, Dec | Enc>
+F.pipe(collectionWithServices, Collection.findOneAndReplace({ birthday: "2024-11-28" }, myType))
+
+// $ExpectType Effect<Option<{ readonly birthday: Date; }>, MongoError | SchemaError, Dec>
+F.pipe(
+  collectionWithServices,
+  Collection.findOneAndUpdate({ birthday: "2024-11-28" }, { $set: { birthday: "2024-11-29" } })
+)
+
+// $ExpectType Effect<DeleteResult, MongoError, Dec | Enc>
+Collection.deleteOne(collectionWithServices, { birthday: "2024-11-28" })
+
+// $ExpectType Effect<DeleteResult, MongoError, Dec | Enc>
+F.pipe(collectionWithServices, Collection.deleteOne({ birthday: "2024-11-28" }))
+
+// $ExpectType Effect<{ readonly birthday: Date; }[], MongoError | SchemaError, Dec>
+FindCursor.toArray(Collection.find(collectionWithServices, { birthday: "2024-11-28" }))
+
+// $ExpectType Effect<{ readonly birthday: Date; }[], MongoError | SchemaError, Dec>
+F.pipe(collectionWithServices, Collection.find({ birthday: "2024-11-28" }), FindCursor.toArray)
+
+// $ExpectType Effect<InsertManyResult<{ readonly birthday: string; }>, MongoError | SchemaError, Enc>
+Collection.insertMany(collectionWithServices, [myType])
+
+// $ExpectType Effect<InsertManyResult<{ readonly birthday: string; }>, MongoError | SchemaError, Enc>
+F.pipe(collectionWithServices, Collection.insertMany([myType]))
+
+// $ExpectType Effect<Document | UpdateResult<{ readonly birthday: string; }>, MongoError | SchemaError, Enc>
+Collection.replaceOne(collectionWithServices, { birthday: "2024-11-28" }, myType)
+
+// $ExpectType Effect<Document | UpdateResult<{ readonly birthday: string; }>, MongoError | SchemaError, Enc>
+F.pipe(collectionWithServices, Collection.replaceOne({ birthday: "2024-11-28" }, myType))
+
+// $ExpectType Effect<BulkWriteResult, MongoError | SchemaError, Enc>
+Collection.bulkWrite(collectionWithServices, [{ insertOne: { document: myType } }])
+
+// $ExpectType Effect<BulkWriteResult, MongoError | SchemaError, Enc>
+F.pipe(collectionWithServices, Collection.bulkWrite([{ insertOne: { document: myType } }]))
+
+// $ExpectType AggregationCursor<{ readonly birthday: Date; }, { readonly birthday: string; }, Dec, Enc>
+Collection.aggregate(collection, MyTypeWithServices, [{ $match: { birthday: "2024-11-28" } }])
+
+// $ExpectType AggregationCursor<{ readonly birthday: Date; }, { readonly birthday: string; }, Dec, Enc>
+F.pipe(collection, Collection.aggregate(MyTypeWithServices, [{ $match: { birthday: "2024-11-28" } }]))

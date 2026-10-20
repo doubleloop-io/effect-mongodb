@@ -14,14 +14,13 @@ export const spanCollector = (): SpanCollector => {
   const spans: Array<Tracer.Span> = []
   let nextId = 0
   const tracer = Tracer.make({
-    span: (name, parent, context, links, startTime, kind) => {
-      const span = new CollectedSpan(name, parent, context, links, startTime, kind, `span-${nextId++}`)
+    span: (options) => {
+      const span = new CollectedSpan(options, `span-${nextId++}`)
       spans.push(span)
       return span
-    },
-    context: (f) => f()
+    }
   })
-  return { spans, layer: Layer.setTracer(tracer) }
+  return { spans, layer: Layer.succeed(Tracer.Tracer, tracer) }
 }
 
 export const spanByName = (collector: SpanCollector, name: string): Tracer.Span => {
@@ -32,23 +31,28 @@ export const spanByName = (collector: SpanCollector, name: string): Tracer.Span 
 
 export const attributesOf = (span: Tracer.Span) => Object.fromEntries(span.attributes)
 
+type SpanOptions = Parameters<Tracer.Tracer["span"]>[0]
+
 class CollectedSpan implements Tracer.Span {
   readonly _tag = "Span"
   readonly attributes = new Map<string, unknown>()
   readonly traceId = "trace"
-  readonly sampled = true
+  readonly name: string
+  readonly parent: O.Option<Tracer.AnySpan>
+  readonly annotations: Context.Context<never>
+  readonly links: Array<Tracer.SpanLink>
+  readonly sampled: boolean
+  readonly kind: Tracer.SpanKind
   status: Tracer.SpanStatus
 
-  constructor(
-    readonly name: string,
-    readonly parent: O.Option<Tracer.AnySpan>,
-    readonly context: Context.Context<never>,
-    readonly links: ReadonlyArray<Tracer.SpanLink>,
-    startTime: bigint,
-    readonly kind: Tracer.SpanKind,
-    readonly spanId: string
-  ) {
-    this.status = { _tag: "Started", startTime }
+  constructor(options: SpanOptions, readonly spanId: string) {
+    this.name = options.name
+    this.parent = options.parent
+    this.annotations = options.annotations
+    this.links = [...options.links]
+    this.sampled = options.sampled
+    this.kind = options.kind
+    this.status = { _tag: "Started", startTime: options.startTime }
   }
 
   end(endTime: bigint, exit: Exit.Exit<unknown, unknown>) {
@@ -60,4 +64,8 @@ class CollectedSpan implements Tracer.Span {
   }
 
   event() {}
+
+  addLinks(links: ReadonlyArray<Tracer.SpanLink>) {
+    for (const link of links) this.links.push(link)
+  }
 }

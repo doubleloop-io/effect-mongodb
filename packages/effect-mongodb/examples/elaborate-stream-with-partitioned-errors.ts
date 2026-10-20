@@ -4,8 +4,7 @@ import * as DocumentFindCursor from "effect-mongodb/DocumentFindCursor"
 import * as FindCursor from "effect-mongodb/FindCursor"
 import * as MongoClient from "effect-mongodb/MongoClient"
 import * as Effect from "effect/Effect"
-import * as E from "effect/Either"
-import * as ParseResult from "effect/ParseResult"
+import * as Result from "effect/Result"
 import * as Schema from "effect/Schema"
 import * as Stream from "effect/Stream"
 
@@ -13,7 +12,7 @@ import * as Stream from "effect/Stream"
  * Elaborate stream with partitioned errors
  *
  * Highlights:
- * Use `toStreamEither` or `toArrayEither` to prevent the Stream/Effect from short-circuiting when the first error occur.
+ * Use `toStreamResult` or `toArrayResult` to prevent the Stream/Effect from short-circuiting when the first error occur.
  * In this example, we log the error and continue processing the remaining documents.
  */
 const program = Effect.gen(function*() {
@@ -31,14 +30,11 @@ const program = Effect.gen(function*() {
 
   yield* DocumentCollection.find(sourceCollection).pipe(
     DocumentFindCursor.typed(MyType),
-    FindCursor.toStreamEither,
+    FindCursor.toStreamResult,
     Stream.mapEffect(
-      E.match({
-        onLeft: ([document, error]) =>
-          ParseResult.TreeFormatter.formatError(error).pipe(
-            Effect.flatMap((error) => Effect.logError(`Unable to decode item`, { document, error }))
-          ),
-        onRight: (x) => Effect.log(`Elaborated ${x.name}`)
+      Result.match({
+        onFailure: ([document, error]) => Effect.logError(`Unable to decode item`, { document, error: error.message }),
+        onSuccess: (x) => Effect.log(`Elaborated ${x.name}`)
       })
     ),
     Stream.runDrain
@@ -48,7 +44,7 @@ const program = Effect.gen(function*() {
 const MyType = Schema.Struct({
   name: Schema.String,
   age: Schema.Number,
-  birthday: Schema.Date
+  birthday: Schema.DateFromString
 })
 type MyType = typeof MyType.Type
 

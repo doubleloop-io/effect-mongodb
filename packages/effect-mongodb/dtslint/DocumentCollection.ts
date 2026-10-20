@@ -5,7 +5,7 @@ import * as Schema from "effect/Schema"
 import type { Document } from "mongodb"
 
 const MyType = Schema.Struct({
-  birthday: Schema.Date
+  birthday: Schema.DateFromString
 })
 type MyType = typeof MyType.Type
 
@@ -301,14 +301,14 @@ F.pipe(collection, DocumentCollection.countDocuments({ birthday: "2024-11-28" })
 // typed
 // -----------------------------------------------------------------
 
-// $ExpectType Collection<{ readonly birthday: Date; }, { readonly birthday: string; }, never>
+// $ExpectType Collection<{ readonly birthday: Date; }, { readonly birthday: string; }, never, never>
 DocumentCollection.typed(collection, MyType)
 
-// $ExpectType Collection<{ readonly birthday: Date; }, { readonly birthday: string; }, never>
+// $ExpectType Collection<{ readonly birthday: Date; }, { readonly birthday: string; }, never, never>
 F.pipe(collection, DocumentCollection.typed(MyType))
 
 // @ts-expect-error
-DocumentCollection.typed(collection, Schema.Date)
+DocumentCollection.typed(collection, Schema.DateFromString)
 
 // TODO the following test should work, i.e. array are not acceptable as a collection type
 // // @ts-expect-error

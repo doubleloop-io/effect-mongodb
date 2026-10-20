@@ -135,7 +135,7 @@ describeMongo("Tracing", (ctx) => {
         directConnection: true,
         serverSelectionTimeoutMS: 200
       }),
-      Effect.catchAll(Effect.succeed)
+      Effect.catch(Effect.succeed)
     )
 
     await Effect.runPromise(Effect.provide(program, collector.layer))
@@ -154,5 +154,5 @@ describeMongo("Tracing", (ctx) => {
 
 const User = Schema.Struct({
   name: Schema.String,
-  birthday: Schema.Date
+  birthday: Schema.DateFromString
 })

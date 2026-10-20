@@ -15,6 +15,17 @@ pnpm install effect-mongodb effect mongodb
 
 Note that `effect`, and `mongodb` are requested as peer dependencies.
 
+## Effect compatibility
+
+Each version of effect-mongodb supports only one major version of Effect:
+
+| Effect | effect-mongodb |
+|--------|----------------|
+| v4     | >= 0.8.0       |
+| v3     | <= 0.7.x       |
+
+Version 0.7.x receives bug fixes when necessary.
+
 ## Usage
 
 Here is a simple example of how to use this package:
@@ -26,7 +37,7 @@ import { Collection, Db, FindCursor, MongoClient } from "effect-mongodb"
 const Person = Schema.Struct({
    name: Schema.String,
    age: Schema.Number,
-   birthday: Schema.Date
+   birthday: Schema.DateFromString
 })
 
 const program = Effect.gen(function*() {
@@ -85,8 +96,8 @@ All cursor modules provide, at least, two functions:
   allows to process the documents one by one, without loading them all in memory.
 
 For document-based modules, these functions can only fail with a `MongoError`, while for schema-based modules, they can
-fail also with a `ParseError`. For this reason, the schema-based modules provide two additional functions:
-`toArrayEither` and `toStreamEither`. These functions return, respectively, an array and a stream of `Either`s, allowing
+fail also with a `SchemaError`. For this reason, the schema-based modules provide two additional functions:
+`toArrayResult` and `toStreamResult`. These functions return, respectively, an array and a stream of `Result`s, allowing
 the code to process all the documents, even if some of them are invalid.
 
 ### Tracing
@@ -114,7 +125,7 @@ Spans are exported as any other Effect span, e.g. through
 
 Using `Filter` in schema-based operations (e.g. `find`, `deleteOne`, etc.) is not as straightforward as in
 document-based operations.
-Given a `Schema<A, I, R>`, `A` is the runtime/decoded type of the documents, while `I` is the persisted/encoded type of
+Given a `Codec<A, I, RD, RE>`, `A` is the runtime/decoded type of the documents, while `I` is the persisted/encoded type of
 the same documents.
 Therefore, to filter documents in MongoDB, the client must provide a filter of type `Filter<I>`, where `Filter` is the
 type provided by the MongoDB driver.

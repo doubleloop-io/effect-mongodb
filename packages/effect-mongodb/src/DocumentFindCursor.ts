@@ -5,7 +5,6 @@ import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import type { Pipeable } from "effect/Pipeable"
-import { pipeArguments } from "effect/Pipeable"
 import type * as Schema from "effect/Schema"
 import * as Stream from "effect/Stream"
 import type { Collection as MongoCollection, Document, Filter, FindOptions, Sort, SortDirection } from "mongodb"
@@ -26,11 +25,7 @@ export interface DocumentFindCursor extends DocumentFindCursorFields, Pipeable {
 /** @internal */
 export class DocumentFindCursorImpl extends Data.TaggedClass("DocumentFindCursor")<DocumentFindCursorFields>
   implements DocumentFindCursor
-{
-  pipe() {
-    return pipeArguments(this, arguments)
-  }
-}
+{}
 
 export const filter: {
   (filter: Filter<Document>): (cursor: DocumentFindCursor) => DocumentFindCursor
@@ -86,13 +81,18 @@ export const toStream = (
   )
 
 export const typed: {
-  <A, I = A, R = never>(schema: Schema.Schema<A, I, R>): (cursor: DocumentFindCursor) => FindCursor.FindCursor<A, I, R>
-  <A, I = A, R = never>(cursor: DocumentFindCursor, schema: Schema.Schema<A, I, R>): FindCursor.FindCursor<A, I, R>
-} = F.dual((args) => isDocumentFindCursor(args[0]), <A, I = A, R = never>(
+  <A, I = A, RD = never, RE = never>(
+    schema: Schema.Codec<A, I, RD, RE>
+  ): (cursor: DocumentFindCursor) => FindCursor.FindCursor<A, I, RD, RE>
+  <A, I = A, RD = never, RE = never>(
+    cursor: DocumentFindCursor,
+    schema: Schema.Codec<A, I, RD, RE>
+  ): FindCursor.FindCursor<A, I, RD, RE>
+} = F.dual((args) => isDocumentFindCursor(args[0]), <A, I = A, RD = never, RE = never>(
   cursor: DocumentFindCursor,
-  schema: Schema.Schema<A, I, R>
-): FindCursor.FindCursor<A, I, R> =>
-  new FindCursor.FindCursorImpl<A, I, R>({
+  schema: Schema.Codec<A, I, RD, RE>
+): FindCursor.FindCursor<A, I, RD, RE> =>
+  new FindCursor.FindCursorImpl<A, I, RD, RE>({
     collection: cursor.collection,
     filter: cursor.filter,
     options: cursor.options,

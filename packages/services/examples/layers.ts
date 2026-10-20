@@ -15,7 +15,7 @@ const Todo = Schema.Struct({
   completed: Schema.Boolean
 })
 
-const MyDb = DbService.Tag("MyDb")
+const MyDb = DbService.Service("MyDb")
 
 const program = Effect.gen(function*() {
   const db = yield* MyDb
@@ -29,7 +29,7 @@ const program = Effect.gen(function*() {
 
 /*** main.ts ***/
 
-const MyMongoClient = MongoClientService.Tag("MyMongoClient")
+const MyMongoClient = MongoClientService.Service("MyMongoClient")
 const MyDbLive = DbService.layer(MyDb, MyMongoClient, "mydb")
 const MyMongoClientLive = MongoClientService.layer(MyMongoClient, "mongodb://localhost:27017")
 

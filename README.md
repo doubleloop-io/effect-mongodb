@@ -12,7 +12,7 @@ import { Collection, Db, FindCursor, MongoClient } from "effect-mongodb"
 const Person = Schema.Struct({
   name: Schema.String,
   age: Schema.Number,
-  birthday: Schema.Date
+  birthday: Schema.DateFromString
 })
 
 const program = Effect.gen(function*() {
@@ -35,6 +35,17 @@ await program.pipe(Effect.scoped, Effect.runPromise)
 MongoDB.
 
 [@effect-mongodb/services](packages/services/README.md) is the package that provides Effect **services** for effect-mongodb.
+
+## Effect compatibility
+
+Each version of effect-mongodb packages supports only one major version of Effect:
+
+| Effect | effect-mongodb, @effect-mongodb/* |
+|--------|-----------------------------------|
+| v4     | >= 0.8.0                          |
+| v3     | <= 0.7.x                          |
+
+Version 0.7.x receives bug fixes when necessary.
 
 ## MongoDB driver compatibility
 

@@ -42,7 +42,7 @@ const program = Effect.gen(function*() {
   yield* Console.log(items)
 })
 
-const Source = Schema.Literal("A", "B", "C")
+const Source = Schema.Literals(["A", "B", "C"])
 
 const MyType = Schema.Struct({
   id: Schema.Int,

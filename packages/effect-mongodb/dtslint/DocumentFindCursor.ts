@@ -64,8 +64,8 @@ DocumentFindCursor.toStream(cursor)
 
 const User = Schema.Struct({ name: Schema.String })
 
-// $ExpectType FindCursor<{ readonly name: string; }, { readonly name: string; }, never>
+// $ExpectType FindCursor<{ readonly name: string; }, { readonly name: string; }, never, never>
 DocumentFindCursor.typed(cursor, User)
 
-// $ExpectType FindCursor<{ readonly name: string; }, { readonly name: string; }, never>
+// $ExpectType FindCursor<{ readonly name: string; }, { readonly name: string; }, never, never>
 F.pipe(cursor, DocumentFindCursor.typed(User))

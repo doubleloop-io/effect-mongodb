@@ -6,10 +6,10 @@ import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import type { MongoClient as NativeMongoClient } from "mongodb"
 
-declare const db: DbService.Tag<"MyDb">
+declare const db: DbService.Service<"MyDb">
 
 type SomeService = { url: string; name: string }
-declare const SomeService: Context.Tag<SomeService, SomeService>
+declare const SomeService: Context.Service<SomeService, SomeService>
 
 // -------------------------------------------------------------------------------------
 // layerEffect
@@ -22,15 +22,15 @@ DbInstance.layerEffect(db, Effect.succeed({ database: { name: "mydb" }, client: 
 DbInstance.layerEffect(
   db,
   Effect.gen(function*() {
-    const databaseName = yield* Config.string("MONGO_DATABASE_NAME")
-    const clientUrl = yield* Config.string("MONGO_CONNECTION_STRING")
+    const databaseName = yield* Config.String("MONGO_DATABASE_NAME")
+    const clientUrl = yield* Config.String("MONGO_CONNECTION_STRING")
     return { database: { name: databaseName }, client: { url: clientUrl } }
   })
 )
 
 const withRequirements = Effect.gen(function*() {
   const { url } = yield* SomeService
-  const name = yield* Config.string("MONGO_DATABASE_NAME")
+  const name = yield* Config.String("MONGO_DATABASE_NAME")
   return { database: { name }, client: { url } }
 })
 // $ExpectType Layer<DbService<"MyDb">, MongoError | ConfigError, SomeService>
@@ -56,7 +56,7 @@ DbInstance.fromMongoClient(db, Effect.succeed({ database: { name: "mydb" }, clie
 DbInstance.fromMongoClient(
   db,
   F.pipe(
-    Config.string("MONGO_DATABASE_NAME"),
+    Config.String("MONGO_DATABASE_NAME"),
     Effect.map((name) => ({ database: { name }, client: legacyClient }))
   )
 )
@@ -66,7 +66,7 @@ DbInstance.fromMongoClient(
   db,
   Effect.gen(function*() {
     const { name: dbName } = yield* SomeService
-    const name = yield* Config.string(dbName)
+    const name = yield* Config.String(dbName)
     return { database: { name }, client: legacyClient }
   })
 )

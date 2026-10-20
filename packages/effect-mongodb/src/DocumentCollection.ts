@@ -7,7 +7,6 @@ import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import * as O from "effect/Option"
 import type { Pipeable } from "effect/Pipeable"
-import { pipeArguments } from "effect/Pipeable"
 import type * as Schema from "effect/Schema"
 import type {
   AggregateOptions,
@@ -59,11 +58,7 @@ export interface DocumentCollection extends DocumentCollectionFields, Pipeable {
 /** @internal */
 export class DocumentCollectionImpl extends Data.TaggedClass("DocumentCollection")<DocumentCollectionFields>
   implements DocumentCollection
-{
-  pipe() {
-    return pipeArguments(this, arguments)
-  }
-}
+{}
 
 export const find: {
   (
@@ -103,7 +98,7 @@ export const findOne: {
   ): Effect.Effect<O.Option<Document>, MongoError.MongoError> =>
     F.pipe(
       Effect.promise(() => collection.collection.findOne(filter, options)),
-      Effect.map((value) => O.fromNullable(value)),
+      Effect.map((value) => O.fromNullishOr(value)),
       mongoOperation(errorSource(collection, "findOne"))
     )
 )
@@ -346,9 +341,9 @@ export const findOneAndReplace: {
       Effect.map((value) => {
         if (options?.includeResultMetadata && !!value) {
           const result = value as unknown as MongoModifyResult<Document>
-          return { ...result, value: O.fromNullable(result.value) }
+          return { ...result, value: O.fromNullishOr(result.value) }
         }
-        return O.fromNullable(value)
+        return O.fromNullishOr(value)
       }),
       mongoOperation(errorSource(collection, "findOneAndReplace"))
     )
@@ -421,9 +416,9 @@ export const findOneAndUpdate: {
       Effect.map((value) => {
         if (options?.includeResultMetadata && !!value) {
           const result = value as unknown as MongoModifyResult<Document>
-          return { ...result, value: O.fromNullable(result.value) }
+          return { ...result, value: O.fromNullishOr(result.value) }
         }
-        return O.fromNullable(value)
+        return O.fromNullishOr(value)
       }),
       mongoOperation(errorSource(collection, "findOneAndUpdate"))
     )
@@ -619,18 +614,21 @@ export const countDocuments: {
 )
 
 export const typed: {
-  <A extends Document, I extends Document = A, R = never>(
-    schema: Schema.Schema<A, I, R>
-  ): (collection: DocumentCollection) => Collection.Collection<A, I, R>
-  <A extends Document, I extends Document = A, R = never>(
+  <A extends Document, I extends Document = A, RD = never, RE = never>(
+    schema: Schema.Codec<A, I, RD, RE>
+  ): (collection: DocumentCollection) => Collection.Collection<A, I, RD, RE>
+  <A extends Document, I extends Document = A, RD = never, RE = never>(
     collection: DocumentCollection,
-    schema: Schema.Schema<A, I, R>
-  ): Collection.Collection<A, I, R>
-} = F.dual((args) => isDocumentCollection(args[0]), <A extends Document, I extends Document = A, R = never>(
-  collection: DocumentCollection,
-  schema: Schema.Schema<A, I, R>
-): Collection.Collection<A, I, R> =>
-  new Collection.CollectionImpl<A, I, R>({ collection: collection.collection, schema }))
+    schema: Schema.Codec<A, I, RD, RE>
+  ): Collection.Collection<A, I, RD, RE>
+} = F.dual(
+  (args) => isDocumentCollection(args[0]),
+  <A extends Document, I extends Document = A, RD = never, RE = never>(
+    collection: DocumentCollection,
+    schema: Schema.Codec<A, I, RD, RE>
+  ): Collection.Collection<A, I, RD, RE> =>
+    new Collection.CollectionImpl<A, I, RD, RE>({ collection: collection.collection, schema })
+)
 
 export const bulkWrite: {
   (

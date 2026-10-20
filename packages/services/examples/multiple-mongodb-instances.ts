@@ -15,8 +15,8 @@ const Todo = Schema.Struct({
   completed: Schema.Boolean
 })
 
-const MainDb = DbService.Tag("MainDb")
-const ReplicaDb = DbService.Tag("ReplicaDb")
+const MainDb = DbService.Service("MainDb")
+const ReplicaDb = DbService.Service("ReplicaDb")
 
 const program = Effect.gen(function*() {
   const mainDb = yield* MainDb
@@ -33,11 +33,11 @@ const program = Effect.gen(function*() {
 
 /*** main.ts ***/
 
-const MainMongoClient = MongoClientService.Tag("MainMongoClient")
+const MainMongoClient = MongoClientService.Service("MainMongoClient")
 const MainDbLive = DbService.layer(MainDb, MainMongoClient, "mydb")
 const MainMongoClientLive = MongoClientService.layer(MainMongoClient, "mongodb://localhost:27017")
 
-const ReplicaMongoClient = MongoClientService.Tag("ReplicaMongoClient")
+const ReplicaMongoClient = MongoClientService.Service("ReplicaMongoClient")
 const ReplicaDbLive = DbService.layer(ReplicaDb, ReplicaMongoClient, "mydb")
 const ReplicaMongoClientLive = MongoClientService.layer(ReplicaMongoClient, "mongodb://localhost:37017")
 

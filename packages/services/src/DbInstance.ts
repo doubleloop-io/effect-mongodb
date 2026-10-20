@@ -16,23 +16,23 @@ type DbInstanceOptions = {
 }
 
 export const layerEffect = <DbK extends string, E = never, R = never>(
-  dbTag: DbService.Tag<DbK>,
+  dbService: DbService.Service<DbK>,
   options: Effect.Effect<DbInstanceOptions, E, R>
 ): Layer.Layer<DbService.DbService<DbK>, MongoError.MongoError | E, R> =>
   F.pipe(
     options,
-    Effect.map((options) => layer(dbTag, options)),
-    Layer.unwrapEffect
+    Effect.map((options) => layer(dbService, options)),
+    Layer.unwrap
   )
 
 export const layer = <DbK extends string>(
-  dbTag: DbService.Tag<DbK>,
+  dbService: DbService.Service<DbK>,
   options: DbInstanceOptions
 ): Layer.Layer<DbService.DbService<DbK>, MongoError.MongoError> => {
   const { name: databaseName, ...databaseOptions } = options.database
   const { url: clientUrl, ...clientOptions } = options.client
 
-  const dbLayer = DbService.layer(dbTag, DefaultMongoClient, databaseName, databaseOptions)
+  const dbLayer = DbService.layer(dbService, DefaultMongoClient, databaseName, databaseOptions)
   const defaultClientLayer = MongoClientService.layer(DefaultMongoClient, clientUrl, clientOptions)
   return dbLayer.pipe(Layer.provide(defaultClientLayer))
 }
@@ -40,17 +40,17 @@ export const layer = <DbK extends string>(
 type DbInstanceOptionsWithClient = Pick<DbInstanceOptions, "database"> & { client: MongoClient_ }
 
 export const fromMongoClient = <DbK extends string, E = never, R = never>(
-  dbTag: DbService.Tag<DbK>,
+  dbService: DbService.Service<DbK>,
   options: Effect.Effect<DbInstanceOptionsWithClient, E, R>
 ): Layer.Layer<DbService.DbService<DbK>, E, R> =>
   Layer.effect(
-    dbTag,
+    dbService,
     Effect.gen(function*() {
       const { client: client_, database: { name, ...dbOptions } } = yield* options
       const client = new MongoClient.MongoClient({ client: client_ })
       const db = MongoClient.db(client, name, dbOptions)
-      return dbTag.of(db as DbService.DbService<DbK>)
+      return dbService.of(db as DbService.DbService<DbK>)
     })
   )
 
-const DefaultMongoClient = MongoClientService.Tag("@effect-mongodb/services/DefaultMongoClient")
+const DefaultMongoClient = MongoClientService.Service("@effect-mongodb/services/DefaultMongoClient")

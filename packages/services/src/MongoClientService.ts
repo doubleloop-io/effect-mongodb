@@ -10,35 +10,35 @@ import * as Layer from "effect/Layer"
 
 export type MongoClientService<K extends string> = MongoClient.MongoClient & Brand.Brand<K>
 
-export type Tag<K extends string> = Context.Tag<MongoClientService<K>, MongoClientService<K>>
-export const Tag = <K extends string>(key: K): Tag<K> => Context.GenericTag<MongoClientService<K>>(key)
-export type Service<T extends Tag<any>> = Context.Tag.Service<T>
+export type Service<K extends string> = Context.Service<MongoClientService<K>, MongoClientService<K>>
+export const Service = <K extends string>(key: K): Service<K> => Context.Service<MongoClientService<K>>(key)
+export type Shape<T extends Service<any>> = Context.Service.Shape<T>
 
 export const layerEffect = <MongoClientK extends string, E = never, R = never>(
-  clientTag: Tag<MongoClientK>,
+  clientService: Service<MongoClientK>,
   url: Effect.Effect<string, E, R>,
   options?: MongoClient.MongoClientScopedOptions
 ): Layer.Layer<MongoClientService<MongoClientK>, MongoError.MongoError | E, R> =>
   Effect.gen(function*() {
     const url_ = yield* url
-    return layer(clientTag, url_, options)
-  }).pipe(Layer.unwrapEffect)
+    return layer(clientService, url_, options)
+  }).pipe(Layer.unwrap)
 
 export const layer = <MongoClientK extends string>(
-  clientTag: Tag<MongoClientK>,
+  clientService: Service<MongoClientK>,
   url: string,
   options?: MongoClient.MongoClientScopedOptions
 ): Layer.Layer<MongoClientService<MongoClientK>, MongoError.MongoError> =>
-  Layer.scopedContext(Effect.gen(function*() {
-    const client = yield* MongoClient.connectScoped(url, options)
-    return Context.make(clientTag, client as MongoClientService<MongoClientK>)
-  }))
+  Layer.effect(
+    clientService,
+    Effect.map(MongoClient.connectScoped(url, options), (client) => client as MongoClientService<MongoClientK>)
+  )
 
 export const fromMongoClient = <MongoClientK extends string, E = never, R = never>(
-  clientTag: Tag<MongoClientK>,
+  clientService: Service<MongoClientK>,
   mongoClient: Effect.Effect<MongoClient.MongoClient, E, R>
 ): Layer.Layer<MongoClientService<MongoClientK>, E, R> =>
   Layer.effect(
-    clientTag,
+    clientService,
     Effect.map(mongoClient, (client) => client as MongoClientService<MongoClientK>)
   )

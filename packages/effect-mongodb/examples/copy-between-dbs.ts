@@ -38,7 +38,7 @@ const program = Effect.gen(function*() {
 const MyType = Schema.Struct({
   name: Schema.String,
   age: Schema.Number,
-  birthday: Schema.Date
+  birthday: Schema.DateFromString
 })
 type MyType = typeof MyType.Type
 

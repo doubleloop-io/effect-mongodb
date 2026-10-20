@@ -14,7 +14,7 @@ const Todo = Schema.Struct({
   completed: Schema.Boolean
 })
 
-const MyDb = DbService.Tag("MyDb")
+const MyDb = DbService.Service("MyDb")
 
 const program = Effect.gen(function*() {
   const db = yield* MyDb
@@ -31,8 +31,8 @@ const program = Effect.gen(function*() {
 const MyDbLive = DbInstance.layerEffect(
   MyDb,
   Effect.gen(function*() {
-    const databaseName = yield* Config.string("MONGO_DATABASE_NAME")
-    const clientUrl = yield* Config.string("MONGO_CONNECTION_STRING")
+    const databaseName = yield* Config.String("MONGO_DATABASE_NAME")
+    const clientUrl = yield* Config.String("MONGO_CONNECTION_STRING")
     return {
       database: { name: databaseName },
       client: { url: clientUrl, timeoutMS: 5000 }

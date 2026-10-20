@@ -4,18 +4,18 @@ import * as Config from "effect/Config"
 import type * as Context from "effect/Context"
 import * as Effect from "effect/Effect"
 
-declare const mongoClient: MongoClientService.Tag<"MyMongoClient">
-declare const usersDb: DbService.Tag<"MyDb">
+declare const mongoClient: MongoClientService.Service<"MyMongoClient">
+declare const usersDb: DbService.Service<"MyDb">
 
 type SomeService = { name: string }
-declare const SomeService: Context.Tag<SomeService, SomeService>
+declare const SomeService: Context.Service<SomeService, SomeService>
 
 // -------------------------------------------------------------------------------------
-// Tag
+// Service
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Tag<"MyDb">
-DbService.Tag("MyDb")
+// $ExpectType Service<"MyDb">
+DbService.Service("MyDb")
 
 // -------------------------------------------------------------------------------------
 // layerEffect
@@ -25,9 +25,9 @@ DbService.Tag("MyDb")
 DbService.layerEffect(usersDb, mongoClient, Effect.succeed("mydb"))
 
 // $ExpectType Layer<DbService<"MyDb">, ConfigError, MongoClientService<"MyMongoClient">>
-DbService.layerEffect(usersDb, mongoClient, Config.string("DATABASE_NAME"))
+DbService.layerEffect(usersDb, mongoClient, Config.String("DATABASE_NAME"))
 
-const withRequirements = SomeService.pipe(Effect.flatMap(({ name }) => Config.string(name)))
+const withRequirements = SomeService.pipe(Effect.flatMap(({ name }) => Config.String(name)))
 // $ExpectType Layer<DbService<"MyDb">, ConfigError, SomeService | MongoClientService<"MyMongoClient">>
 DbService.layerEffect(usersDb, mongoClient, withRequirements)
 

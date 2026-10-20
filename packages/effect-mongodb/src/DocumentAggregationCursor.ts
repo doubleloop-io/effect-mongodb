@@ -5,7 +5,6 @@ import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import type { Pipeable } from "effect/Pipeable"
-import { pipeArguments } from "effect/Pipeable"
 import * as Stream from "effect/Stream"
 import type { AggregationCursor as MongoAggregationCursor, Document } from "mongodb"
 import { mongoOperation, mongoStreamOperation } from "./internal/mongo-operation.js"
@@ -21,11 +20,7 @@ export interface DocumentAggregationCursor extends DocumentAggregationCursorFiel
 export class DocumentAggregationCursorImpl
   extends Data.TaggedClass("DocumentAggregationCursor")<DocumentAggregationCursorFields>
   implements DocumentAggregationCursor
-{
-  pipe() {
-    return pipeArguments(this, arguments)
-  }
-}
+{}
 
 export const toArray = (
   cursor: DocumentAggregationCursor

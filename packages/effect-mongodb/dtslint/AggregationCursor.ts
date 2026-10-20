@@ -7,20 +7,39 @@ const User = Schema.Struct({
 })
 type User = typeof User.Type
 type UserEncoded = typeof User.Encoded
-type UserContext = typeof User.Context
+type UserDecodingServices = typeof User.DecodingServices
+type UserEncodingServices = typeof User.EncodingServices
 
-declare const cursor: AggregationCursor.AggregationCursor<User, UserEncoded, UserContext>
+declare const cursor: AggregationCursor.AggregationCursor<User, UserEncoded, UserDecodingServices, UserEncodingServices>
 
 // -------------------------------------------------------------------------------------
 // toArray
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Effect<{ readonly id: string; }[], MongoError | ParseError, never>
+// $ExpectType Effect<{ readonly id: string; }[], MongoError | SchemaError, never>
 AggregationCursor.toArray(cursor)
 
 // -------------------------------------------------------------------------------------
 // toStream
 // -------------------------------------------------------------------------------------
 
-// $ExpectType Stream<{ readonly id: string; }, MongoError | ParseError, never>
+// $ExpectType Stream<{ readonly id: string; }, MongoError | SchemaError, never>
 AggregationCursor.toStream(cursor)
+
+// -------------------------------------------------------------------------------------
+// decoding and encoding services
+// -------------------------------------------------------------------------------------
+
+interface Dec {
+  readonly Dec: unique symbol
+}
+interface Enc {
+  readonly Enc: unique symbol
+}
+declare const cursorWithServices: AggregationCursor.AggregationCursor<User, UserEncoded, Dec, Enc>
+
+// $ExpectType Effect<{ readonly id: string; }[], MongoError | SchemaError, Dec>
+AggregationCursor.toArray(cursorWithServices)
+
+// $ExpectType Stream<{ readonly id: string; }, MongoError | SchemaError, Dec>
+AggregationCursor.toStream(cursorWithServices)

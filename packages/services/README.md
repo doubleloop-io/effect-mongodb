@@ -15,6 +15,17 @@ pnpm install @effect-mongodb/services effect-mongodb effect mongodb
 
 Note that `effect-mongodb`, `effect`, and `mongodb` are requested as peer dependencies.
 
+## Effect compatibility
+
+Each version of @effect-mongodb/services supports only one major version of Effect:
+
+| Effect | @effect-mongodb/services |
+|--------|--------------------------|
+| v4     | >= 0.8.0                 |
+| v3     | <= 0.7.x                 |
+
+Version 0.7.x receives bug fixes when necessary.
+
 ## Usage
 
 Here is a simple example of how to use this package:
@@ -24,10 +35,10 @@ import { DbInstance, DbService } from "@effect-mongodb/services"
 import { Effect, Schema } from "effect"
 import { Collection, Db, FindCursor } from "effect-mongodb"
 
-const Person = Schema.Struct({ name: Schema.String, age: Schema.Number, birthday: Schema.Date })
+const Person = Schema.Struct({ name: Schema.String, age: Schema.Number, birthday: Schema.DateFromString })
 
-// 1. Create your database service tag
-const Database = DbService.Tag("Database")
+// 1. Create your database service
+const Database = DbService.Service("Database")
 
 const program = Effect.gen(function* () {
   // 2. Use your database service
