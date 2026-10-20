@@ -3,6 +3,9 @@
 "@effect-mongodb/services": minor
 ---
 
+author: @devmatteini
+author: @gabeins
+
 Migrate to Effect v4.
 
 From this version, this library supports only Effect v4. For Effect v3, use version 0.7.x (which will receive bug fixes
