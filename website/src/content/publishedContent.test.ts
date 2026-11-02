@@ -82,6 +82,27 @@ test("the effect-mongodb examples are nested under the package section, after Ru
   })
 })
 
+test("the services examples are nested under the package section, after Running examples", () => {
+  const { sidebar } = publishedRepositorySite(repositoryRoot)
+
+  const groups = sidebar.flatMap((item) => "items" in item ? [item] : [])
+
+  const examples = groups.find(({ label }) => label === "@effect-mongodb/services")?.items.find((item) =>
+    "label" in item && item.label === "Examples"
+  )
+  expect(examples).toEqual({
+    label: "Examples",
+    items: [
+      "running-examples",
+      "db-instance",
+      "db-instance-multiple",
+      "db-instance-legacy-mongo-client",
+      "layers",
+      "multiple-mongodb-instances"
+    ].map((page) => ({ slug: `services/examples/${page}` }))
+  })
+})
+
 test("the @effect-mongodb/services section lists the package README pages in README order", () => {
   const { sidebar } = publishedRepositorySite(repositoryRoot)
 

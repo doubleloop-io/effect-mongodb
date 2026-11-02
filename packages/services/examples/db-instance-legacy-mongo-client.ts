@@ -7,6 +7,13 @@ import * as Effect from "effect/Effect"
 import * as Schema from "effect/Schema"
 import { MongoClient } from "mongodb"
 
+/**
+ * Db instance legacy MongoClient
+ *
+ * Highlights:
+ * Use `DbInstance.fromMongoClient` to reuse a `MongoClient` already connected and managed by legacy code.
+ * The layer does not close the client: the legacy connection pool stays responsible for it.
+ */
 const Todo = Schema.Struct({
   userId: Schema.Number,
   id: Schema.Number,

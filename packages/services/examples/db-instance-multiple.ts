@@ -7,6 +7,13 @@ import * as Effect from "effect/Effect"
 import * as Layer from "effect/Layer"
 import * as Schema from "effect/Schema"
 
+/**
+ * Db instance multiple
+ *
+ * Highlights:
+ * Use `DbInstance.layer` to create one `DbService` layer per MongoDB instance
+ * and `Layer.mergeAll` to provide both `MainDb` and `ReplicaDb` to the same program.
+ */
 const Todo = Schema.Struct({
   userId: Schema.Number,
   id: Schema.Number,

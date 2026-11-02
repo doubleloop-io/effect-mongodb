@@ -7,6 +7,15 @@ import * as Config from "effect/Config"
 import * as Effect from "effect/Effect"
 import * as Schema from "effect/Schema"
 
+/**
+ * Db instance
+ *
+ * Highlights:
+ * Use `DbInstance.layerEffect` to build a `DbService` layer from an effectful configuration,
+ * reading the database name and connection string with `Config`
+ * (set `MONGO_DATABASE_NAME` and `MONGO_CONNECTION_STRING` before running it).
+ * The program only depends on the `MyDb` service, not on how the connection is created.
+ */
 const Todo = Schema.Struct({
   userId: Schema.Number,
   id: Schema.Number,
