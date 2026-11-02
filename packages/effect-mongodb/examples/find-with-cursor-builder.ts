@@ -11,7 +11,8 @@ import * as Schema from "effect/Schema"
  * Find with cursor builder
  *
  * Highlights:
- * At line 24, just like the MongoDB driver's `FindCursor`, you can use builder functions to customize the cursor options.
+ * Just like the MongoDB driver's `FindCursor`, you can use builder functions, such as `FindCursor.sort` and
+ * `FindCursor.limit`, to customize the cursor options.
  */
 const program = Effect.gen(function*() {
   const sourceInstance = yield* MongoClient.connectScoped("mongodb://localhost:27017")

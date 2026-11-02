@@ -11,7 +11,7 @@ import * as Schema from "effect/Schema"
  * Find without cursor builder
  *
  * Highlights:
- * At line 24, just like the MongoDB driver's `collection.find`,
+ * Just like the MongoDB driver's `collection.find`,
  * you can directly set the find options without relying on the `FindCursor` builder.
  */
 const program = Effect.gen(function*() {
