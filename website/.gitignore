@@ -2,5 +2,3 @@ dist/
 .astro/
 node_modules/
 
-# the root .gitignore excludes generated docs/ folders; Starlight content lives in one
-!src/content/docs/
