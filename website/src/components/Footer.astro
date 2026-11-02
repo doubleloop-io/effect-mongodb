@@ -1,0 +1,19 @@
+---
+import rootManifest from "../../../package.json"
+import { repositoryLicense } from "../site/repositoryLicense.ts"
+import StarlightFooter from "@astrojs/starlight/components/Footer.astro"
+
+const license = repositoryLicense(rootManifest)
+---
+
+<StarlightFooter />
+<p class="license">Released under the {license} License.</p>
+
+<style>
+  .license {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+  }
+</style>
