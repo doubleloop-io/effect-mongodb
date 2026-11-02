@@ -54,7 +54,7 @@ test("an example becomes a page titled by its JSDoc, introduced by its highlight
   )
 })
 
-test("the package sidebar group nests an Examples group: the examples README pages, then the examples in given order", () => {
+test("the package sidebar group nests an Examples group: the examples README as Overview, then the examples in given order", () => {
   const { sidebar } = packageWithExamplesSite({
     files: {
       "packages/lib/README.md": "# lib\n\n## Getting started\n\nGo.",
@@ -72,7 +72,7 @@ test("the package sidebar group nests an Examples group: the examples README pag
       {
         label: "Examples",
         items: [
-          { slug: "lib/examples/running-examples" },
+          { label: "Overview", slug: "lib/examples" },
           { slug: "lib/examples/find" },
           { slug: "lib/examples/aggregate" }
         ]
@@ -82,7 +82,7 @@ test("the package sidebar group nests an Examples group: the examples README pag
 })
 
 test.each([
-  ["the examples folder to the examples README first page", "./examples", "/docs/lib/examples/running-examples/"],
+  ["the examples folder to the examples overview", "./examples", "/docs/lib/examples/"],
   ["an example file to its page", "./examples/find.ts", "/docs/lib/examples/find/"]
 ])("a relative link from the package README to %s", (_, url, route) => {
   const { pages } = packageWithExamplesSite({
@@ -104,7 +104,9 @@ test("a relative link from the examples README to an example points to its page"
     }
   })
 
-  expect(pageOf(pages, "lib/examples/running-examples").markdown.trim()).toBe("Try [find](/docs/lib/examples/find/).")
+  expect(pageOf(pages, "lib/examples").markdown.trim()).toBe(
+    "## Running examples\n\nTry [find](/docs/lib/examples/find/)."
+  )
 })
 
 test.each([
