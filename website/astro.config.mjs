@@ -2,12 +2,33 @@
 import starlight from "@astrojs/starlight"
 import { defineConfig } from "astro/config"
 
+import { publishedSite } from "./src/site/publishedSite.ts"
+
 export default defineConfig({
-  site: "https://doubleloop-io.github.io",
-  base: "/effect-mongodb",
+  site: publishedSite.origin,
+  base: publishedSite.base,
   integrations: [
     starlight({
-      title: "effect-mongodb"
+      title: "effect-mongodb",
+      social: [
+        { icon: "github", label: "GitHub", href: publishedSite.repositoryUrl },
+        { icon: "npm", label: "npm: effect-mongodb", href: "https://www.npmjs.com/package/effect-mongodb" },
+        {
+          icon: "npm",
+          label: "npm: @effect-mongodb/services",
+          href: "https://www.npmjs.com/package/@effect-mongodb/services"
+        },
+        { icon: "comment-alt", label: "Issues", href: `${publishedSite.repositoryUrl}/issues` }
+      ],
+      customCss: [
+        "@fontsource-variable/inter",
+        "@fontsource-variable/jetbrains-mono",
+        "./src/styles/theme.css"
+      ],
+      components: {
+        Footer: "./src/components/Footer.astro"
+      },
+      routeMiddleware: "./src/routeData.ts"
     })
   ]
 })
