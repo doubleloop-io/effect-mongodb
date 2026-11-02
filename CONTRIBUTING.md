@@ -88,7 +88,12 @@ The website has no content of its own: `website/src/content/publishedContent.ts`
 publishes. Every `##` section of a published README becomes a page, so renaming or removing a `##` heading renames or
 removes a page; a few files, like this one, and the root README Compatibility section are published as single pages.
 Relative links point to the site page when their target is published, otherwise to the file on GitHub;
-a relative link to a missing file or heading fails the website tests and build.
+a relative link to a missing file, or to a missing heading of a published file, fails the website tests and build.
+Links to headings of other files, such as the root README outside its Compatibility section, go to GitHub unchecked.
+
+Each `.ts` file of a package `examples` folder becomes a page, so it must be listed in
+`website/src/content/publishedContent.ts` and start, after its imports, with a JSDoc block holding its title and, under
+`Highlights:`, its introduction.
 
 ### Document your changes
 
