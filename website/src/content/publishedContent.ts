@@ -19,7 +19,8 @@ export const publishedContent: SiteOptions = {
         "copy-between-dbs.ts",
         "elaborate-stream-with-partitioned-errors.ts"
       ]
-    }
+    },
+    { path: "packages/services/README.md", route: "services" }
   ]
 }
 
