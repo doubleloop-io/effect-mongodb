@@ -1,5 +1,7 @@
 # effect-mongodb Examples
 
+## Running examples
+
 This directory contains some examples of `effect-mongodb` package.
 
 In root directory of this repository you can find a `docker-compose.yml` that sets up a local MongoDB instance.

@@ -1,16 +1,17 @@
 import type { Loader, LoaderContext } from "astro/loaders"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
-import { publishedContent, publishedRepositorySite } from "./publishedContent.ts"
+import { publishedRepositorySite } from "./publishedContent.ts"
 
 export const repositoryLoader = (): Loader => ({
   name: "repository-loader",
   load: async (context) => {
     const repositoryRoot = fileURLToPath(new URL("../", context.config.root))
-    await loadSite(context, repositoryRoot)
+    const site = await loadSite(context, repositoryRoot)
 
+    // Watching the sources of the first load: a newly published file needs a dev-server restart, like the sidebar
     const sources = new Set(
-      [publishedContent.home, ...publishedContent.readmes.map(({ path }) => path)]
+      [site.home?.sourcePath, ...site.pages.map(({ sourcePath }) => sourcePath)]
         .flatMap((source) => source === undefined ? [] : [path.join(repositoryRoot, source)])
     )
     sources.forEach((source) => context.watcher?.add(source))
@@ -49,4 +50,5 @@ const loadSite = async (context: LoaderContext, repositoryRoot: string) => {
       digest: context.generateDigest(page.title + page.markdown)
     })
   }
+  return site
 }

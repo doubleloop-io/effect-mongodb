@@ -11,7 +11,7 @@ import * as Schema from "effect/Schema"
  * Copy between dbs
  *
  * Highlights:
- * At line 27, convert a Document-based collection into a Schema-based collection to validate its documents.
+ * Use `DocumentFindCursor.typed` to convert a Document-based cursor into a Schema-based cursor to validate its documents.
  */
 const program = Effect.gen(function*() {
   const sourceInstance = yield* MongoClient.connectScoped("mongodb://localhost:27017")
