@@ -170,3 +170,117 @@ test("a page promotes its subsections by one level, since the section heading be
     "Principles.\n\n## Cursors\n\nStreams.\n\n### Results\n\nPartitioned."
   )
 })
+
+const rootReadme = (sections: string) => `# repo\n\nA repo.\n\n${sections}`
+
+test("a published ## section becomes a single page at its route, titled by its heading", () => {
+  const readme = rootReadme("## Documentation\n\nDocs.\n\n## Compatibility\n\n### Effect\n\nv4.\n\n## License\n\nMIT.")
+
+  const { pages } = repositorySite(inMemoryRepository({ "README.md": readme }), {
+    ...site,
+    readmes: [],
+    pages: [{ path: "README.md", section: "Compatibility", route: "compatibility", placement: "top" }]
+  })
+
+  expect(pages.map(({ id, markdown, title }) => ({ id, title, markdown: markdown.trim() }))).toEqual([
+    { id: "compatibility", title: "Compatibility", markdown: "## Effect\n\nv4." }
+  ])
+})
+
+test("a published file without a section becomes a single page titled by its H1, keeping its intro and headings", () => {
+  const contributing = "# Contributing\n\nWelcome.\n\n## Initial setup\n\nInstall.\n\n### Tools\n\nNode."
+
+  const { pages } = repositorySite(inMemoryRepository({ "CONTRIBUTING.md": contributing }), {
+    ...site,
+    readmes: [],
+    pages: [{ path: "CONTRIBUTING.md", route: "contributing", placement: "bottom" }]
+  })
+
+  expect(pages.map(({ id, markdown, title }) => ({ id, title, markdown: markdown.trim() }))).toEqual([
+    {
+      id: "contributing",
+      title: "Contributing",
+      markdown: "Welcome.\n\n## Initial setup\n\nInstall.\n\n### Tools\n\nNode."
+    }
+  ])
+})
+
+test("the sidebar lists the Overview, then the top pages, the README groups and the bottom pages", () => {
+  const readme = rootReadme(
+    "```ts\nrepo\n```\n\n## Documentation\n\n[lib](packages/lib/README.md).\n\n## Compatibility\n\nv4."
+  )
+
+  const { sidebar } = repositorySite(
+    inMemoryRepository({
+      "README.md": readme,
+      "CONTRIBUTING.md": "# Contributing\n\nWelcome.",
+      "packages/lib/README.md": libReadme("## Getting started\n\nGo.")
+    }),
+    {
+      ...site,
+      home: "README.md",
+      readmes: [{ path: "packages/lib/README.md", route: "lib" }],
+      pages: [
+        { path: "CONTRIBUTING.md", route: "contributing", placement: "bottom" },
+        { path: "README.md", section: "Compatibility", route: "compatibility", placement: "top" }
+      ]
+    }
+  )
+
+  expect(sidebar).toEqual([
+    { label: "Overview", slug: "index" },
+    { slug: "compatibility" },
+    { label: "lib", items: [{ slug: "lib/getting-started" }] },
+    { slug: "contributing" }
+  ])
+})
+
+const singlePagesSite = (libSections: string) =>
+  repositorySite(
+    inMemoryRepository({
+      "README.md": rootReadme("## Compatibility\n\n### Effect\n\nv4.\n\n## License\n\nMIT."),
+      "CONTRIBUTING.md": "# Contributing\n\n- [Tests](#tests)\n\n## Tests\n\nRun them.",
+      "packages/lib/README.md": libReadme(libSections)
+    }),
+    {
+      ...site,
+      readmes: [{ path: "packages/lib/README.md", route: "lib" }],
+      pages: [
+        { path: "README.md", section: "Compatibility", route: "compatibility", placement: "top" },
+        { path: "CONTRIBUTING.md", route: "contributing", placement: "bottom" }
+      ]
+    }
+  )
+
+test.each([
+  ["a published file to its page", "../../CONTRIBUTING.md", "/docs/contributing/"],
+  [
+    "a heading of a published file to its anchor on the page",
+    "../../CONTRIBUTING.md#tests",
+    "/docs/contributing/#tests"
+  ],
+  ["a published section to its page", "../../README.md#compatibility", "/docs/compatibility/"],
+  [
+    "a subsection of a published section to its anchor on the page",
+    "../../README.md#effect",
+    "/docs/compatibility/#effect"
+  ]
+])("a relative link to %s", (_, url, route) => {
+  const { pages } = singlePagesSite(`## Getting started\n\nSee [it](${url}).`)
+
+  expect(pageOf(pages, "lib/getting-started").markdown.trim()).toBe(`See [it](${route}).`)
+})
+
+test("a published file links to its own headings on its page", () => {
+  const { pages } = singlePagesSite("## Getting started\n\nGo.")
+
+  expect(pageOf(pages, "contributing").markdown).toContain("- [Tests](/docs/contributing/#tests)")
+})
+
+test("a relative link to an unpublished section of a published file points to GitHub", () => {
+  const { pages } = singlePagesSite("## Getting started\n\nSee [it](../../README.md#license).")
+
+  expect(pageOf(pages, "lib/getting-started").markdown.trim()).toBe(
+    "See [it](https://github.com/acme/repo/blob/main/README.md#license)."
+  )
+})
