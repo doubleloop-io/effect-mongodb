@@ -49,6 +49,28 @@ export const splitReadme = (readme: string) => {
   return { title: toString(h1), sections }
 }
 
+/** The whole document after its H1 title, as a single section titled by the H1. */
+export const documentBody = (markdown: string): ReadmeSection => {
+  const tree = fromMarkdown(markdown)
+  const h1 = tree.children.find((node) => isHeading(node) && node.depth === 1)
+  if (h1 === undefined || !isHeading(h1)) throw new Error("The document must have an H1 title")
+  const documentSlugger = new GithubSlugger()
+  const documentAnchors = new Map(
+    tree.children.filter(isHeading).map((heading) => [heading, documentSlugger.slug(toString(heading))])
+  )
+  const nodes = tree.children.slice(tree.children.indexOf(h1) + 1)
+  const pageSlugger = new GithubSlugger()
+  return {
+    title: toString(h1),
+    slug: documentAnchors.get(h1) ?? "",
+    anchors: nodes.filter(isHeading).map((heading) => ({
+      readmeAnchor: documentAnchors.get(heading) ?? "",
+      pageAnchor: pageSlugger.slug(toString(heading))
+    })),
+    nodes
+  }
+}
+
 const isHeading = (node: RootContent): node is Heading => node.type === "heading"
 
 const isSectionBoundary = (node: RootContent) => isHeading(node) && node.depth <= 2
@@ -57,15 +79,20 @@ type Edit = { readonly start: number; readonly end: number; readonly text: strin
 
 /**
  * The section source, with its subsections promoted by one level, since the section heading becomes the page title,
- * and its link destinations replaced by `resolveLink`.
+ * and its link destinations replaced by `resolveLink`. A `documentBody` keeps its heading levels.
  */
-export const sectionMarkdown = (readme: string, section: ReadmeSection, resolveLink: (url: string) => string) => {
+export const sectionMarkdown = (
+  readme: string,
+  section: ReadmeSection,
+  resolveLink: (url: string) => string,
+  { promoteHeadings = true } = {}
+) => {
   const start = offset(section.nodes[0], "start")
   const end = offset(section.nodes[section.nodes.length - 1], "end")
   if (start === undefined || end === undefined) return ""
   const edits = section.nodes.flatMap(descendants).flatMap((node) =>
     node.type === "heading"
-      ? promote(node)
+      ? promoteHeadings ? promote(node) : []
       : node.type === "link" || node.type === "definition"
       ? relink(readme, node, resolveLink)
       : []
