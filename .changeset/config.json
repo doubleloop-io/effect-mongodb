@@ -7,7 +7,7 @@
   "commit": false,
   "linked": [],
   "access": "restricted",
-  "baseBranch": "main",
+  "baseBranch": "v0.7.x",
   "updateInternalDependencies": "patch",
   "ignore": [],
   "fixed": [["effect-mongodb", "@effect-mongodb/*"]],
