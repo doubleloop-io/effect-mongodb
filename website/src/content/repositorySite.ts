@@ -1,3 +1,5 @@
+import path from "node:path/posix"
+import { examplePage } from "./examplePage.ts"
 import { homePage } from "./homePage.ts"
 import type { Repository } from "./repository.ts"
 import { siteLinks } from "./siteLinks.ts"
@@ -7,6 +9,11 @@ import { documentBody, type ReadmeSection, sectionMarkdown, splitReadme } from "
 export type PublishedReadme = {
   readonly path: string
   readonly route: string
+  /**
+   * The files of the `examples` folder next to the README published as pages under `<route>/examples`, in sidebar
+   * order, after the pages of the folder README.
+   */
+  readonly examples?: ReadonlyArray<string>
 }
 
 /**
@@ -36,18 +43,27 @@ export type SitePage = {
   readonly sourcePath: string
 }
 
+type SidebarItem = { readonly slug: string } | { readonly label: string; readonly items: ReadonlyArray<SidebarItem> }
+
 export const repositorySite = (repository: Repository, options: SiteOptions) => {
-  const readmes = options.readmes.map((published) => {
-    const readme = repository.read(published.path)
-    return { ...published, readme, ...splitReadme(readme) }
-  })
+  const packages = options.readmes.map((published) => ({
+    ...loadReadme(repository, published),
+    examples: published.examples === undefined ? undefined : loadExamples(repository, published, published.examples)
+  }))
+  const readmes = packages.flatMap((pkg) => pkg.examples === undefined ? [pkg] : [pkg, pkg.examples.readme])
+  const examples = packages.flatMap((pkg) => pkg.examples?.files ?? [])
   const singlePages = (options.pages ?? []).map((published) => {
     const markdown = repository.read(published.path)
     return { ...published, markdown, body: publishedBody(markdown, published) }
   })
+
   const resolveLink = siteLinks(
     repository,
-    new Map([...readmes.flatMap(readmeRoutes), ...singlePages.flatMap(singlePageRoutes)]),
+    new Map([
+      ...readmes.flatMap(readmeRoutes),
+      ...examples.map(({ id, path }) => [path, id] as const),
+      ...singlePages.flatMap(singlePageRoutes)
+    ]),
     options
   )
   const readmePages = readmes.flatMap(({ path, readme, route, sections }) =>
@@ -58,6 +74,11 @@ export const repositorySite = (repository: Repository, options: SiteOptions) => 
       sourcePath: path
     }))
   )
+  const examplePages = examples.map(({ id, path }): SitePage => ({
+    id,
+    ...examplePage(repository.read(path), path, `${options.repositoryUrl}/blob/main/${path}`),
+    sourcePath: path
+  }))
   const pages = [
     ...singlePages.map(({ body, markdown, path, route, section }): SitePage => ({
       id: route,
@@ -67,11 +88,21 @@ export const repositorySite = (repository: Repository, options: SiteOptions) => 
       }),
       sourcePath: path
     })),
-    ...readmePages
+    ...readmePages,
+    ...examplePages
   ]
-  const readmeGroups = readmes.map(({ route, sections, title }) => ({
-    label: title,
-    items: sections.map((section) => ({ slug: pageId(route, section) }))
+
+  const sectionItems = ({ route, sections }: { route: string; sections: ReadonlyArray<ReadmeSection> }) =>
+    sections.map((section) => ({ slug: pageId(route, section) }))
+  const readmeGroups = packages.map((pkg) => ({
+    label: pkg.title,
+    items: [
+      ...sectionItems(pkg),
+      ...(pkg.examples === undefined ? [] : [{
+        label: "Examples",
+        items: [...sectionItems(pkg.examples.readme), ...pkg.examples.files.map(({ id }) => ({ slug: id }))]
+      }])
+    ] satisfies ReadonlyArray<SidebarItem>
   }))
   const homePath = options.home
   const pageLinks = (placement: PublishedPage["placement"]) =>
@@ -93,6 +124,20 @@ const publishedBody = (markdown: string, { path, section }: PublishedPage) => {
   const found = splitReadme(markdown).sections.find(({ title }) => title === section)
   if (found === undefined) throw new Error(`${path} has no "## ${section}" section`)
   return found
+}
+
+const loadReadme = (repository: Repository, published: { path: string; route: string }) => {
+  const readme = repository.read(published.path)
+  return { ...published, readme, ...splitReadme(readme) }
+}
+
+const loadExamples = (repository: Repository, published: PublishedReadme, files: ReadonlyArray<string>) => {
+  const folder = path.join(path.dirname(published.path), "examples")
+  const route = `${published.route}/examples`
+  return {
+    readme: loadReadme(repository, { path: path.join(folder, "README.md"), route }),
+    files: files.map((file) => ({ id: `${route}/${path.parse(file).name}`, path: path.join(folder, file) }))
+  }
 }
 
 const pageId = (route: string, section: ReadmeSection) => `${route}/${section.slug}`
