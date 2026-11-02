@@ -8,7 +8,8 @@ export const publishedContent: SiteOptions = {
   repositoryUrl: publishedSite.repositoryUrl,
   home: "README.md",
   readmes: [
-    { path: "packages/effect-mongodb/README.md", route: "effect-mongodb" }
+    { path: "packages/effect-mongodb/README.md", route: "effect-mongodb" },
+    { path: "packages/services/README.md", route: "services" }
   ],
   pages: [
     { path: "README.md", section: "Compatibility", route: "compatibility", placement: "top" },
