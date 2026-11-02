@@ -36,7 +36,9 @@ MongoDB.
 
 [@effect-mongodb/services](packages/services/README.md) is the package that provides Effect **services** for effect-mongodb.
 
-## Effect compatibility
+## Compatibility
+
+### Effect
 
 Each version of effect-mongodb packages supports only one major version of Effect:
 
@@ -47,7 +49,7 @@ Each version of effect-mongodb packages supports only one major version of Effec
 
 Version 0.7.x receives bug fixes when necessary.
 
-## MongoDB driver compatibility
+### MongoDB driver
 
 We adhere to the [MongoDB driver compatibility](https://www.mongodb.com/docs/drivers/node/current/compatibility/)
 guidelines, so minor releases might break compatibility with older MongoDB servers.
@@ -57,20 +59,6 @@ For example, upgrading the Node.js driver from 6.8 to 6.10 will make it incompat
 ## Contributing
 
 Take a look at the [CONTRIBUTING.md](CONTRIBUTING.md) guidelines.
-
-### Found a Bug?
-
-If you find a bug in the source code, you can help us
-by [submitting an issue](https://github.com/doubleloop-io/effect-mongodb/issues/new) to our GitHub Repository. Even
-better, you can submit a Pull Request with a fix.
-
-### Missing a Feature?
-
-You can request a new feature
-by [submitting a discussion](https://github.com/doubleloop-io/effect-mongodb/discussions/new/choose) to
-our GitHub Repository.
-If you would like to implement a new feature, please consider the size of the change and reach out to
-better coordinate our efforts and prevent duplication of work.
 
 ## License
 

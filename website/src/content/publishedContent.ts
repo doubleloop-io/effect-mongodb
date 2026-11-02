@@ -9,6 +9,10 @@ export const publishedContent: SiteOptions = {
   home: "README.md",
   readmes: [
     { path: "packages/effect-mongodb/README.md", route: "effect-mongodb" }
+  ],
+  pages: [
+    { path: "README.md", section: "Compatibility", route: "compatibility", placement: "top" },
+    { path: "CONTRIBUTING.md", route: "contributing", placement: "bottom" }
   ]
 }
 

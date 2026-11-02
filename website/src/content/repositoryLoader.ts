@@ -10,7 +10,11 @@ export const repositoryLoader = (): Loader => ({
     await loadSite(context, repositoryRoot)
 
     const sources = new Set(
-      [publishedContent.home, ...publishedContent.readmes.map(({ path }) => path)]
+      [
+        publishedContent.home,
+        ...publishedContent.readmes.map(({ path }) => path),
+        ...(publishedContent.pages ?? []).map(({ path }) => path)
+      ]
         .flatMap((source) => source === undefined ? [] : [path.join(repositoryRoot, source)])
     )
     sources.forEach((source) => context.watcher?.add(source))
