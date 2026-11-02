@@ -68,6 +68,11 @@ pnpm dev
 
 Validate website changes with `pnpm check`, `pnpm lint`, `pnpm test` and `pnpm build`, run from `website/`.
 
+The website has no content of its own: `website/src/content/publishedContent.ts` lists the repository files it
+publishes. Every `##` section of a published README becomes a page, so renaming or removing a `##` heading renames or
+removes a page. Relative links point to the site page when their target is published, otherwise to the file on GitHub;
+a relative link to a missing file or heading fails the website tests and build.
+
 ### Document your changes
 
 Before committing your changes, document them with a changeset. This process helps in tracking modifications and

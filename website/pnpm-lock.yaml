@@ -20,6 +20,9 @@ importers:
       astro:
         specifier: 7.4.4
         version: 7.4.4(@types/node@24.19.2)(yaml@2.9.1)
+      github-slugger:
+        specifier: 2.0.0
+        version: 2.0.0
       hast-util-to-html:
         specifier: 9.0.6
         version: 9.0.6
