@@ -20,7 +20,17 @@ export const publishedContent: SiteOptions = {
         "elaborate-stream-with-partitioned-errors.ts"
       ]
     },
-    { path: "packages/services/README.md", route: "services" }
+    {
+      path: "packages/services/README.md",
+      route: "services",
+      examples: [
+        "db-instance.ts",
+        "db-instance-multiple.ts",
+        "db-instance-legacy-mongo-client.ts",
+        "layers.ts",
+        "multiple-mongodb-instances.ts"
+      ]
+    }
   ],
   pages: [
     { path: "README.md", section: "Compatibility", route: "compatibility", placement: "top" },
