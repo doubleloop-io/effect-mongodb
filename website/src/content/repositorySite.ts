@@ -128,7 +128,7 @@ const loadExamples = (repository: Repository, published: PublishedReadme, files:
   const folder = path.join(path.dirname(published.path), "examples")
   const route = `${published.route}/examples`
   return {
-    overview: loadDocument(repository, { path: path.join(folder, "README.md"), route }),
+    overview: loadDocument<PublishedDocument>(repository, { path: path.join(folder, "README.md"), route }),
     files: files.map((file) => ({ id: `${route}/${path.parse(file).name}`, path: path.join(folder, file) }))
   }
 }
