@@ -4,6 +4,8 @@
 */
 
 :root {
+  /* The table of contents is off, so the content takes part of its space: wider code blocks, prose still readable */
+  --sl-content-width: 55rem;
   --sl-font: "Inter Variable", Inter;
   --sl-font-mono: "JetBrains Mono Variable", "JetBrains Mono";
 
