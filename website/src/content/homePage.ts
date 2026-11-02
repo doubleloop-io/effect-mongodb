@@ -3,8 +3,9 @@ import type { Code, Heading, Link, Nodes, Paragraph, PhrasingContent, Root, Root
 import { fromMarkdown } from "mdast-util-from-markdown"
 import { toHast } from "mdast-util-to-hast"
 import { toString } from "mdast-util-to-string"
+import type { LinkResolver } from "./siteLinks.ts"
 
-export const homePage = (readme: string, resolveLink: (url: string) => string) => {
+export const homePage = (readme: string, resolveLink: LinkResolver) => {
   const tree = fromMarkdown(readme)
   const title = toString(h1(tree))
   return {
@@ -53,7 +54,7 @@ const phrasingHtml = (phrasing: Array<PhrasingContent>) => {
   return toHtml("children" in paragraph ? paragraph.children : paragraph).trim()
 }
 
-const actions = (tree: Root, resolveLink: (url: string) => string) =>
+const actions = (tree: Root, resolveLink: LinkResolver) =>
   section(tree, "Documentation").flatMap(links).map((link, index) => ({
     text: toString(link),
     link: resolveLink(link.url),

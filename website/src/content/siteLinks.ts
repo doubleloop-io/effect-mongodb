@@ -7,6 +7,9 @@ import type { Repository } from "./repository.ts"
  */
 export type RouteTable = ReadonlyMap<string, string>
 
+/** Resolves the destination of a link written in one repository file. */
+export type LinkResolver = (url: string) => string
+
 export type LinkOptions = {
   readonly base: string
   readonly repositoryUrl: string
