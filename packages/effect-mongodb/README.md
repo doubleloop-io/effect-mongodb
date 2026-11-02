@@ -7,7 +7,9 @@
 
 A [MongoDB](https://github.com/mongodb/node-mongodb-native) toolkit for [Effect](https://github.com/Effect-TS/effect/).
 
-## Install
+## Getting started
+
+### Install
 
 ```shell
 pnpm install effect-mongodb effect mongodb
@@ -15,7 +17,7 @@ pnpm install effect-mongodb effect mongodb
 
 Note that `effect`, and `mongodb` are requested as peer dependencies.
 
-## Effect compatibility
+### Effect compatibility
 
 Each version of effect-mongodb supports only one major version of Effect:
 
@@ -26,7 +28,7 @@ Each version of effect-mongodb supports only one major version of Effect:
 
 Version 0.7.x receives bug fixes when necessary.
 
-## Usage
+### Usage
 
 Here is a simple example of how to use this package:
 
@@ -100,7 +102,7 @@ fail also with a `SchemaError`. For this reason, the schema-based modules provid
 `toArrayResult` and `toStreamResult`. These functions return, respectively, an array and a stream of `Result`s, allowing
 the code to process all the documents, even if some of them are invalid.
 
-### Tracing
+## Tracing
 
 Every operation that communicates with MongoDB runs inside its own span, named `mongodb.<Module>.<function>`
 (e.g. `mongodb.Collection.findOne`, `mongodb.FindCursor.toStream`), with span kind `client`.

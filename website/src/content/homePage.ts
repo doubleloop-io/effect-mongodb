@@ -4,12 +4,12 @@ import { fromMarkdown } from "mdast-util-from-markdown"
 import { toHast } from "mdast-util-to-hast"
 import { toString } from "mdast-util-to-string"
 
-export const homePage = (readme: string, repositoryUrl: string) => {
+export const homePage = (readme: string, resolveLink: (url: string) => string) => {
   const tree = fromMarkdown(readme)
   const title = toString(h1(tree))
   return {
     title,
-    hero: { title, tagline: phrasingHtml(tagline(tree)), actions: actions(tree, repositoryUrl) },
+    hero: { title, tagline: phrasingHtml(tagline(tree)), actions: actions(tree, resolveLink) },
     snippet: sourceOf(readme, firstCodeBlock(tree))
   }
 }
@@ -53,10 +53,10 @@ const phrasingHtml = (phrasing: Array<PhrasingContent>) => {
   return toHtml("children" in paragraph ? paragraph.children : paragraph).trim()
 }
 
-const actions = (tree: Root, repositoryUrl: string) =>
+const actions = (tree: Root, resolveLink: (url: string) => string) =>
   section(tree, "Documentation").flatMap(links).map((link, index) => ({
     text: toString(link),
-    link: githubLink(link.url, repositoryUrl),
+    link: resolveLink(link.url),
     variant: index === 0 ? "primary" as const : "secondary" as const
   }))
 
@@ -71,7 +71,3 @@ const section = (tree: Root, heading: string) => {
 
 const links = (node: Nodes | RootContent): Array<Link> =>
   node.type === "link" ? [node] : "children" in node ? node.children.flatMap(links) : []
-
-// Until the package pages exist, relative links open the file on GitHub
-const githubLink = (url: string, repositoryUrl: string) =>
-  URL.canParse(url) ? url : new URL(url, `${repositoryUrl}/blob/main/`).href

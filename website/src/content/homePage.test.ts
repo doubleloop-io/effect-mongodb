@@ -2,7 +2,7 @@ import { expect, test } from "vitest"
 import rootReadme from "../../../README.md?raw"
 import { homePage } from "./homePage.ts"
 
-const repositoryUrl = "https://github.com/acme/repo"
+const resolveLink = (url: string) => `resolved:${url}`
 
 const readme = ({
   title = "# lib",
@@ -12,7 +12,7 @@ const readme = ({
 } = {}) => [title, intro, snippet, documentation].join("\n\n")
 
 test("takes the title from the H1", () => {
-  const page = homePage(readme({ title: "# my-library" }), repositoryUrl)
+  const page = homePage(readme({ title: "# my-library" }), resolveLink)
 
   expect(page.title).toBe("my-library")
   expect(page.hero.title).toBe("my-library")
@@ -26,7 +26,7 @@ A [MongoDB](https://mongodb.example) toolkit for **Effect**.
 
 Another paragraph.`
 
-  const page = homePage(readme({ intro }), repositoryUrl)
+  const page = homePage(readme({ intro }), resolveLink)
 
   expect(page.hero.tagline).toBe(`A <a href="https://mongodb.example">MongoDB</a> toolkit for <strong>Effect</strong>.`)
 })
@@ -34,7 +34,7 @@ Another paragraph.`
 test("drops badges that share the tagline paragraph", () => {
   const intro = "![npm](https://npm.example/badge.svg) A library."
 
-  const page = homePage(readme({ intro }), repositoryUrl)
+  const page = homePage(readme({ intro }), resolveLink)
 
   expect(page.hero.tagline).toBe("A library.")
 })
@@ -42,12 +42,12 @@ test("drops badges that share the tagline paragraph", () => {
 test("takes the snippet from the first code block", () => {
   const snippet = "```typescript\nconst answer = 42\n```\n\n```sh\nnpm install lib\n```"
 
-  const page = homePage(readme({ snippet }), repositoryUrl)
+  const page = homePage(readme({ snippet }), resolveLink)
 
   expect(page.snippet).toBe("```typescript\nconst answer = 42\n```")
 })
 
-test("turns the Documentation links into actions, the first one primary", () => {
+test("turns the Documentation links into actions, the first one primary, resolving their destinations", () => {
   const documentation = `## Documentation
 
 [core](packages/core/README.md) is the **core** package.
@@ -58,11 +58,11 @@ test("turns the Documentation links into actions, the first one primary", () => 
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).`
 
-  const page = homePage(readme({ documentation }), repositoryUrl)
+  const page = homePage(readme({ documentation }), resolveLink)
 
   expect(page.hero.actions).toEqual([
-    { text: "core", link: "https://github.com/acme/repo/blob/main/packages/core/README.md", variant: "primary" },
-    { text: "extras", link: "https://extras.example", variant: "secondary" }
+    { text: "core", link: "resolved:packages/core/README.md", variant: "primary" },
+    { text: "extras", link: "resolved:https://extras.example", variant: "secondary" }
   ])
 })
 
@@ -72,11 +72,11 @@ test.each([
   ["has no code block", { snippet: "" }, /code/],
   ["has no Documentation section", { documentation: "" }, /Documentation/]
 ])("fails when the README %s", (_, parts, error) => {
-  expect(() => homePage(readme(parts), repositoryUrl)).toThrow(error)
+  expect(() => homePage(readme(parts), resolveLink)).toThrow(error)
 })
 
 test("the repository README yields a complete home page", () => {
-  const page = homePage(rootReadme, repositoryUrl)
+  const page = homePage(rootReadme, resolveLink)
 
   expect(page.title).toBe("effect-mongodb")
   expect(page.hero.tagline).toMatch(/^A <a href="[^"]+">MongoDB<\/a> toolkit/)
