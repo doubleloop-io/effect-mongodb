@@ -55,6 +55,19 @@ Run the following commands to ensure your changes do not introduce any issues:
     - If you encounter style issues, use `pnpm lint-fix` to automatically correct some of these.
 - `pnpm dtslint`: Run type-level tests.
 
+#### Website
+
+The documentation website lives in `website/`, a standalone project outside the pnpm workspace with its own
+dependencies. It needs Node.js 22.23.4 or newer.
+
+```shell
+cd website
+pnpm install
+pnpm dev
+```
+
+Validate website changes with `pnpm check`, `pnpm lint`, `pnpm test` and `pnpm build`, run from `website/`.
+
 ### Document your changes
 
 Before committing your changes, document them with a changeset. This process helps in tracking modifications and

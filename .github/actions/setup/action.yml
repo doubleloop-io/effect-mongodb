@@ -7,18 +7,25 @@ inputs:
     default: 22.21.1
   registry-url:
     description: Optional registry to set up for auth.
+  working-directory:
+    description: The directory of the pnpm project to install
+    default: .
 
 runs:
   using: composite
   steps:
     - name: Install pnpm
       uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      with:
+        package_json_file: ${{ inputs.working-directory }}/package.json
     - name: Install node
       uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       with:
         cache: pnpm
+        cache-dependency-path: ${{ inputs.working-directory }}/pnpm-lock.yaml
         node-version: ${{ inputs.node-version }}
         registry-url: ${{ inputs.registry-url }}
     - name: Install dependencies
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       run: pnpm install --frozen-lockfile

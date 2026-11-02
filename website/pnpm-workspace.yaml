@@ -1,0 +1,9 @@
+# Standalone project: makes website/ its own pnpm root instead of joining the repository workspace
+blockExoticSubdeps: true
+minimumReleaseAge: 1440 # 1 day
+
+trustPolicy: no-downgrade
+
+allowBuilds:
+  esbuild: true
+  sharp: true
