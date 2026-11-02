@@ -63,24 +63,26 @@ test.each(publishedContent.readmes.filter(({ examples }) => examples !== undefin
   }
 )
 
-test("the effect-mongodb examples are nested under the package section, after Running examples", () => {
+test("the effect-mongodb examples are nested under the package section, after the examples overview", () => {
   const examples = sidebarGroup("effect-mongodb").items.find((item) => "label" in item && item.label === "Examples")
 
   expect(examples).toEqual({
     label: "Examples",
     items: [
-      "running-examples",
-      "aggregate",
-      "project",
-      "find-with-cursor-builder",
-      "find-without-cursor-builder",
-      "copy-between-dbs",
-      "elaborate-stream-with-partitioned-errors"
-    ].map((page) => ({ slug: `effect-mongodb/examples/${page}` }))
+      { label: "Overview", slug: "effect-mongodb/examples" },
+      ...[
+        "aggregate",
+        "project",
+        "find-with-cursor-builder",
+        "find-without-cursor-builder",
+        "copy-between-dbs",
+        "elaborate-stream-with-partitioned-errors"
+      ].map((page) => ({ slug: `effect-mongodb/examples/${page}` }))
+    ]
   })
 })
 
-test("the services examples are nested under the package section, after Running examples", () => {
+test("the services examples are nested under the package section, after the examples overview", () => {
   const examples = sidebarGroup("@effect-mongodb/services").items.find((item) =>
     "label" in item && item.label === "Examples"
   )
@@ -88,13 +90,15 @@ test("the services examples are nested under the package section, after Running 
   expect(examples).toEqual({
     label: "Examples",
     items: [
-      "running-examples",
-      "db-instance",
-      "db-instance-multiple",
-      "db-instance-legacy-mongo-client",
-      "layers",
-      "multiple-mongodb-instances"
-    ].map((page) => ({ slug: `services/examples/${page}` }))
+      { label: "Overview", slug: "services/examples" },
+      ...[
+        "db-instance",
+        "db-instance-multiple",
+        "db-instance-legacy-mongo-client",
+        "layers",
+        "multiple-mongodb-instances"
+      ].map((page) => ({ slug: `services/examples/${page}` }))
+    ]
   })
 })
 

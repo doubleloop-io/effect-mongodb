@@ -11,21 +11,20 @@ export type PublishedReadme = {
   readonly route: string
   /**
    * The files of the `examples` folder next to the README published as pages under `<route>/examples`, in sidebar
-   * order, after the pages of the folder README.
+   * order, after the folder README, which is published whole as the examples overview at `<route>/examples`.
    */
   readonly examples?: ReadonlyArray<string>
 }
 
-/**
- * A repository file published as a single top-level page at `route`: the whole file, or only its `##` `section`. The
- * sidebar lists it at the top or at the bottom, around the README groups.
- */
-export type PublishedPage = {
+/** A file published as a single page at `route`: the whole file, or only its `##` `section`. */
+type PublishedDocument = {
   readonly path: string
   readonly route: string
   readonly section?: string
-  readonly placement: "top" | "bottom"
 }
+
+/** A document published as a top-level page, listed at the top or at the bottom of the sidebar, around the README groups. */
+export type PublishedPage = PublishedDocument & { readonly placement: "top" | "bottom" }
 
 export type SiteOptions = {
   readonly base: string
@@ -43,7 +42,9 @@ export type SitePage = {
   readonly sourcePath: string
 }
 
-type SidebarItem = { readonly slug: string } | { readonly label: string; readonly items: ReadonlyArray<SidebarItem> }
+type SidebarItem =
+  | { readonly slug: string; readonly label?: string }
+  | { readonly label: string; readonly items: ReadonlyArray<SidebarItem> }
 
 /** A file split into `##` sections, each published as a page under `route`. */
 type SectionedFile = {
@@ -54,23 +55,23 @@ type SectionedFile = {
 
 export const repositorySite = (repository: Repository, options: SiteOptions) => {
   const packages = options.readmes.map((published) => loadPackage(repository, published))
-  const readmes = packages.flatMap((pkg) => pkg.examples === undefined ? [pkg] : [pkg, pkg.examples.readme])
   const examples = packages.flatMap((pkg) => pkg.examples?.files ?? [])
-  const singlePages = (options.pages ?? []).map((published) => {
-    const markdown = repository.read(published.path)
-    return { ...published, markdown, body: publishedBody(markdown, published) }
-  })
+  const singlePages = (options.pages ?? []).map((published) => loadDocument(repository, published))
+  const documents = [
+    ...singlePages,
+    ...packages.flatMap((pkg) => pkg.examples === undefined ? [] : [pkg.examples.overview])
+  ]
 
   const resolveLink = siteLinks(
     repository,
     new Map([
-      ...readmes.flatMap(readmeRoutes),
+      ...packages.flatMap(readmeRoutes),
       ...examples.map(({ id, path }) => [path, id] as const),
-      ...singlePages.flatMap(singlePageRoutes)
+      ...documents.flatMap(documentRoutes)
     ]),
     options
   )
-  const readmePages = readmes.flatMap(({ path, readme, route, sections }) =>
+  const readmePages = packages.flatMap(({ path, readme, route, sections }) =>
     sections.map((section): SitePage => ({
       id: pageId(route, section),
       title: section.title,
@@ -83,18 +84,15 @@ export const repositorySite = (repository: Repository, options: SiteOptions) => 
     ...examplePage(repository.read(path), path, `${options.repositoryUrl}/blob/main/${path}`),
     sourcePath: path
   }))
-  const pages = [
-    ...singlePages.map(({ body, markdown, path, route, section }): SitePage => ({
-      id: route,
-      title: body.title,
-      markdown: sectionMarkdown(markdown, body, (url) => resolveLink(url, path), {
-        promoteHeadings: section !== undefined
-      }),
-      sourcePath: path
-    })),
-    ...readmePages,
-    ...examplePages
-  ]
+  const documentPages = documents.map(({ body, markdown, path, route, section }): SitePage => ({
+    id: route,
+    title: body.title,
+    markdown: sectionMarkdown(markdown, body, (url) => resolveLink(url, path), {
+      promoteHeadings: section !== undefined
+    }),
+    sourcePath: path
+  }))
+  const pages = [...documentPages, ...readmePages, ...examplePages]
 
   const homePath = options.home
   const home = homePath === undefined
@@ -104,7 +102,12 @@ export const repositorySite = (repository: Repository, options: SiteOptions) => 
   return { home, pages, sidebar }
 }
 
-const publishedBody = (markdown: string, { path, section }: PublishedPage) => {
+const loadDocument = <D extends PublishedDocument>(repository: Repository, published: D) => {
+  const markdown = repository.read(published.path)
+  return { ...published, markdown, body: documentSection(markdown, published) }
+}
+
+const documentSection = (markdown: string, { path, section }: PublishedDocument) => {
   if (section === undefined) return documentBody(markdown)
   const found = splitReadme(markdown).sections.find(({ title }) => title === section)
   if (found === undefined) throw new Error(`${path} has no "## ${section}" section`)
@@ -125,7 +128,7 @@ const loadExamples = (repository: Repository, published: PublishedReadme, files:
   const folder = path.join(path.dirname(published.path), "examples")
   const route = `${published.route}/examples`
   return {
-    readme: loadReadme(repository, { path: path.join(folder, "README.md"), route }),
+    overview: loadDocument(repository, { path: path.join(folder, "README.md"), route }),
     files: files.map((file) => ({ id: `${route}/${path.parse(file).name}`, path: path.join(folder, file) }))
   }
 }
@@ -143,7 +146,10 @@ const siteSidebar = ({ hasHome, packages, singlePages }: {
       ...sectionItems(pkg),
       ...(pkg.examples === undefined ? [] : [{
         label: "Examples",
-        items: [...sectionItems(pkg.examples.readme), ...pkg.examples.files.map(({ id }) => ({ slug: id }))]
+        items: [
+          { label: "Overview", slug: pkg.examples.overview.route },
+          ...pkg.examples.files.map(({ id }) => ({ slug: id }))
+        ]
       }])
     ] satisfies ReadonlyArray<SidebarItem>
   }))
@@ -165,7 +171,7 @@ const readmeRoutes = ({ path, route, sections }: SectionedFile) =>
     return [...(index === 0 ? [[path, id] as const] : []), ...sectionRoutes(path, section, id)]
   })
 
-const singlePageRoutes = ({ body, path, route, section }: PublishedPage & { body: ReadmeSection }) => [
+const documentRoutes = ({ body, path, route, section }: PublishedDocument & { body: ReadmeSection }) => [
   ...(section === undefined ? [[path, route] as const] : []),
   ...sectionRoutes(path, body, route)
 ]
