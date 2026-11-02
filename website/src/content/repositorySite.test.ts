@@ -1,37 +1,19 @@
 import { expect, test } from "vitest"
-import type { Repository } from "./repository.ts"
+import { inMemoryRepository, linkOptions, pageOf } from "./repositorySite.testing.ts"
 import { repositorySite } from "./repositorySite.ts"
-
-const site = { base: "/docs", repositoryUrl: "https://github.com/acme/repo" }
-
-const inMemoryRepository = (files: Record<string, string>): Repository => ({
-  read: (path) => {
-    const content = files[path]
-    if (content === undefined) throw new Error(`No such file: ${path}`)
-    return content
-  },
-  kind: (path) =>
-    path in files ? "file" : Object.keys(files).some((file) => file.startsWith(`${path}/`)) ? "directory" : undefined
-})
 
 const libReadme = (sections: string) => `# lib\n\nA library.\n\n${sections}`
 
-const pageOf = (pages: ReturnType<typeof repositorySite>["pages"], id: string) => {
-  const page = pages.find((candidate) => candidate.id === id)
-  if (page === undefined) throw new Error(`No page ${id} among ${pages.map(({ id }) => id).join(", ")}`)
-  return page
-}
-
-const libSite = (files: Record<string, string>) =>
+const singlePackageSite = (files: Record<string, string>) =>
   repositorySite(inMemoryRepository(files), {
-    ...site,
+    ...linkOptions,
     readmes: [{ path: "packages/lib/README.md", route: "lib" }]
   })
 
 test("every ## section of a published README becomes a page, in README order", () => {
   const readme = libReadme("## Getting started\n\nInstall it.\n\n## Known limitations\n\nNone.")
 
-  const { pages } = libSite({ "packages/lib/README.md": readme })
+  const { pages } = singlePackageSite({ "packages/lib/README.md": readme })
 
   expect(pages.map(({ id, title }) => ({ id, title }))).toEqual([
     { id: "lib/getting-started", title: "Getting started" },
@@ -43,7 +25,7 @@ test("every ## section of a published README becomes a page, in README order", (
 test("the sidebar has a group per published README, labelled by its H1 and listing its pages in README order", () => {
   const readme = "# my-lib\n\n## Getting started\n\nInstall.\n\n## Design decisions\n\nPrinciples."
 
-  const { sidebar } = libSite({ "packages/lib/README.md": readme })
+  const { sidebar } = singlePackageSite({ "packages/lib/README.md": readme })
 
   expect(sidebar).toEqual([
     { label: "my-lib", items: [{ slug: "lib/getting-started" }, { slug: "lib/design-decisions" }] }
@@ -56,7 +38,7 @@ test("the home page actions point to the pages of the published READMEs", () => 
 
   const { home } = repositorySite(
     inMemoryRepository({ "README.md": rootReadme, "packages/lib/README.md": libReadme("## Getting started\n\nGo.") }),
-    { ...site, home: "README.md", readmes: [{ path: "packages/lib/README.md", route: "lib" }] }
+    { ...linkOptions, home: "README.md", readmes: [{ path: "packages/lib/README.md", route: "lib" }] }
   )
 
   expect(home?.hero.actions).toEqual([{ text: "lib", link: "/docs/lib/getting-started/", variant: "primary" }])
@@ -64,17 +46,16 @@ test("the home page actions point to the pages of the published READMEs", () => 
 
 const twoPackageSite = (files: Record<string, string>) =>
   repositorySite(inMemoryRepository(files), {
-    ...site,
+    ...linkOptions,
     readmes: [
       { path: "packages/lib/README.md", route: "lib" },
       { path: "packages/extras/README.md", route: "extras" }
     ]
   })
 
-const extrasReadme = "# extras\n\n## Getting started\n\nInstall.\n\n## Tracing\n\nSpans.\n\n### Attributes\n\nTable."
-
 test("a relative link to a published README points to its first page", () => {
   const readme = libReadme("## Getting started\n\nSee [extras](../extras/README.md).")
+  const extrasReadme = "# extras\n\n## Getting started\n\nInstall.\n\n## Tracing\n\nSpans."
 
   const { pages } = twoPackageSite({ "packages/lib/README.md": readme, "packages/extras/README.md": extrasReadme })
 
@@ -91,6 +72,7 @@ test.each([
   ["a section of the same README to its page", "#known-limitations", "/docs/lib/known-limitations/"]
 ])("a relative link to %s", (_, url, route) => {
   const readme = libReadme(`## Getting started\n\nSee [it](${url}).\n\n## Known limitations\n\nNone.`)
+  const extrasReadme = "# extras\n\n## Getting started\n\nInstall.\n\n## Tracing\n\nSpans.\n\n### Attributes\n\nTable."
 
   const { pages } = twoPackageSite({ "packages/lib/README.md": readme, "packages/extras/README.md": extrasReadme })
 
@@ -108,7 +90,7 @@ test.each([
 ])("a relative link to %s", (_, url, githubUrl) => {
   const readme = libReadme(`## Getting started\n\nSee [it](${url}).`)
 
-  const { pages } = libSite({
+  const { pages } = singlePackageSite({
     "packages/lib/README.md": readme,
     "packages/lib/examples/find.ts": "",
     "LICENSE": "MIT",
@@ -127,7 +109,7 @@ test("a relative link to a folder whose README is published points to the README
       "packages/lib/examples/README.md": "# Examples\n\n## Running examples\n\nRun them."
     }),
     {
-      ...site,
+      ...linkOptions,
       readmes: [
         { path: "packages/lib/README.md", route: "lib" },
         { path: "packages/lib/examples/README.md", route: "lib/examples" }
@@ -146,7 +128,7 @@ test.each([
 ])("fails when a relative link targets %s", (_, url) => {
   const readme = libReadme(`## Getting started\n\nSee [it](${url}).`)
 
-  expect(() => libSite({ "packages/lib/README.md": readme })).toThrow(
+  expect(() => singlePackageSite({ "packages/lib/README.md": readme })).toThrow(
     `packages/lib/README.md links to ${url}, which does not resolve`
   )
 })
@@ -154,7 +136,7 @@ test.each([
 test("absolute links are kept as they are", () => {
   const readme = libReadme("## Getting started\n\nSee [Effect](https://effect.website/docs).")
 
-  const { pages } = libSite({ "packages/lib/README.md": readme })
+  const { pages } = singlePackageSite({ "packages/lib/README.md": readme })
 
   expect(pageOf(pages, "lib/getting-started").markdown.trim()).toBe("See [Effect](https://effect.website/docs).")
 })
@@ -164,7 +146,7 @@ test("a page promotes its subsections by one level, since the section heading be
     "## Design decisions\n\nPrinciples.\n\n### Cursors\n\nStreams.\n\n#### Results\n\nPartitioned."
   )
 
-  const { pages } = libSite({ "packages/lib/README.md": readme })
+  const { pages } = singlePackageSite({ "packages/lib/README.md": readme })
 
   expect(pageOf(pages, "lib/design-decisions").markdown.trim()).toBe(
     "Principles.\n\n## Cursors\n\nStreams.\n\n### Results\n\nPartitioned."
@@ -177,7 +159,7 @@ test("a published ## section becomes a single page at its route, titled by its h
   const readme = rootReadme("## Documentation\n\nDocs.\n\n## Compatibility\n\n### Effect\n\nv4.\n\n## License\n\nMIT.")
 
   const { pages } = repositorySite(inMemoryRepository({ "README.md": readme }), {
-    ...site,
+    ...linkOptions,
     readmes: [],
     pages: [{ path: "README.md", section: "Compatibility", route: "compatibility", placement: "top" }]
   })
@@ -191,7 +173,7 @@ test("a published file without a section becomes a single page titled by its H1,
   const contributing = "# Contributing\n\nWelcome.\n\n## Initial setup\n\nInstall.\n\n### Tools\n\nNode."
 
   const { pages } = repositorySite(inMemoryRepository({ "CONTRIBUTING.md": contributing }), {
-    ...site,
+    ...linkOptions,
     readmes: [],
     pages: [{ path: "CONTRIBUTING.md", route: "contributing", placement: "bottom" }]
   })
@@ -217,7 +199,7 @@ test("the sidebar lists the Overview, then the top pages, the README groups and 
       "packages/lib/README.md": libReadme("## Getting started\n\nGo.")
     }),
     {
-      ...site,
+      ...linkOptions,
       home: "README.md",
       readmes: [{ path: "packages/lib/README.md", route: "lib" }],
       pages: [
@@ -235,15 +217,15 @@ test("the sidebar lists the Overview, then the top pages, the README groups and 
   ])
 })
 
-const singlePagesSite = (libSections: string) =>
+const singlePagesSite = (files: { readme: string; contributing: string; libReadme: string }) =>
   repositorySite(
     inMemoryRepository({
-      "README.md": rootReadme("## Compatibility\n\n### Effect\n\nv4.\n\n## License\n\nMIT."),
-      "CONTRIBUTING.md": "# Contributing\n\n- [Tests](#tests)\n\n## Tests\n\nRun them.",
-      "packages/lib/README.md": libReadme(libSections)
+      "README.md": files.readme,
+      "CONTRIBUTING.md": files.contributing,
+      "packages/lib/README.md": files.libReadme
     }),
     {
-      ...site,
+      ...linkOptions,
       readmes: [{ path: "packages/lib/README.md", route: "lib" }],
       pages: [
         { path: "README.md", section: "Compatibility", route: "compatibility", placement: "top" },
@@ -266,19 +248,31 @@ test.each([
     "/docs/compatibility/#effect"
   ]
 ])("a relative link to %s", (_, url, route) => {
-  const { pages } = singlePagesSite(`## Getting started\n\nSee [it](${url}).`)
+  const { pages } = singlePagesSite({
+    readme: rootReadme("## Compatibility\n\n### Effect\n\nv4."),
+    contributing: "# Contributing\n\n## Tests\n\nRun them.",
+    libReadme: libReadme(`## Getting started\n\nSee [it](${url}).`)
+  })
 
   expect(pageOf(pages, "lib/getting-started").markdown.trim()).toBe(`See [it](${route}).`)
 })
 
 test("a published file links to its own headings on its page", () => {
-  const { pages } = singlePagesSite("## Getting started\n\nGo.")
+  const { pages } = singlePagesSite({
+    readme: rootReadme("## Compatibility\n\nv4."),
+    contributing: "# Contributing\n\n- [Tests](#tests)\n\n## Tests\n\nRun them.",
+    libReadme: libReadme("## Getting started\n\nGo.")
+  })
 
   expect(pageOf(pages, "contributing").markdown).toContain("- [Tests](/docs/contributing/#tests)")
 })
 
 test("a relative link to an unpublished section of a published file points to GitHub", () => {
-  const { pages } = singlePagesSite("## Getting started\n\nSee [it](../../README.md#license).")
+  const { pages } = singlePagesSite({
+    readme: rootReadme("## Compatibility\n\nv4.\n\n## License\n\nMIT."),
+    contributing: "# Contributing\n\nWelcome.",
+    libReadme: libReadme("## Getting started\n\nSee [it](../../README.md#license).")
+  })
 
   expect(pageOf(pages, "lib/getting-started").markdown.trim()).toBe(
     "See [it](https://github.com/acme/repo/blob/main/README.md#license)."

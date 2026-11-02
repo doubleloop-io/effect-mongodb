@@ -5,6 +5,13 @@ import { publishedContent, publishedRepositorySite } from "./publishedContent.ts
 
 const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url))
 
+const sidebarGroup = (label: string) => {
+  const { sidebar } = publishedRepositorySite(repositoryRoot)
+  const group = sidebar.flatMap((item) => "items" in item && item.label === label ? [item] : []).at(0)
+  if (group === undefined) throw new Error(`No sidebar group ${label}`)
+  return group
+}
+
 test("every relative link of the published repository files resolves", () => {
   expect(() => publishedRepositorySite(repositoryRoot)).not.toThrow()
 })
@@ -35,13 +42,9 @@ test("the Contributing page explains how to report bugs and request features", (
 })
 
 test("the effect-mongodb section lists the package README pages in README order", () => {
-  const { sidebar } = publishedRepositorySite(repositoryRoot)
+  const { items } = sidebarGroup("effect-mongodb")
 
-  const groups = sidebar.flatMap((item) => "items" in item ? [item] : [])
-
-  expect(
-    groups.find(({ label }) => label === "effect-mongodb")?.items.flatMap((item) => "slug" in item ? [item.slug] : [])
-  ).toEqual([
+  expect(items.flatMap((item) => "slug" in item ? [item.slug] : [])).toEqual([
     "effect-mongodb/getting-started",
     "effect-mongodb/design-decisions",
     "effect-mongodb/tracing",
@@ -61,13 +64,8 @@ test.each(publishedContent.readmes.filter(({ examples }) => examples !== undefin
 )
 
 test("the effect-mongodb examples are nested under the package section, after Running examples", () => {
-  const { sidebar } = publishedRepositorySite(repositoryRoot)
+  const examples = sidebarGroup("effect-mongodb").items.find((item) => "label" in item && item.label === "Examples")
 
-  const groups = sidebar.flatMap((item) => "items" in item ? [item] : [])
-
-  const examples = groups.find(({ label }) => label === "effect-mongodb")?.items.find((item) =>
-    "label" in item && item.label === "Examples"
-  )
   expect(examples).toEqual({
     label: "Examples",
     items: [
@@ -83,13 +81,10 @@ test("the effect-mongodb examples are nested under the package section, after Ru
 })
 
 test("the services examples are nested under the package section, after Running examples", () => {
-  const { sidebar } = publishedRepositorySite(repositoryRoot)
-
-  const groups = sidebar.flatMap((item) => "items" in item ? [item] : [])
-
-  const examples = groups.find(({ label }) => label === "@effect-mongodb/services")?.items.find((item) =>
+  const examples = sidebarGroup("@effect-mongodb/services").items.find((item) =>
     "label" in item && item.label === "Examples"
   )
+
   expect(examples).toEqual({
     label: "Examples",
     items: [
@@ -104,15 +99,9 @@ test("the services examples are nested under the package section, after Running 
 })
 
 test("the @effect-mongodb/services section lists the package README pages in README order", () => {
-  const { sidebar } = publishedRepositorySite(repositoryRoot)
+  const { items } = sidebarGroup("@effect-mongodb/services")
 
-  const groups = sidebar.flatMap((item) => "items" in item ? [item] : [])
-
-  expect(
-    groups.find(({ label }) => label === "@effect-mongodb/services")?.items.flatMap((item) =>
-      "slug" in item ? [item.slug] : []
-    )
-  ).toEqual(["services/getting-started"])
+  expect(items.flatMap((item) => "slug" in item ? [item.slug] : [])).toEqual(["services/getting-started"])
 })
 
 test("the services pages link the core package README to the effect-mongodb pages", () => {
