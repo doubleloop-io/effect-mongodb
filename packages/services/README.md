@@ -7,15 +7,17 @@
 
 [Effect](https://github.com/Effect-TS/effect/) services for [effect-mongodb](../effect-mongodb/README.md).
 
-## Install
+## Getting started
+
+### Install
 
 ```shell
 pnpm install @effect-mongodb/services effect-mongodb effect mongodb
 ```
 
-Note that `effect-mongodb`, `effect`, and `mongodb` are requested as peer dependencies.
+Note that [`effect-mongodb`](../effect-mongodb/README.md), `effect`, and `mongodb` are requested as peer dependencies.
 
-## Effect compatibility
+### Effect compatibility
 
 Each version of @effect-mongodb/services supports only one major version of Effect:
 
@@ -26,7 +28,7 @@ Each version of @effect-mongodb/services supports only one major version of Effe
 
 Version 0.7.x receives bug fixes when necessary.
 
-## Usage
+### Usage
 
 Here is a simple example of how to use this package:
 
