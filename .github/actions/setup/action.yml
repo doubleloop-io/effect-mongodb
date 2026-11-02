@@ -8,7 +8,7 @@ inputs:
   registry-url:
     description: Optional registry to set up for auth.
   working-directory:
-    description: The directory of the pnpm project to install
+    description: The directory of the pnpm project to install.
     default: .
 
 runs:

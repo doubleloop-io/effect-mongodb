@@ -7,10 +7,7 @@ export default defineConfig({
   base: "/effect-mongodb",
   integrations: [
     starlight({
-      title: "effect-mongodb",
-      social: [
-        { icon: "github", label: "GitHub", href: "https://github.com/doubleloop-io/effect-mongodb" }
-      ]
+      title: "effect-mongodb"
     })
   ]
 })
