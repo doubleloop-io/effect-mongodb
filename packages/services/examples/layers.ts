@@ -8,6 +8,13 @@ import * as Schema from "effect/Schema"
 
 import * as Layer from "effect/Layer"
 
+/**
+ * Layers
+ *
+ * Highlights:
+ * Use `MongoClientService.layer` and `DbService.layer` to build the `MongoClient` and the `Db` as separate layers,
+ * then `Layer.provide` to wire the `Db` layer to its `MongoClient` layer.
+ */
 const Todo = Schema.Struct({
   userId: Schema.Number,
   id: Schema.Number,
