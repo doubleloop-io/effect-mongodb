@@ -1,0 +1,147 @@
+/*
+  Neutral zinc palette with Inter and JetBrains Mono, close to the Effect docs look.
+  No Effect logo, name or brand colour: the site must not pass as an official Effect site.
+*/
+
+:root {
+  /* The table of contents is off, so the content takes part of its space: wider code blocks, prose still readable */
+  --sl-content-width: 55rem;
+  --sl-font: "Inter Variable", Inter;
+  --sl-font-mono: "JetBrains Mono Variable", "JetBrains Mono";
+
+  --sl-color-white: #ffffff;
+  --sl-color-gray-1: #f4f4f5;
+  --sl-color-gray-2: #d4d4d8;
+  --sl-color-gray-3: #a1a1aa;
+  --sl-color-gray-4: #52525b;
+  --sl-color-gray-5: #27272a;
+  --sl-color-gray-6: #18181b;
+  --sl-color-black: #09090b;
+
+  --sl-color-accent-low: #27272a;
+  --sl-color-accent: #e4e4e7;
+  --sl-color-accent-high: #fafafa;
+
+  --sl-color-text-accent: var(--sl-color-white);
+  --sl-color-bg-nav: var(--sl-color-black);
+  --sl-color-bg-sidebar: var(--sl-color-black);
+  --sl-color-hairline: var(--sl-color-gray-5);
+  --sl-color-hairline-shade: var(--sl-color-gray-5);
+
+  --theme-code-bg: var(--sl-color-gray-6);
+
+  /* Effect docs navigation tones: zinc-300 headings, zinc-400 items, zinc-800 current page */
+  --dl-sidebar-heading: #d4d4d8;
+  --dl-sidebar-item: #a1a1aa;
+  --dl-sidebar-current-bg: var(--sl-color-gray-5);
+}
+
+:root[data-theme="light"] {
+  --sl-color-white: #09090b;
+  --sl-color-gray-1: #18181b;
+  --sl-color-gray-2: #27272a;
+  --sl-color-gray-3: #52525b;
+  --sl-color-gray-4: #71717a;
+  --sl-color-gray-5: #d4d4d8;
+  --sl-color-gray-6: #e4e4e7;
+  --sl-color-gray-7: #f4f4f5;
+  --sl-color-black: #ffffff;
+
+  --sl-color-accent-low: #e4e4e7;
+  --sl-color-accent: #18181b;
+  --sl-color-accent-high: #09090b;
+
+  --sl-color-text-accent: var(--sl-color-white);
+  --sl-color-bg-nav: var(--sl-color-black);
+  --sl-color-bg-sidebar: var(--sl-color-black);
+  --sl-color-bg-inline-code: var(--sl-color-gray-7);
+  --sl-color-hairline: var(--sl-color-gray-6);
+  --sl-color-hairline-light: var(--sl-color-gray-6);
+  --sl-color-hairline-shade: var(--sl-color-gray-6);
+
+  --theme-code-bg: var(--sl-color-gray-7);
+
+  --dl-sidebar-heading: #27272a;
+  --dl-sidebar-item: #52525b;
+  --dl-sidebar-current-bg: var(--sl-color-gray-7);
+}
+
+/* Monochrome links need an underline to stay distinguishable from body text. */
+.sl-markdown-content a:not(:where(.not-content *)),
+.sl-banner a {
+  text-decoration-color: var(--sl-color-gray-4);
+  text-underline-offset: 0.2em;
+}
+
+.sl-markdown-content a:not(:where(.not-content *)):hover,
+.sl-banner a:hover {
+  text-decoration-color: currentColor;
+}
+
+h1,
+h2,
+h3,
+h4,
+.site-title {
+  letter-spacing: -0.02em;
+}
+
+.site-title {
+  font-weight: 600;
+}
+
+/*
+  Three sidebar levels, as in the Effect docs: top-level entries in the heading tone,
+  nested groups as smaller semibold labels, and their pages in the regular item tone.
+*/
+.sidebar-content .top-level > li > a.large,
+.sidebar-content .top-level > li > details > summary .large {
+  color: var(--dl-sidebar-heading);
+}
+
+.sidebar-content ul ul summary .large {
+  font-size: var(--sl-text-sm);
+  font-weight: 600;
+  color: var(--dl-sidebar-item);
+}
+
+.sidebar-content ul ul a {
+  color: var(--dl-sidebar-item);
+}
+
+.sidebar-content a:hover,
+.sidebar-content a:focus,
+.sidebar-content summary:hover .large {
+  color: var(--sl-color-white);
+}
+
+/* The current sidebar page is a filled neutral pill, as in the Effect docs. */
+.sidebar-content a[aria-current="page"] {
+  background-color: var(--dl-sidebar-current-bg);
+  color: var(--sl-color-white);
+  font-weight: 600;
+}
+
+/* Previous and next links are a footer aid, so they stay smaller than the page headings. */
+.pagination-links a {
+  padding: 0.625rem 0.875rem;
+  font-size: var(--sl-text-sm);
+}
+
+.pagination-links .link-title {
+  font-size: var(--sl-text-lg);
+}
+
+.pagination-links svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+/* The version banner is a quiet notice, not an accent block. */
+.sl-banner {
+  --sl-color-banner-bg: var(--sl-color-gray-6);
+  --sl-color-banner-text: var(--sl-color-gray-2);
+  font-size: var(--sl-text-sm);
+  box-shadow: none;
+  border-bottom: 1px solid var(--sl-color-hairline);
+}

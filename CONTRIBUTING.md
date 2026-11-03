@@ -2,9 +2,25 @@
 
 Welcome, we really appreciate if you're considering to contribute to effect-mongodb!
 
+- [Found a Bug?](#found-a-bug)
+- [Missing a Feature?](#missing-a-feature)
 - [Initial setup](#initial-setup)
 - [Making changes](#making-changes)
 - [Tests](#tests)
+
+## Found a Bug?
+
+If you find a bug in the source code, you can help us
+by [submitting an issue](https://github.com/doubleloop-io/effect-mongodb/issues/new) to our GitHub Repository. Even
+better, you can submit a Pull Request with a fix.
+
+## Missing a Feature?
+
+You can request a new feature
+by [submitting a discussion](https://github.com/doubleloop-io/effect-mongodb/discussions/new/choose) to
+our GitHub Repository.
+If you would like to implement a new feature, please consider the size of the change and reach out to
+better coordinate our efforts and prevent duplication of work.
 
 ## Initial setup
 
@@ -54,6 +70,30 @@ Run the following commands to ensure your changes do not introduce any issues:
 - `pnpm lint`: Ensure the code adheres to our coding standards.
     - If you encounter style issues, use `pnpm lint-fix` to automatically correct some of these.
 - `pnpm dtslint`: Run type-level tests.
+
+#### Website
+
+The documentation website lives in `website/`, a standalone project outside the pnpm workspace with its own
+dependencies. It needs Node.js 22.23.4 or newer.
+
+```shell
+cd website
+pnpm install
+pnpm dev
+```
+
+Validate website changes with `pnpm check`, `pnpm lint`, `pnpm test` and `pnpm build`, run from `website/`.
+
+The website has no content of its own: `website/src/content/publishedContent.ts` lists the repository files it
+publishes. Every `##` section of a published README becomes a page, so renaming or removing a `##` heading renames or
+removes a page; a few files, like this one, and the root README Compatibility section are published as single pages.
+Relative links point to the site page when their target is published, otherwise to the file on GitHub;
+a relative link to a missing file, or to a missing heading of a published file, fails the website tests and build.
+Links to headings of other files, such as the root README outside its Compatibility section, go to GitHub unchecked.
+
+Each `.ts` file of a package `examples` folder becomes a page, so it must be listed in
+`website/src/content/publishedContent.ts` and start, after its imports, with a JSDoc block holding its title and, under
+`Highlights:`, its introduction.
 
 ### Document your changes
 
