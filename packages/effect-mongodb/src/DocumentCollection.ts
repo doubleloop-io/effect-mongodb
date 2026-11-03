@@ -46,10 +46,12 @@ import * as DocumentAggregationCursor from "./DocumentAggregationCursor.js"
 import * as DocumentFindCursor from "./DocumentFindCursor.js"
 import type { ModifyResult } from "./internal/modify-result.js"
 import { mongoOperation } from "./internal/mongo-operation.js"
+import type { Server } from "./internal/server.js"
 import * as MongoError from "./MongoError.js"
 
 type DocumentCollectionFields = {
   collection: MongoCollection
+  server: Server
 }
 
 export interface DocumentCollection extends DocumentCollectionFields, Pipeable {
@@ -80,6 +82,7 @@ export const find: {
   (collection: DocumentCollection, filter?: Filter<Document>, options?: FindOptions) =>
     new DocumentFindCursor.DocumentFindCursorImpl({
       collection: collection.collection,
+      server: collection.server,
       filter: filter ?? {},
       options: options ?? {}
     })
@@ -447,7 +450,7 @@ export const rename: {
   ): Effect.Effect<DocumentCollection, MongoError.MongoError> =>
     F.pipe(
       Effect.promise(() => collection.collection.rename(newName, options)),
-      Effect.map((collection) => new DocumentCollectionImpl({ collection })),
+      Effect.map((renamed) => new DocumentCollectionImpl({ collection: renamed, server: collection.server })),
       mongoOperation(errorSource(collection, "rename"))
     )
 )
@@ -572,7 +575,8 @@ export const aggregate: {
     options?: AggregateOptions
   ): DocumentAggregationCursor.DocumentAggregationCursor =>
     new DocumentAggregationCursor.DocumentAggregationCursorImpl({
-      cursor: collection.collection.aggregate(pipeline ? [...pipeline] : undefined, options)
+      cursor: collection.collection.aggregate(pipeline ? [...pipeline] : undefined, options),
+      server: collection.server
     })
 )
 
@@ -630,7 +634,7 @@ export const typed: {
   collection: DocumentCollection,
   schema: Schema.Schema<A, I, R>
 ): Collection.Collection<A, I, R> =>
-  new Collection.CollectionImpl<A, I, R>({ collection: collection.collection, schema }))
+  new Collection.CollectionImpl<A, I, R>({ collection: collection.collection, server: collection.server, schema }))
 
 export const bulkWrite: {
   (
@@ -664,5 +668,6 @@ const errorSource = (
     module: "DocumentCollection",
     functionName,
     db: collection.collection.dbName,
-    collection: collection.collection.collectionName
+    collection: collection.collection.collectionName,
+    ...collection.server
   })

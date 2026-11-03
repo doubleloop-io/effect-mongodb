@@ -4,6 +4,7 @@ import * as Match from "effect/Match"
 import * as Stream from "effect/Stream"
 import type * as Tracer from "effect/Tracer"
 import type { ErrorSource } from "../MongoError.js"
+import type { Server } from "./server.js"
 
 export const withSpan = (source: ErrorSource) => <A, E, R>(self: Effect.Effect<A, E, R>): Effect.Effect<A, E, R> =>
   Effect.withSpan(self, spanName(source), spanOptions(source))
@@ -20,6 +21,7 @@ const spanOptions = (source: ErrorSource): Tracer.SpanOptions => ({
   attributes: {
     "db.system.name": "mongodb",
     "db.operation.name": source.functionName,
+    ...serverAttributes(source),
     ...sourceAttributes(source)
   }
 })
@@ -27,15 +29,16 @@ const spanOptions = (source: ErrorSource): Tracer.SpanOptions => ({
 const sourceAttributes = (source: ErrorSource): Record<string, unknown> =>
   F.pipe(
     Match.value(source),
-    Match.tag("ClientErrorSource", (s) => serverAttributes(s.hosts)),
+    Match.tag("ClientErrorSource", () => ({})),
     Match.tag("DbErrorSource", (s) => ({ "db.namespace": s.db })),
     Match.tag("CollectionErrorSource", (s) => ({ "db.namespace": s.db, "db.collection.name": s.collection })),
     Match.exhaustive
   )
 
-const serverAttributes = (hosts: Array<string>): Record<string, unknown> => {
-  if (hosts.length !== 1) return {}
-  const [address, port] = splitHost(hosts[0])
+const serverAttributes = (server: Server): Record<string, unknown> => {
+  if (server.srvHost !== undefined) return { "server.address": server.srvHost }
+  if (server.hosts.length !== 1) return {}
+  const [address, port] = splitHost(server.hosts[0])
   return port === undefined ? { "server.address": address } : { "server.address": address, "server.port": port }
 }
 

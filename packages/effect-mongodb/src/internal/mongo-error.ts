@@ -25,7 +25,7 @@ const messageFrom = (source: ErrorSource, message?: string) =>
 const messageFromSource = (source: ErrorSource) =>
   F.pipe(
     Match.value(source),
-    Match.tag("ClientErrorSource", (s) => `${baseMessage(s)} - hosts ${s.hosts.join(", ")}`),
+    Match.tag("ClientErrorSource", (s) => `${baseMessage(s)} - hosts ${s.srvHost ?? s.hosts.join(", ")}`),
     Match.tag("DbErrorSource", (s) => `${baseMessage(s)} - ${s.db}`),
     Match.tag("CollectionErrorSource", (s) => `${baseMessage(s)} - ${s.db}.${s.collection}`),
     Match.exhaustive

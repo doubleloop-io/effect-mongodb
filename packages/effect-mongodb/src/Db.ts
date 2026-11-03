@@ -9,10 +9,11 @@ import type { Db as Db_, Document, DropCollectionOptions, ListCollectionsOptions
 import type * as Collection from "./Collection.js"
 import * as DocumentCollection from "./DocumentCollection.js"
 import { mongoOperation } from "./internal/mongo-operation.js"
+import type { Server } from "./internal/server.js"
 import * as ListCollectionsCursor from "./ListCollectionsCursor.js"
 import * as MongoError from "./MongoError.js"
 
-export class Db extends Data.TaggedClass("Db")<{ db: Db_ }> {}
+export class Db extends Data.TaggedClass("Db")<{ db: Db_; server: Server }> {}
 
 export const documentCollection: {
   (name: string): (db: Db) => DocumentCollection.DocumentCollection
@@ -21,7 +22,8 @@ export const documentCollection: {
   (args) => isDb(args[0]),
   (db: Db, name: string): DocumentCollection.DocumentCollection =>
     new DocumentCollection.DocumentCollectionImpl({
-      collection: db.db.collection(name)
+      collection: db.db.collection(name),
+      server: db.server
     })
 )
 
@@ -69,7 +71,10 @@ export const listCollections: {
 } = F.dual(
   (args) => isDb(args[0]),
   (db: Db, filter?: Document, options?: ListCollectionsOptions): ListCollectionsCursor.ListCollectionsCursor =>
-    new ListCollectionsCursor.ListCollectionsCursorImpl({ cursor: db.db.listCollections(filter, options) })
+    new ListCollectionsCursor.ListCollectionsCursorImpl({
+      cursor: db.db.listCollections(filter, options),
+      server: db.server
+    })
 )
 
 export const dropCollection: {
@@ -89,4 +94,4 @@ export const dropCollection: {
 const isDb = (x: unknown) => x instanceof Db
 
 const errorSource = (db: Db, functionName: string) =>
-  new MongoError.DbErrorSource({ module: "Db", functionName, db: db.db.databaseName })
+  new MongoError.DbErrorSource({ module: "Db", functionName, db: db.db.databaseName, ...db.server })
