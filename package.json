@@ -23,6 +23,7 @@
     "changeset-publish": "pnpm lint-fix && pnpm build && TEST_DIST= pnpm vitest && changeset publish --tag effect-v3",
     "changeset-status": "changeset status --verbose",
     "check-source-state": "git add packages/*/src && git diff-index --cached HEAD --exit-code packages/*/src",
+    "check-changesets": "node scripts/check-changesets.mjs",
     "infra": "docker compose up"
   },
   "devDependencies": {

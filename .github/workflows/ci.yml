@@ -28,6 +28,9 @@ jobs:
       - name: Check source state
         run: pnpm check-source-state
 
+      - name: Check changesets
+        run: pnpm check-changesets
+
       - name: Types
         run: |
           pnpm check
