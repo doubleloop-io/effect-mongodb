@@ -1,13 +1,14 @@
-import * as Db from "effect-mongodb/Db"
+import type * as Db from "effect-mongodb/Db"
+import * as MongoClient from "effect-mongodb/MongoClient"
 import * as Effect from "effect/Effect"
 import type { Db as Db_ } from "mongodb"
-import { MongoClient } from "mongodb"
+import { MongoClient as MongoClient_ } from "mongodb"
 import { afterAll, beforeAll, describe, inject } from "vitest"
 
 type MongoContext = {
-  client: Effect.Effect<MongoClient>
+  client: Effect.Effect<MongoClient_>
   database: Effect.Effect<Db.Db>
-  _client: () => MongoClient
+  _client: () => MongoClient_
   _database: () => Db_
 }
 
@@ -16,12 +17,12 @@ export const describeMongo = (
   tests: (ctx: MongoContext) => void
 ) => {
   describe(suiteName, () => {
-    let client: MongoClient
+    let client: MongoClient_
     let database: Db_
     let databaseName: string
 
     beforeAll(async () => {
-      client = new MongoClient(inject("mongoConnectionString"), {
+      client = new MongoClient_(inject("mongoConnectionString"), {
         directConnection: true
       })
       await client.connect()
@@ -42,7 +43,7 @@ export const describeMongo = (
       _client: () => client,
       _database: () => database,
       client: Effect.sync(() => client),
-      database: Effect.sync(() => new Db.Db({ db: database }))
+      database: Effect.sync(() => MongoClient.db(new MongoClient.MongoClient({ client }), databaseName))
     })
   })
 }

@@ -9,6 +9,7 @@ import type { DbOptions, MongoClientOptions } from "mongodb"
 import { MongoClient as MongoClient_ } from "mongodb"
 import * as Db from "./Db.js"
 import { mongoOperation } from "./internal/mongo-operation.js"
+import * as Server from "./internal/server.js"
 import * as MongoError from "./MongoError.js"
 
 export class MongoClient extends Data.TaggedClass("MongoClient")<{ client: MongoClient_ }> {}
@@ -19,7 +20,7 @@ export const connect = (
 ): Effect.Effect<MongoClient, MongoError.MongoError> =>
   Effect.promise(() => MongoClient_.connect(url, options)).pipe(
     Effect.map((client) => new MongoClient({ client })),
-    mongoOperation(errorSource(hostsFromUrl(url), "connect"))
+    mongoOperation(errorSource(Server.fromUrl(url), "connect"))
   )
 
 export const close: {
@@ -29,7 +30,7 @@ export const close: {
   (args) => isMongoClient(args[0]),
   ({ client }: MongoClient, force?: boolean): Effect.Effect<void, MongoError.MongoError> =>
     Effect.promise(() => client.close(force)).pipe(
-      mongoOperation(errorSource(client.options.hosts.map((x) => x.host ?? UNKNOWN_HOST), "close"))
+      mongoOperation(errorSource(Server.fromClient(client), "close"))
     )
 )
 
@@ -50,23 +51,10 @@ export const db: {
 } = F.dual(
   (args) => isMongoClient(args[0]),
   ({ client }: MongoClient, dbName?: string, options?: DbOptions): Db.Db =>
-    new Db.Db({ db: client.db(dbName, options) })
+    new Db.Db({ db: client.db(dbName, options), server: Server.fromClient(client) })
 )
 
 const isMongoClient = (x: unknown) => x instanceof MongoClient
 
-const errorSource = (hosts: Array<string>, functionName: string) =>
-  new MongoError.ClientErrorSource({ module: "MongoClient", functionName, hosts })
-
-const SCHEME = /mongodb(?:\+srv)?:\/\//
-const CREDENTIALS = /(?:[^/?]*@)?/
-const HOSTS = /([^/?]+)/
-// https://www.mongodb.com/docs/manual/reference/connection-string-formats/
-const MONGO_CONNECTION_STRING = new RegExp(`^${SCHEME.source}${CREDENTIALS.source}${HOSTS.source}`, "i")
-
-const hostsFromUrl = (url: string) => {
-  const match = url.match(MONGO_CONNECTION_STRING)
-  return match ? match[1].split(",") : [UNKNOWN_HOST]
-}
-
-const UNKNOWN_HOST = "NO_HOST"
+const errorSource = (server: Server.Server, functionName: string) =>
+  new MongoError.ClientErrorSource({ module: "MongoClient", functionName, ...server })

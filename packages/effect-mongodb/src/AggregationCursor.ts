@@ -9,10 +9,12 @@ import * as Schema from "effect/Schema"
 import * as Stream from "effect/Stream"
 import type { AggregationCursor as MongoAggregationCursor } from "mongodb"
 import { mongoOperation, mongoStreamOperation } from "./internal/mongo-operation.js"
+import type { Server } from "./internal/server.js"
 import * as MongoError from "./MongoError.js"
 
 interface AggregationCursorFields<A, I = A, RD = never, RE = never> {
   cursor: MongoAggregationCursor<unknown>
+  server: Server
   schema: Schema.Codec<A, I, RD, RE>
 }
 
@@ -54,5 +56,6 @@ const errorSource = <A, I, RD, RE>(cursor: AggregationCursor<A, I, RD, RE>, func
     module: "AggregationCursor",
     functionName,
     db: cursor.cursor.namespace.db,
-    collection: cursor.cursor.namespace.collection ?? "NO_COLLECTION_NAME"
+    collection: cursor.cursor.namespace.collection ?? "NO_COLLECTION_NAME",
+    ...cursor.server
   })

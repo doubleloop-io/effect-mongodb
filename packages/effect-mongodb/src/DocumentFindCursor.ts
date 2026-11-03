@@ -10,10 +10,12 @@ import * as Stream from "effect/Stream"
 import type { Collection as MongoCollection, Document, Filter, FindOptions, Sort, SortDirection } from "mongodb"
 import * as FindCursor from "./FindCursor.js"
 import { mongoOperation, mongoStreamOperation } from "./internal/mongo-operation.js"
+import type { Server } from "./internal/server.js"
 import * as MongoError from "./MongoError.js"
 
 type DocumentFindCursorFields = {
   collection: MongoCollection
+  server: Server
   filter: Filter<Document>
   options: FindOptions
 }
@@ -94,6 +96,7 @@ export const typed: {
 ): FindCursor.FindCursor<A, I, RD, RE> =>
   new FindCursor.FindCursorImpl<A, I, RD, RE>({
     collection: cursor.collection,
+    server: cursor.server,
     filter: cursor.filter,
     options: cursor.options,
     schema
@@ -108,5 +111,6 @@ const errorSource = (cursor: DocumentFindCursor, functionName: string) =>
     module: "DocumentFindCursor",
     functionName,
     db: cursor.collection.dbName,
-    collection: cursor.collection.collectionName
+    collection: cursor.collection.collectionName,
+    ...cursor.server
   })

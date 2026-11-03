@@ -19,10 +19,12 @@ import type {
 } from "mongodb"
 import type { Filter as Filter_ } from "./internal/filter.js"
 import { mongoOperation, mongoStreamOperation } from "./internal/mongo-operation.js"
+import type { Server } from "./internal/server.js"
 import * as MongoError from "./MongoError.js"
 
 type FindCursorFields<A, I = A, RD = never, RE = never> = {
   collection: MongoCollection
+  server: Server
   filter: MongoFilter<Document>
   options: MongoFindOptions
   schema: Schema.Codec<A, I, RD, RE>
@@ -173,5 +175,6 @@ const errorSource = <A, I, RD, RE>(cursor: FindCursor<A, I, RD, RE>, functionNam
     module: "FindCursor",
     functionName,
     db: cursor.collection.dbName,
-    collection: cursor.collection.collectionName
+    collection: cursor.collection.collectionName,
+    ...cursor.server
   })

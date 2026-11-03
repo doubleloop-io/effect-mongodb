@@ -11,6 +11,7 @@ import type {
   ListCollectionsCursor as MongoListCollectionsCursor
 } from "mongodb"
 import { mongoOperation, mongoStreamOperation } from "./internal/mongo-operation.js"
+import type { Server } from "./internal/server.js"
 import * as MongoError from "./MongoError.js"
 
 export type NameOnlyCollectionInfo = Pick<MongoCollectionInfo, "name" | "type">
@@ -20,6 +21,7 @@ type DefaultCollectionInfo = NameOnlyCollectionInfo | FullCollectionInfo
 
 type ListCollectionsCursorFields<T extends DefaultCollectionInfo = DefaultCollectionInfo> = {
   cursor: MongoListCollectionsCursor<T>
+  server: Server
 }
 
 export interface ListCollectionsCursor<T extends DefaultCollectionInfo = DefaultCollectionInfo>
@@ -60,5 +62,6 @@ const errorSource = (cursor: ListCollectionsCursor, functionName: string) =>
     module: "ListCollectionsCursor",
     functionName,
     db: cursor.cursor.namespace.db,
-    collection: cursor.cursor.namespace.collection ?? "NO_COLLECTION_NAME"
+    collection: cursor.cursor.namespace.collection ?? "NO_COLLECTION_NAME",
+    ...cursor.server
   })

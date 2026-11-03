@@ -44,10 +44,12 @@ import type { Filter as Filter_ } from "./internal/filter.js"
 import type { ModifyResult } from "./internal/modify-result.js"
 import { mongoOperation } from "./internal/mongo-operation.js"
 import * as SchemaExt from "./internal/schema.js"
+import type { Server } from "./internal/server.js"
 import * as MongoError from "./MongoError.js"
 
 type CollectionFields<A extends Document, I extends Document = A, RD = never, RE = never> = {
   collection: MongoCollection
+  server: Server
   schema: Schema.Codec<A, I, RD, RE>
 }
 
@@ -90,6 +92,7 @@ export const find: {
   ): FindCursor.FindCursor<A, I, RD, RE> =>
     new FindCursor.FindCursorImpl<A, I, RD, RE>({
       collection: collection.collection,
+      server: collection.server,
       filter: filter ?? {},
       options: options ?? {},
       schema: collection.schema
@@ -478,7 +481,11 @@ export const rename: {
     F.pipe(
       Effect.promise(() => collection.collection.rename(newName, options)),
       Effect.map((newCollection) =>
-        new CollectionImpl<A, I, RD, RE>({ collection: newCollection, schema: collection.schema })
+        new CollectionImpl<A, I, RD, RE>({
+          collection: newCollection,
+          server: collection.server,
+          schema: collection.schema
+        })
       ),
       mongoOperation(errorSource(collection, "rename"))
     )
@@ -617,6 +624,7 @@ export const aggregate: {
   ): AggregationCursor.AggregationCursor<B, BI, BRD, BRE> =>
     new AggregationCursor.AggregationCursorImpl<B, BI, BRD, BRE>({
       cursor: collection.collection.aggregate([...pipeline], options),
+      server: collection.server,
       schema
     })
 )
@@ -700,5 +708,6 @@ const errorSource = <A extends Document, I extends Document = A, RD = never, RE 
     module: "Collection",
     functionName,
     db: collection.collection.dbName,
-    collection: collection.collection.collectionName
+    collection: collection.collection.collectionName,
+    ...collection.server
   })

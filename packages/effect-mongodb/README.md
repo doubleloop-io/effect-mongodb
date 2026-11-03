@@ -113,11 +113,14 @@ Spans are annotated with the [OpenTelemetry database attributes](https://opentel
 | `db.operation.name`  | the name of the called function, e.g. `findOne`        |
 | `db.namespace`       | the database name, for database and collection modules |
 | `db.collection.name` | the collection name, for collection and cursor modules |
-| `server.address`     | the host, for `MongoClient` operations                 |
-| `server.port`        | the port, for `MongoClient` operations                 |
+| `server.address`     | the host, or the SRV host for SRV connection strings   |
+| `server.port`        | the port, omitted for SRV connection strings           |
 
 Spans are exported as any other Effect span, e.g. through
 [`@effect/opentelemetry`](https://github.com/Effect-TS/effect/tree/main/packages/opentelemetry).
+
+The server attributes are omitted when the connection string lists several seed hosts without SRV, because the
+library cannot know which member serves the operation.
 
 ## Known limitations
 

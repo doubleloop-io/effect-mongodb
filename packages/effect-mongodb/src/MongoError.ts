@@ -8,12 +8,15 @@ export class ClientErrorSource extends Data.TaggedClass("ClientErrorSource")<{
   module: string
   functionName: string
   hosts: Array<string>
+  srvHost?: string
 }> {}
 
 export class DbErrorSource extends Data.TaggedClass("DbErrorSource")<{
   module: string
   functionName: string
   db: string
+  hosts: Array<string>
+  srvHost?: string
 }> {}
 
 export class CollectionErrorSource extends Data.TaggedClass("CollectionErrorSource")<{
@@ -21,6 +24,8 @@ export class CollectionErrorSource extends Data.TaggedClass("CollectionErrorSour
   functionName: string
   db: string
   collection: string
+  hosts: Array<string>
+  srvHost?: string
 }> {}
 
 export type ErrorSource = ClientErrorSource | DbErrorSource | CollectionErrorSource
