@@ -1,5 +1,5 @@
 ---
-"effect-mongodb": minor
+"effect-mongodb": patch
 ---
 
 Add `server.address` and `server.port` to `Db`, `Collection` and cursor spans
