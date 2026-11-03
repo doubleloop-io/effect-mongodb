@@ -1,5 +1,17 @@
 # effect-mongodb
 
+## 0.7.1
+
+### Patch Changes
+
+- [#81](https://github.com/doubleloop-io/effect-mongodb/pull/81) [`0ec25d9`](https://github.com/doubleloop-io/effect-mongodb/commit/0ec25d94517335ef99013a19b8079e0b54482b3c) Thanks @VenomAV! - Add `server.address` and `server.port` to `Db`, `Collection` and cursor spans
+
+  `Db`, `DocumentCollection`, `Collection` and every cursor now carry the client hosts, so their spans expose the same
+  `server.address`/`server.port` attributes as the `MongoClient` spans. With an SRV connection string `server.address` is
+  the SRV host and `server.port` is omitted. With several seed hosts the server attributes are omitted.
+
+  `DbErrorSource` and `CollectionErrorSource` gain `hosts` and `srvHost`; `ClientErrorSource` gains `srvHost`.
+
 ## 0.7.0
 
 ### Minor Changes
