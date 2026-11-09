@@ -1,11 +1,22 @@
 ---
 import StarlightHero from "@astrojs/starlight/components/Hero.astro"
+import { effectV3Tag, publishedSite } from "../site/publishedSite.ts"
 
 const descriptions = Astro.locals.starlightRoute.entry.data.hero?.descriptions
+const effectV3Url = `${publishedSite.repositoryUrl}/tree/${encodeURIComponent(effectV3Tag)}`
 ---
 
 <StarlightHero />
-{descriptions && <div class="sl-markdown-content descriptions" set:html={descriptions} />}
+{
+  descriptions && (
+    <div class="sl-markdown-content below-hero">
+      <div class="descriptions" set:html={descriptions} />
+      <p class="notice" role="note">
+        Docs for Effect v4 (&gt;= 0.8). For Effect v3 see <a href={effectV3Url}>0.7.x</a>
+      </p>
+    </div>
+  )
+}
 
 <style>
   /* The package descriptions stay close to the buttons they explain, away from the content below them. */
@@ -13,8 +24,8 @@ const descriptions = Astro.locals.starlightRoute.entry.data.hero?.descriptions
     padding-bottom: 0;
   }
 
-  /* The descriptions follow the buttons with the hero's own gap, and take over its bottom padding. */
-  .descriptions {
+  /* This block follows the buttons with the hero's own gap, and takes over its bottom padding. */
+  .below-hero {
     margin-top: clamp(1.5rem, calc(1.5rem + 1vw), 2rem);
     padding-bottom: 1rem;
   }
@@ -24,8 +35,14 @@ const descriptions = Astro.locals.starlightRoute.entry.data.hero?.descriptions
     margin-top: 0.25rem;
   }
 
+  /* A quiet line that completes the descriptions, without competing with them. */
+  .notice {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+  }
+
   @media (min-width: 50rem) {
-    .descriptions {
+    .below-hero {
       padding-bottom: clamp(2.5rem, calc(1rem + 10vmin), 10rem);
     }
   }

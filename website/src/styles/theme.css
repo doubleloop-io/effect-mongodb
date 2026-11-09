@@ -67,14 +67,12 @@
 }
 
 /* Monochrome links need an underline to stay distinguishable from body text. */
-.sl-markdown-content a:not(:where(.not-content *)),
-.sl-banner a {
+.sl-markdown-content a:not(:where(.not-content *)) {
   text-decoration-color: var(--sl-color-gray-4);
   text-underline-offset: 0.2em;
 }
 
-.sl-markdown-content a:not(:where(.not-content *)):hover,
-.sl-banner a:hover {
+.sl-markdown-content a:not(:where(.not-content *)):hover {
   text-decoration-color: currentColor;
 }
 
@@ -135,13 +133,4 @@ h4,
 .pagination-links svg {
   width: 1.125rem;
   height: 1.125rem;
-}
-
-/* The version banner is a quiet notice, not an accent block. */
-.sl-banner {
-  --sl-color-banner-bg: var(--sl-color-gray-6);
-  --sl-color-banner-text: var(--sl-color-gray-2);
-  font-size: var(--sl-text-sm);
-  box-shadow: none;
-  border-bottom: 1px solid var(--sl-color-hairline);
 }
