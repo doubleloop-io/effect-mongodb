@@ -9,6 +9,8 @@ A [MongoDB](https://github.com/mongodb/node-mongodb-native) toolkit for [Effect]
 
 ## Getting started
 
+effect-mongodb is the **core package** that provides effectful APIs to work with MongoDB.
+
 ### Install
 
 ```shell
