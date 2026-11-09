@@ -4,5 +4,6 @@ export const publishedSite = {
   repositoryUrl: "https://github.com/doubleloop-io/effect-mongodb"
 }
 
-// Effect v3 docs are not published: the last v3-compatible tag shows its READMEs and examples on GitHub
-export const effectV3Tag = "effect-mongodb@0.7.0"
+// Effect v3 docs are not published: this moving tag shows the READMEs and examples of the latest 0.7.x on GitHub.
+// The release workflow of the v0.7.x branch advances it at every publish.
+export const effectV3Tag = "effect-v3"
