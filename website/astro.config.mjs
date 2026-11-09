@@ -35,8 +35,7 @@ export default defineConfig({
       components: {
         Footer: "./src/components/Footer.astro",
         Hero: "./src/components/Hero.astro"
-      },
-      routeMiddleware: "./src/routeData.ts"
+      }
     })
   ]
 })
