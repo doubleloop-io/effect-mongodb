@@ -47,6 +47,25 @@ test("takes the snippet from the first code block", () => {
   expect(page.snippet).toBe("```typescript\nconst answer = 42\n```")
 })
 
+test("takes the descriptions from the Documentation section as HTML, resolving their links", () => {
+  const documentation = `## Documentation
+
+[core](packages/core/README.md) is the **core** package.
+
+[extras](packages/extras/README.md) adds extras.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).`
+
+  const page = homePage(readme({ documentation }), resolveLink)
+
+  expect(page.hero.descriptions).toBe(
+    `<p><a href="resolved:packages/core/README.md">core</a> is the <strong>core</strong> package.</p>
+<p><a href="resolved:packages/extras/README.md">extras</a> adds extras.</p>`
+  )
+})
+
 test("turns the Documentation links into actions, the first one primary, resolving their destinations", () => {
   const documentation = `## Documentation
 
@@ -80,6 +99,7 @@ test("the repository README yields a complete home page", () => {
 
   expect(page.title).toBe("effect-mongodb")
   expect(page.hero.tagline).toMatch(/^A <a href="[^"]+">MongoDB<\/a> toolkit/)
+  expect(page.hero.descriptions).toContain("is the <strong>core package</strong>")
   expect(page.snippet).toMatch(/^```typescript\n/)
   expect(page.hero.actions.map(({ text }) => text)).toEqual(["effect-mongodb", "@effect-mongodb/services"])
 })

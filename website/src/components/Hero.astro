@@ -1,0 +1,32 @@
+---
+import StarlightHero from "@astrojs/starlight/components/Hero.astro"
+
+const descriptions = Astro.locals.starlightRoute.entry.data.hero?.descriptions
+---
+
+<StarlightHero />
+{descriptions && <div class="sl-markdown-content descriptions" set:html={descriptions} />}
+
+<style>
+  /* The package descriptions stay close to the buttons they explain, away from the content below them. */
+  :global(.hero) {
+    padding-bottom: 0;
+  }
+
+  /* The descriptions follow the buttons with the hero's own gap, and take over its bottom padding. */
+  .descriptions {
+    margin-top: clamp(1.5rem, calc(1.5rem + 1vw), 2rem);
+    padding-bottom: 1rem;
+  }
+
+  /* The descriptions read as a list of packages, so they get the gap Starlight gives list items. */
+  .descriptions :global(p + p) {
+    margin-top: 0.25rem;
+  }
+
+  @media (min-width: 50rem) {
+    .descriptions {
+      padding-bottom: clamp(2.5rem, calc(1rem + 10vmin), 10rem);
+    }
+  }
+</style>

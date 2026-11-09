@@ -4,14 +4,18 @@ import { fromMarkdown } from "mdast-util-from-markdown"
 import { toHast } from "mdast-util-to-hast"
 import { toString } from "mdast-util-to-string"
 import type { LinkResolver } from "./siteLinks.ts"
+import { sectionMarkdown } from "./splitReadme.ts"
 
 export const homePage = (readme: string, resolveLink: LinkResolver) => {
   const tree = fromMarkdown(readme)
   const title = toString(h1(tree))
+  const documentation = section(tree, "Documentation")
+  const descriptions = markdownHtml(sectionMarkdown(readme, documentation, resolveLink))
+  const snippet = sourceOf(readme, firstCodeBlock(tree))
   return {
     title,
-    hero: { title, tagline: phrasingHtml(tagline(tree)), actions: actions(tree, resolveLink) },
-    snippet: sourceOf(readme, firstCodeBlock(tree))
+    hero: { title, tagline: phrasingHtml(tagline(tree)), actions: actions(tree, resolveLink), descriptions },
+    snippet
   }
 }
 
@@ -48,6 +52,8 @@ const isBadgeOrBlank = (node: PhrasingContent): boolean =>
   node.type === "image"
   || (node.type === "link" && node.children.every(isBadgeOrBlank))
   || (node.type === "text" && node.value.trim() === "")
+
+const markdownHtml = (markdown: string) => toHtml(toHast(fromMarkdown(markdown)))
 
 const phrasingHtml = (phrasing: Array<PhrasingContent>) => {
   const paragraph = toHast({ type: "paragraph", children: phrasing })
