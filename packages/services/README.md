@@ -9,6 +9,8 @@
 
 ## Getting started
 
+@effect-mongodb/services is the package that provides Effect **services** for effect-mongodb.
+
 ### Install
 
 ```shell
