@@ -75,14 +75,14 @@ type Edit = { readonly start: number; readonly end: number; readonly text: strin
  */
 export const sectionMarkdown = (
   readme: string,
-  section: ReadmeSection,
+  nodes: ReadonlyArray<RootContent>,
   resolveLink: LinkResolver,
   { promoteHeadings = true } = {}
 ) => {
-  const start = offset(section.nodes[0], "start")
-  const end = offset(section.nodes[section.nodes.length - 1], "end")
+  const start = offset(nodes[0], "start")
+  const end = offset(nodes[nodes.length - 1], "end")
   if (start === undefined || end === undefined) return ""
-  const edits = section.nodes.flatMap(descendants).flatMap((node) =>
+  const edits = nodes.flatMap(descendants).flatMap((node) =>
     node.type === "heading"
       ? promoteHeadings ? promote(node) : []
       : node.type === "link" || node.type === "definition"

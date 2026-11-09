@@ -75,7 +75,7 @@ export const repositorySite = (repository: Repository, options: SiteOptions) => 
     sections.map((section): SitePage => ({
       id: pageId(route, section),
       title: section.title,
-      markdown: sectionMarkdown(readme, section, (url) => resolveLink(url, path)),
+      markdown: sectionMarkdown(readme, section.nodes, (url) => resolveLink(url, path)),
       sourcePath: path
     }))
   )
@@ -87,7 +87,7 @@ export const repositorySite = (repository: Repository, options: SiteOptions) => 
   const documentPages = documents.map(({ body, markdown, path, route, section }): SitePage => ({
     id: route,
     title: body.title,
-    markdown: sectionMarkdown(markdown, body, (url) => resolveLink(url, path), {
+    markdown: sectionMarkdown(markdown, body.nodes, (url) => resolveLink(url, path), {
       promoteHeadings: section !== undefined
     }),
     sourcePath: path

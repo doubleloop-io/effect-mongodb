@@ -33,7 +33,8 @@ export default defineConfig({
         "./src/styles/theme.css"
       ],
       components: {
-        Footer: "./src/components/Footer.astro"
+        Footer: "./src/components/Footer.astro",
+        Hero: "./src/components/Hero.astro"
       },
       routeMiddleware: "./src/routeData.ts"
     })
