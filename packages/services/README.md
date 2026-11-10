@@ -28,7 +28,7 @@ Each version of @effect-mongodb/services supports only one major version of Effe
 | v4     | >= 0.8.0                 |
 | v3     | <= 0.7.x                 |
 
-Version [0.7.x](https://github.com/doubleloop-io/effect-mongodb/tree/effect-v3/packages/services) receives bug fixes when necessary.
+Version [0.7.x](https://github.com/doubleloop-io/effect-mongodb/tree/v0.7.x/packages/services) receives bug fixes when necessary.
 
 ### Usage
 
