@@ -1,9 +1,9 @@
 ---
 import StarlightHero from "@astrojs/starlight/components/Hero.astro"
-import { effectV3Tag, publishedSite } from "../site/publishedSite.ts"
+import { effectV3Branch, publishedSite } from "../site/publishedSite.ts"
 
 const descriptions = Astro.locals.starlightRoute.entry.data.hero?.descriptions
-const effectV3Url = `${publishedSite.repositoryUrl}/tree/${encodeURIComponent(effectV3Tag)}`
+const effectV3Url = `${publishedSite.repositoryUrl}/tree/${encodeURIComponent(effectV3Branch)}`
 ---
 
 <StarlightHero />

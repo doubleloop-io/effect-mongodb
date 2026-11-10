@@ -28,7 +28,7 @@ Each version of effect-mongodb supports only one major version of Effect:
 | v4     | >= 0.8.0       |
 | v3     | <= 0.7.x       |
 
-Version [0.7.x](https://github.com/doubleloop-io/effect-mongodb/tree/effect-v3/packages/effect-mongodb) receives bug fixes when necessary.
+Version [0.7.x](https://github.com/doubleloop-io/effect-mongodb/tree/v0.7.x/packages/effect-mongodb) receives bug fixes when necessary.
 
 ### Usage
 
