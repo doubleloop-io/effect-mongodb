@@ -58,7 +58,7 @@ For example, upgrading the Node.js driver from 6.8 to 6.10 will make it incompat
 
 ## More from doubleloop
 
-[oxlint-plugin-effect](https://doubleloop-io.github.io/oxlint-plugin-effect/): a set of Oxlint rules for Effect, by the same authors.
+[oxlint-plugin-effect](https://doubleloop-io.github.io/oxlint-plugin-effect/): a set of [Oxlint](https://github.com/oxc-project/oxc) rules for Effect, by the same authors.
 
 ## Contributing
 
