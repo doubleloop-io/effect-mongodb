@@ -44,13 +44,13 @@ const loadSite = async (context: LoaderContext, repositoryRoot: string) => {
 
   context.store.clear()
   if (site.home !== undefined) {
-    const { hero, snippet, sourcePath, title } = site.home
+    const { body, hero, sourcePath, title } = site.home
     await storeEntry({
       id: "index",
       data: { title, template: "splash", hero },
-      body: snippet,
+      body,
       source: sourcePath,
-      digest: snippet + JSON.stringify(hero)
+      digest: body + JSON.stringify(hero)
     })
   }
   for (const page of site.pages) {

@@ -56,6 +56,10 @@ guidelines, so minor releases might break compatibility with older MongoDB serve
 
 For example, upgrading the Node.js driver from 6.8 to 6.10 will make it incompatible with MongoDB server 3.6.
 
+## More from doubleloop
+
+[oxlint-plugin-effect](https://doubleloop-io.github.io/oxlint-plugin-effect/): a set of Oxlint rules for Effect, by the same authors.
+
 ## Contributing
 
 Take a look at the [CONTRIBUTING.md](CONTRIBUTING.md) guidelines.

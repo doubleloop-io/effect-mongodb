@@ -34,7 +34,7 @@ test("the sidebar has a group per published README, labelled by its H1 and listi
 
 test("the home page actions point to the pages of the published READMEs", () => {
   const rootReadme =
-    "# repo\n\nA repo.\n\n```ts\nlib\n```\n\n## Documentation\n\n[lib](packages/lib/README.md) is the library."
+    "# repo\n\nA repo.\n\n```ts\nlib\n```\n\n## Documentation\n\n[lib](packages/lib/README.md) is the library.\n\n## More from doubleloop\n\nOther."
 
   const { home } = repositorySite(
     inMemoryRepository({ "README.md": rootReadme, "packages/lib/README.md": libReadme("## Getting started\n\nGo.") }),
@@ -189,7 +189,7 @@ test("a published file without a section becomes a single page titled by its H1,
 
 test("the sidebar lists the Overview, then the top pages, the README groups and the bottom pages", () => {
   const readme = rootReadme(
-    "```ts\nrepo\n```\n\n## Documentation\n\n[lib](packages/lib/README.md).\n\n## Compatibility\n\nv4."
+    "```ts\nrepo\n```\n\n## Documentation\n\n[lib](packages/lib/README.md).\n\n## Compatibility\n\nv4.\n\n## More from doubleloop\n\nOther."
   )
 
   const { sidebar } = repositorySite(

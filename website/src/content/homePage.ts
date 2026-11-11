@@ -15,9 +15,18 @@ export const homePage = (readme: string, resolveLink: LinkResolver) => {
   return {
     title,
     hero: { title, tagline: phrasingHtml(tagline(tree)), actions: actions(tree, resolveLink), descriptions },
-    snippet
+    body: markdownBlocks(snippet, moreFrom(readme, tree, resolveLink))
   }
 }
+
+// The section linking the other doubleloop projects, with the README's own heading, for the page body
+const moreFrom = (readme: string, tree: Root, resolveLink: LinkResolver) => {
+  const moreFromHeading = "More from doubleloop"
+  return sectionMarkdown(readme, sectionWithHeading(tree, moreFromHeading), resolveLink, { promoteHeadings: false })
+}
+
+/** Joins the given Markdown blocks with a blank line. */
+const markdownBlocks = (...blocks: ReadonlyArray<string>) => blocks.join("\n\n")
 
 const h1 = (tree: Root) => {
   const heading = tree.children.find((node): node is Heading => node.type === "heading" && node.depth === 1)
@@ -67,13 +76,15 @@ const actions = (tree: Root, resolveLink: LinkResolver) =>
     variant: index === 0 ? "primary" as const : "secondary" as const
   }))
 
-const section = (tree: Root, heading: string) => {
+const section = (tree: Root, heading: string) => sectionWithHeading(tree, heading).slice(1)
+
+const sectionWithHeading = (tree: Root, heading: string) => {
   const start = tree.children.findIndex((node) =>
     node.type === "heading" && node.depth === 2 && toString(node) === heading
   )
   if (start === -1) throw new Error(`The README must have a "## ${heading}" section`)
   const end = tree.children.findIndex((node, index) => index > start && node.type === "heading" && node.depth <= 2)
-  return tree.children.slice(start + 1, end === -1 ? undefined : end)
+  return tree.children.slice(start, end === -1 ? undefined : end)
 }
 
 const links = (node: Nodes | RootContent): Array<Link> =>

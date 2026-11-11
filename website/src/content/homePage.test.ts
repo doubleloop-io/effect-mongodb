@@ -8,8 +8,9 @@ const readme = ({
   title = "# lib",
   intro = "A library.",
   snippet = "```ts\nconst lib = {}\n```",
-  documentation = "## Documentation\n\n[lib](packages/lib/README.md) is the library."
-} = {}) => [title, intro, snippet, documentation].join("\n\n")
+  documentation = "## Documentation\n\n[lib](packages/lib/README.md) is the library.",
+  moreFrom = "## More from doubleloop\n\n[other](https://other.example): another project."
+} = {}) => [title, intro, snippet, documentation, moreFrom].join("\n\n")
 
 test("takes the title from the H1", () => {
   const page = homePage(readme({ title: "# my-library" }), resolveLink)
@@ -39,12 +40,12 @@ test("drops badges that share the tagline paragraph", () => {
   expect(page.hero.tagline).toBe("A library.")
 })
 
-test("takes the snippet from the first code block", () => {
+test("starts the body with the first code block", () => {
   const snippet = "```typescript\nconst answer = 42\n```\n\n```sh\nnpm install lib\n```"
 
   const page = homePage(readme({ snippet }), resolveLink)
 
-  expect(page.snippet).toBe("```typescript\nconst answer = 42\n```")
+  expect(page.body).toMatch(/^```typescript\nconst answer = 42\n```\n\n## More from doubleloop/)
 })
 
 test("takes the descriptions from the Documentation section as HTML, resolving their links", () => {
@@ -85,11 +86,28 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).`
   ])
 })
 
+test("appends the More from doubleloop section to the body, with its heading, resolving its links", () => {
+  const moreFrom = `## More from doubleloop
+
+[other](https://other.example): another project.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).`
+
+  const page = homePage(readme({ moreFrom }), resolveLink)
+
+  expect(page.body).toBe(
+    "```ts\nconst lib = {}\n```\n\n## More from doubleloop\n\n[other](resolved:https://other.example): another project."
+  )
+})
+
 test.each([
   ["has no H1", { title: "" }, /H1/],
   ["has only badges before the snippet", { intro: "![npm](https://npm.example/badge.svg)" }, /tagline/],
   ["has no code block", { snippet: "" }, /code/],
-  ["has no Documentation section", { documentation: "" }, /Documentation/]
+  ["has no Documentation section", { documentation: "" }, /Documentation/],
+  ["has no More from doubleloop section", { moreFrom: "" }, /More from doubleloop/]
 ])("fails when the README %s", (_, parts, error) => {
   expect(() => homePage(readme(parts), resolveLink)).toThrow(error)
 })
@@ -100,6 +118,7 @@ test("the repository README yields a complete home page", () => {
   expect(page.title).toBe("effect-mongodb")
   expect(page.hero.tagline).toMatch(/^A <a href="[^"]+">MongoDB<\/a> toolkit/)
   expect(page.hero.descriptions).toContain("is the <strong>core package</strong>")
-  expect(page.snippet).toMatch(/^```typescript\n/)
+  expect(page.body).toMatch(/^```typescript\n/)
   expect(page.hero.actions.map(({ text }) => text)).toEqual(["effect-mongodb", "@effect-mongodb/services"])
+  expect(page.body).toContain("## More from doubleloop\n\n[oxlint-plugin-effect](")
 })
