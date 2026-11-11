@@ -5,7 +5,13 @@ import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
 import type * as Schema from "effect/Schema"
-import type { Db as Db_, Document, DropCollectionOptions, ListCollectionsOptions } from "mongodb"
+import type {
+  CreateCollectionOptions,
+  Db as Db_,
+  Document,
+  DropCollectionOptions,
+  ListCollectionsOptions
+} from "mongodb"
 import type * as Collection from "./Collection.js"
 import * as DocumentCollection from "./DocumentCollection.js"
 import { mongoOperation } from "./internal/mongo-operation.js"
@@ -75,6 +81,32 @@ export const listCollections: {
       cursor: db.db.listCollections(filter, options),
       server: db.server
     })
+)
+
+export const createCollection: {
+  (name: string): (db: Db) => Effect.Effect<DocumentCollection.DocumentCollection, MongoError.MongoError>
+  (
+    name: string,
+    options: CreateCollectionOptions
+  ): (db: Db) => Effect.Effect<DocumentCollection.DocumentCollection, MongoError.MongoError>
+  (db: Db, name: string): Effect.Effect<DocumentCollection.DocumentCollection, MongoError.MongoError>
+  (
+    db: Db,
+    name: string,
+    options: CreateCollectionOptions
+  ): Effect.Effect<DocumentCollection.DocumentCollection, MongoError.MongoError>
+} = F.dual(
+  (args) => isDb(args[0]),
+  (
+    db: Db,
+    name: string,
+    options?: CreateCollectionOptions
+  ): Effect.Effect<DocumentCollection.DocumentCollection, MongoError.MongoError> =>
+    F.pipe(
+      Effect.promise(() => db.db.createCollection(name, options)),
+      Effect.map((collection) => new DocumentCollection.DocumentCollectionImpl({ collection, server: db.server })),
+      mongoOperation(errorSource(db, "createCollection"))
+    )
 )
 
 export const dropCollection: {

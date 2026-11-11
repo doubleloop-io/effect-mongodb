@@ -58,6 +58,22 @@ Db.listCollections(database, { foo: "bar" }, { nameOnly: false })
 F.pipe(database, Db.listCollections({ foo: "bar" }, { nameOnly: false }))
 
 // -------------------------------------------------------------------------------------
+// createCollection
+// -------------------------------------------------------------------------------------
+
+// $ExpectType Effect<DocumentCollection, MongoError, never>
+Db.createCollection(database, "users")
+
+// $ExpectType Effect<DocumentCollection, MongoError, never>
+Db.createCollection(database, "users", { capped: true, size: 1024 })
+
+// $ExpectType Effect<DocumentCollection, MongoError, never>
+F.pipe(database, Db.createCollection("users"))
+
+// $ExpectType Effect<DocumentCollection, MongoError, never>
+F.pipe(database, Db.createCollection("users", { capped: true, size: 1024 }))
+
+// -------------------------------------------------------------------------------------
 // dropCollection
 // -------------------------------------------------------------------------------------
 
