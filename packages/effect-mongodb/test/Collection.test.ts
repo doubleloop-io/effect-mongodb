@@ -1,7 +1,9 @@
 import * as AggregationCursor from "effect-mongodb/AggregationCursor"
 import * as Collection from "effect-mongodb/Collection"
 import * as Db from "effect-mongodb/Db"
+import * as ListIndexesCursor from "effect-mongodb/ListIndexesCursor"
 import * as Effect from "effect/Effect"
+import * as F from "effect/Function"
 import * as O from "effect/Option"
 import * as Schema from "effect/Schema"
 import { expect, test } from "vitest"
@@ -213,6 +215,22 @@ describeMongo("Collection", (ctx) => {
       modifiedCount: 1,
       deletedCount: 1
     })
+  })
+
+  test("list indexes", async () => {
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
+      const collection = Db.collection(db, "list-indexes", User)
+
+      yield* Collection.insertOne(collection, User.make({ name: "john", birthday: new Date(1977, 11, 27) }))
+      yield* Collection.createIndex(collection, { name: 1 })
+
+      return yield* F.pipe(collection, Collection.listIndexes(), ListIndexesCursor.toArray)
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result.map((x) => x.name)).toEqual(["_id_", "name_1"])
   })
 })
 

@@ -249,6 +249,22 @@ Collection.dropIndexes(collection)
 F.pipe(collection, Collection.dropIndexes())
 
 // -------------------------------------------------------------------------------------
+// listIndexes
+// -------------------------------------------------------------------------------------
+
+// $ExpectType ListIndexesCursor
+Collection.listIndexes(collection)
+
+// $ExpectType ListIndexesCursor
+Collection.listIndexes(collection, { batchSize: 10 })
+
+// $ExpectType ListIndexesCursor
+F.pipe(collection, Collection.listIndexes())
+
+// $ExpectType ListIndexesCursor
+F.pipe(collection, Collection.listIndexes({ batchSize: 10 }))
+
+// -------------------------------------------------------------------------------------
 // aggregate
 // -------------------------------------------------------------------------------------
 

@@ -41,6 +41,11 @@ export * as ListCollectionsCursor from "./ListCollectionsCursor.js"
 /**
  * @since 0.0.1
  */
+export * as ListIndexesCursor from "./ListIndexesCursor.js"
+
+/**
+ * @since 0.0.1
+ */
 export * as MongoClient from "./MongoClient.js"
 
 /**

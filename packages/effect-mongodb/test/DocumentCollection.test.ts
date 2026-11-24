@@ -1,11 +1,14 @@
 import * as Db from "effect-mongodb/Db"
 import * as DocumentCollection from "effect-mongodb/DocumentCollection"
 import * as DocumentFindCursor from "effect-mongodb/DocumentFindCursor"
+import * as ListIndexesCursor from "effect-mongodb/ListIndexesCursor"
+import * as MongoError from "effect-mongodb/MongoError"
 import * as Cause from "effect/Cause"
 import * as Chunk from "effect/Chunk"
 import * as Effect from "effect/Effect"
 import * as Exit from "effect/Exit"
 import * as O from "effect/Option"
+import * as Stream from "effect/Stream"
 import { ObjectId } from "mongodb"
 import { expect, test } from "vitest"
 import { describeMongo } from "./support/describe-mongo.js"
@@ -175,5 +178,56 @@ describeMongo("DocumentCollection", (ctx) => {
       ok: 1,
       value: O.some({ _id: expect.any(ObjectId), name: "john", version: "v2" })
     })
+  })
+
+  test("list indexes", async () => {
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
+      const collection = Db.documentCollection(db, "list-indexes")
+
+      yield* DocumentCollection.insertOne(collection, { name: "john" })
+      yield* DocumentCollection.createIndex(collection, { name: 1 })
+
+      return yield* ListIndexesCursor.toArray(DocumentCollection.listIndexes(collection))
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result.map((x) => x.name)).toEqual(["_id_", "name_1"])
+    expect(result.map((x) => x.key)).toEqual([{ _id: 1 }, { name: 1 }])
+  })
+
+  test("list indexes - stream", async () => {
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
+      const collection = Db.documentCollection(db, "list-indexes-stream")
+
+      yield* DocumentCollection.insertOne(collection, { name: "john" })
+      yield* DocumentCollection.createIndex(collection, { name: 1 })
+
+      return yield* DocumentCollection.listIndexes(collection).pipe(
+        ListIndexesCursor.toStream,
+        Stream.runCollect,
+        Effect.map(Chunk.toReadonlyArray)
+      )
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result.map((x) => x.name)).toEqual(["_id_", "name_1"])
+  })
+
+  test("list indexes of non existing collection fails", async () => {
+    const program = Effect.gen(function*() {
+      const db = yield* ctx.database
+      const collection = Db.documentCollection(db, "list-indexes-non-existing-collection")
+
+      return yield* ListIndexesCursor.toArray(DocumentCollection.listIndexes(collection))
+    })
+
+    const result = await Effect.runPromise(Effect.flip(program))
+
+    expect(result).toBeInstanceOf(MongoError.MongoError)
+    expect(result.source).toMatchObject({ module: "ListIndexesCursor", functionName: "toArray" })
   })
 })
