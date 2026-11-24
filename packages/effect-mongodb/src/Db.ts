@@ -10,6 +10,7 @@ import type {
   Db as Db_,
   Document,
   DropCollectionOptions,
+  DropDatabaseOptions,
   ListCollectionsOptions
 } from "mongodb"
 import type * as Collection from "./Collection.js"
@@ -120,6 +121,18 @@ export const dropCollection: {
     F.pipe(
       Effect.promise(() => db.db.dropCollection(name, options)),
       mongoOperation(errorSource(db, "dropCollection"))
+    )
+)
+
+export const dropDatabase: {
+  (options?: DropDatabaseOptions): (db: Db) => Effect.Effect<boolean, MongoError.MongoError>
+  (db: Db, options?: DropDatabaseOptions): Effect.Effect<boolean, MongoError.MongoError>
+} = F.dual(
+  (args) => isDb(args[0]),
+  (db: Db, options?: DropDatabaseOptions): Effect.Effect<boolean, MongoError.MongoError> =>
+    F.pipe(
+      Effect.promise(() => db.db.dropDatabase(options)),
+      mongoOperation(errorSource(db, "dropDatabase"))
     )
 )
 

@@ -1,6 +1,7 @@
 import * as Db from "effect-mongodb/Db"
 import * as DocumentCollection from "effect-mongodb/DocumentCollection"
 import * as ListCollectionsCursor from "effect-mongodb/ListCollectionsCursor"
+import * as MongoClient from "effect-mongodb/MongoClient"
 import * as MongoError from "effect-mongodb/MongoError"
 import * as Effect from "effect/Effect"
 import * as F from "effect/Function"
@@ -65,5 +66,43 @@ describeMongo("Db", (ctx) => {
 
     expect(result).toBeInstanceOf(MongoError.MongoError)
     expect(result.source).toMatchObject({ module: "Db", functionName: "createCollection" })
+  })
+
+  test("drop database", async () => {
+    const program = Effect.gen(function*() {
+      const client = yield* ctx.client
+      const db = MongoClient.db(new MongoClient.MongoClient({ client }), "Db-drop-database")
+      const collection = yield* Db.createCollection(db, "drop-database")
+      yield* DocumentCollection.insertOne(collection, { name: "john" })
+
+      const dropped = yield* Db.dropDatabase(db)
+      const collections = yield* ListCollectionsCursor.toArray(Db.listCollections(db))
+
+      return { dropped, collections }
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result.dropped).toBe(true)
+    expect(result.collections).toEqual([])
+  })
+
+  test("drop database (data-last)", async () => {
+    const program = Effect.gen(function*() {
+      const client = yield* ctx.client
+      const db = MongoClient.db(new MongoClient.MongoClient({ client }), "Db-drop-database-data-last")
+      const collection = yield* Db.createCollection(db, "drop-database")
+      yield* DocumentCollection.insertOne(collection, { name: "john" })
+
+      const dropped = yield* F.pipe(db, Db.dropDatabase())
+      const collections = yield* ListCollectionsCursor.toArray(Db.listCollections(db))
+
+      return { dropped, collections }
+    })
+
+    const result = await Effect.runPromise(program)
+
+    expect(result.dropped).toBe(true)
+    expect(result.collections).toEqual([])
   })
 })
