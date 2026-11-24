@@ -29,6 +29,7 @@ import type {
   InsertManyResult,
   InsertOneOptions,
   InsertOneResult,
+  ListIndexesOptions,
   ModifyResult as MongoModifyResult,
   RenameOptions,
   ReplaceOptions,
@@ -45,6 +46,7 @@ import type { ModifyResult } from "./internal/modify-result.js"
 import { mongoOperation } from "./internal/mongo-operation.js"
 import * as SchemaExt from "./internal/schema.js"
 import type { Server } from "./internal/server.js"
+import * as ListIndexesCursor from "./ListIndexesCursor.js"
 import * as MongoError from "./MongoError.js"
 
 type CollectionFields<A extends Document, I extends Document = A, RD = never, RE = never> = {
@@ -598,6 +600,26 @@ export const dropIndexes: {
       Effect.promise(() => collection.collection.dropIndexes(options)),
       mongoOperation(errorSource(collection, "dropIndexes"))
     )
+)
+
+export const listIndexes: {
+  (options?: ListIndexesOptions): <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>
+  ) => ListIndexesCursor.ListIndexesCursor
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
+    options?: ListIndexesOptions
+  ): ListIndexesCursor.ListIndexesCursor
+} = F.dual(
+  (args) => isCollection(args[0]),
+  <A extends Document, I extends Document, RD, RE>(
+    collection: Collection<A, I, RD, RE>,
+    options?: ListIndexesOptions
+  ): ListIndexesCursor.ListIndexesCursor =>
+    new ListIndexesCursor.ListIndexesCursorImpl({
+      cursor: collection.collection.listIndexes(options),
+      server: collection.server
+    })
 )
 
 export const aggregate: {

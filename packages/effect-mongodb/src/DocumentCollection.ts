@@ -31,6 +31,7 @@ import type {
   InsertManyResult,
   InsertOneOptions,
   InsertOneResult,
+  ListIndexesOptions,
   ModifyResult as MongoModifyResult,
   OptionalUnlessRequiredId,
   RenameOptions,
@@ -46,6 +47,7 @@ import * as DocumentFindCursor from "./DocumentFindCursor.js"
 import type { ModifyResult } from "./internal/modify-result.js"
 import { mongoOperation } from "./internal/mongo-operation.js"
 import type { Server } from "./internal/server.js"
+import * as ListIndexesCursor from "./ListIndexesCursor.js"
 import * as MongoError from "./MongoError.js"
 
 type DocumentCollectionFields = {
@@ -551,6 +553,18 @@ export const dropIndexes: {
       Effect.promise(() => collection.collection.dropIndexes(options)),
       mongoOperation(errorSource(collection, "dropIndexes"))
     )
+)
+
+export const listIndexes: {
+  (options?: ListIndexesOptions): (collection: DocumentCollection) => ListIndexesCursor.ListIndexesCursor
+  (collection: DocumentCollection, options?: ListIndexesOptions): ListIndexesCursor.ListIndexesCursor
+} = F.dual(
+  (args) => isDocumentCollection(args[0]),
+  (collection: DocumentCollection, options?: ListIndexesOptions): ListIndexesCursor.ListIndexesCursor =>
+    new ListIndexesCursor.ListIndexesCursorImpl({
+      cursor: collection.collection.listIndexes(options),
+      server: collection.server
+    })
 )
 
 export const aggregate: {
