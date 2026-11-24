@@ -1,5 +1,13 @@
 # effect-mongodb
 
+## 0.10.0
+
+### Minor Changes
+
+- [`b6bce8c`](https://github.com/doubleloop-io/effect-mongodb/commit/b6bce8c06243ab4757c37c78ef68b0714ba45559) Thanks @devmatteini! - Add `Db.dropDatabase`
+
+- [`0150ab5`](https://github.com/doubleloop-io/effect-mongodb/commit/0150ab512a9969257e87db1745a3d0ea89adcc97) Thanks @devmatteini! - Add `Collection.listIndexes` and `DocumentCollection.listIndexes`
+
 ## 0.9.0
 
 ### Minor Changes
