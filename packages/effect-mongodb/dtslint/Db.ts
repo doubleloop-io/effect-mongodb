@@ -82,3 +82,19 @@ Db.dropCollection(database, "users")
 
 // $ExpectType Effect<boolean, MongoError, never>
 F.pipe(database, Db.dropCollection("users"))
+
+// -------------------------------------------------------------------------------------
+// dropDatabase
+// -------------------------------------------------------------------------------------
+
+// $ExpectType Effect<boolean, MongoError, never>
+Db.dropDatabase(database)
+
+// $ExpectType Effect<boolean, MongoError, never>
+Db.dropDatabase(database, { comment: "x" })
+
+// $ExpectType Effect<boolean, MongoError, never>
+F.pipe(database, Db.dropDatabase())
+
+// $ExpectType Effect<boolean, MongoError, never>
+F.pipe(database, Db.dropDatabase({ comment: "x" }))
